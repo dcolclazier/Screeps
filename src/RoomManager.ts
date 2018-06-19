@@ -14,7 +14,7 @@ export class RoomManager {
   public static minimumWorkerCount: number = 1;
   public static minimumMinerCount: number = 2;
   public static maxWorkersPerRoom: number = 2;
-  public static maxUpgradersPerRoom: number = 5;
+  public static maxUpgradersPerRoom: number = 4;
   minerCount: number = 0;
   //taskManager: TaskManager = new TaskManager();
 
@@ -25,7 +25,7 @@ export class RoomManager {
     this.loadStructures(roomName);
     this.spawnMissingMiners(roomName);
     this.spawnMissingWorkers(roomName);
-    //this.spawnMissingUpgraders(roomName);
+    this.spawnMissingUpgraders(roomName);
 
     //TaskManager.processRoomTasks(roomName);
     TaskManager.Run(roomName);
@@ -147,9 +147,14 @@ export class RoomManager {
       let mem = c.memory as CreepMemory;
       return mem.role == CreepRole.ROLE_MINER;
     });
+    var minersPerSource = 1;
+    var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
+    if (energyLevel == 1) {
+      minersPerSource = 2;
+    }
     let room = Game.rooms[roomName]
     let sources = room.find(FIND_SOURCES);
-    this.minerCount = sources.length
+    this.minerCount = sources.length * minersPerSource
 
     let minersNeeded: number = this.minerCount - currentMiners.length
     // console.log("Miners needed: " + minersNeeded)
@@ -160,14 +165,14 @@ export class RoomManager {
       if (minersSpawned < minersNeeded) {
         let spawner = spawn as StructureSpawn;
         //console.log("spawning miner!")
-        if (CreepManager.trySpawnCreep(spawner, this.getMinerBodyParts(roomName, this.getRoomEnergyLevel(roomName)), CreepRole.ROLE_MINER)) {
+        if (CreepManager.trySpawnCreep(spawner, this.getMinerBodyParts(roomName, RoomManager.getRoomEnergyLevel(roomName)), CreepRole.ROLE_MINER)) {
           minersSpawned++;
         }
       }
     })
   }
   private getWorkerBodyParts(roomID: string): BodyPartConstant[] {
-    let energyLevel = this.getRoomEnergyLevel(roomID);
+    let energyLevel = RoomManager.getRoomEnergyLevel(roomID);
     let room = Game.rooms[roomID];
     let currentEnergy = room.energyAvailable;
 
@@ -185,7 +190,7 @@ export class RoomManager {
     }
   }
   private getUpgraderBodyParts(roomID: string): BodyPartConstant[] {
-    let energyLevel = this.getRoomEnergyLevel(roomID);
+    let energyLevel = RoomManager.getRoomEnergyLevel(roomID);
     let room = Game.rooms[roomID];
     let currentEnergy = room.energyAvailable;
 
@@ -194,7 +199,7 @@ export class RoomManager {
 
     //console.log("Room energy level: " + energyLevel)
     switch (energyLevel) {
-      case 1: return [WORK, WORK, MOVE, CARRY];
+      case 1: return [WORK, MOVE, MOVE, CARRY];
       //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
       case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY]
       //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
@@ -221,7 +226,7 @@ export class RoomManager {
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
-  private getRoomEnergyLevel(roomID: string): number {
+  static getRoomEnergyLevel(roomID: string): number {
     let room = Game.rooms[roomID];
     let cap = room.energyCapacityAvailable;
     if (cap < 500) return 1;

@@ -2710,9 +2710,7 @@ var CreepTaskQueue = /** @class */ (function () {
         var roomMem = Game.rooms[roomName].memory;
         var count = 0;
         for (var i in roomMem.activeWorkerRequests) {
-            var request = roomMem.activeWorkerRequests[i];
-            if (request.status == TaskStatus.PENDING)
-                count++;
+            count++;
         }
         return count;
         //return Object.keys(roomMem.activeWorkerRequests).length;
@@ -2862,10 +2860,319 @@ var CreepTask = /** @class */ (function (_super) {
         var result = this.creep.harvest(source);
         if (result == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(source);
+            this.creep.harvest(source);
         }
     };
     return CreepTask;
 }(Task));
+
+var creeps;
+var creepCount$1 = 0;
+var RoomManager = /** @class */ (function () {
+    function RoomManager() {
+        this.creeps = [];
+        this.creepCount = 0;
+        this.minerCount = 0;
+    }
+    //taskManager: TaskManager = new TaskManager();
+    RoomManager.prototype.Run = function (roomName) {
+        RoomManager.loadHarvestingSpots(roomName);
+        this.loadCreeps(roomName);
+        this.loadStructures(roomName);
+        this.spawnMissingMiners(roomName);
+        this.spawnMissingWorkers(roomName);
+        this.spawnMissingUpgraders(roomName);
+        //TaskManager.processRoomTasks(roomName);
+        TaskManager.Run(roomName);
+    };
+    RoomManager.prototype.loadCreeps = function (roomName) {
+        var room = Game.rooms[roomName];
+        creeps = room.find(FIND_MY_CREEPS);
+        var spawn = room.find(FIND_MY_SPAWNS)[0];
+        creepCount$1 = creeps.length;
+        for (var id in creeps) {
+            var creep = creeps[id];
+            var mem = creep.memory;
+            if (mem.alive === undefined || mem.alive == false) {
+                var memory = {
+                    spawnID: spawn.id,
+                    idle: true,
+                    alive: true,
+                    role: getRole(creep.name),
+                    currentTask: "",
+                };
+                creep.memory = memory;
+            }
+        }
+    };
+    RoomManager.prototype.loadStructures = function (roomName) {
+        var room = Game.rooms[roomName];
+        var memory = room.memory;
+        if (memory.smartStructures.length == 0) {
+            memory.smartStructures = [];
+            var structures = room.find(FIND_STRUCTURES);
+            var smartStructures = _.filter(structures, function (structure) {
+                return (structure.structureType == "tower");
+            });
+            for (var id in smartStructures) {
+                var structure = smartStructures[id];
+                var newStructureMemory = {
+                    idle: true,
+                    alive: true,
+                    currentTask: ""
+                };
+                var smartStructure = {
+                    id: structure.id,
+                    memory: newStructureMemory
+                };
+                memory.smartStructures.push(smartStructure);
+            }
+        }
+    };
+    RoomManager.prototype.spawnMissingWorkers = function (roomID) {
+        var _this = this;
+        var miners = creepCount(roomID, 2 /* ROLE_MINER */);
+        var currentWorkerCount = creepCount(roomID, 3 /* ROLE_WORKER */);
+        if (miners < RoomManager.minimumMinerCount - 1 && currentWorkerCount > 0) {
+            console.log("skipping workers for now.");
+            return;
+        }
+        //console.log("miners: " + miners + " , workers: " + currentWorkerCount)
+        var spawns = findSpawns(roomID);
+        // let currentWorkers = creeps.filter(c =>
+        // {
+        // 	let mem = c.memory as CreepMemory;
+        // 	return mem.role == CreepRole.ROLE_WORKER;
+        // });
+        var workersNeeded = RoomManager.maxWorkersPerRoom - currentWorkerCount;
+        if (workersNeeded === 0) {
+            //console.log("no workers needed.")
+            return;
+        }
+        var workersSpawned = 0;
+        _.each(spawns, function (spawn) {
+            if (workersSpawned < workersNeeded) {
+                var spawner = spawn;
+                if (CreepManager.trySpawnCreep(spawner, _this.getWorkerBodyParts(roomID), 3 /* ROLE_WORKER */)) {
+                    workersSpawned++;
+                }
+            }
+        });
+    };
+    RoomManager.prototype.spawnMissingUpgraders = function (roomID) {
+        var _this = this;
+        var workers = creepCount(roomID, 3 /* ROLE_WORKER */);
+        if (workers < RoomManager.minimumWorkerCount + 1)
+            return;
+        var miners = creepCount(roomID, 2 /* ROLE_MINER */);
+        if (miners < RoomManager.minimumMinerCount)
+            return;
+        var spawns = findSpawns(roomID);
+        var currentCount = creepCount(roomID, 4 /* ROLE_UPGRADER */);
+        // let currentWorkers = creeps.filter(c =>
+        // {
+        // 	let mem = c.memory as CreepMemory;
+        // 	return mem.role == CreepRole.ROLE_WORKER;
+        // });
+        var needed = RoomManager.maxUpgradersPerRoom - currentCount;
+        if (needed === 0)
+            return;
+        var spawned = 0;
+        _.each(spawns, function (spawn) {
+            if (spawned < needed) {
+                var spawner = spawn;
+                if (CreepManager.trySpawnCreep(spawner, _this.getUpgraderBodyParts(roomID), 4 /* ROLE_UPGRADER */)) {
+                    spawned++;
+                }
+            }
+        });
+    };
+    RoomManager.prototype.spawnMissingMiners = function (roomName) {
+        var _this = this;
+        //console.log("spawning miners")
+        var spawns = findSpawns(roomName);
+        var currentMiners = creeps.filter(function (c) {
+            var mem = c.memory;
+            return mem.role == 2 /* ROLE_MINER */;
+        });
+        var minersPerSource = 1;
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
+        if (energyLevel == 1) {
+            minersPerSource = 2;
+        }
+        var room = Game.rooms[roomName];
+        var sources = room.find(FIND_SOURCES);
+        this.minerCount = sources.length * minersPerSource;
+        var minersNeeded = this.minerCount - currentMiners.length;
+        // console.log("Miners needed: " + minersNeeded)
+        if (minersNeeded === 0)
+            return;
+        var minersSpawned = 0;
+        _.each(spawns, function (spawn) {
+            if (minersSpawned < minersNeeded) {
+                var spawner = spawn;
+                //console.log("spawning miner!")
+                if (CreepManager.trySpawnCreep(spawner, _this.getMinerBodyParts(roomName, RoomManager.getRoomEnergyLevel(roomName)), 2 /* ROLE_MINER */)) {
+                    minersSpawned++;
+                }
+            }
+        });
+    };
+    RoomManager.prototype.getWorkerBodyParts = function (roomID) {
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomID);
+        var room = Game.rooms[roomID];
+        var currentEnergy = room.energyAvailable;
+        //if we run out of creeps for any reason, this will keep us respawning automatically.
+        if (creeps.length < 3 && currentEnergy < 800)
+            energyLevel = 1;
+        //console.log("Room energy level: " + energyLevel)
+        switch (energyLevel) {
+            case 1: return [WORK, MOVE, MOVE, CARRY];
+            //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
+            case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
+            //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+            case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
+            default: return [WORK, MOVE, MOVE, CARRY];
+        }
+    };
+    RoomManager.prototype.getUpgraderBodyParts = function (roomID) {
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomID);
+        var room = Game.rooms[roomID];
+        var currentEnergy = room.energyAvailable;
+        //if we run out of creeps for any reason, this will keep us respawning automatically.
+        if (creeps.length < 3 && currentEnergy < 800)
+            energyLevel = 1;
+        //console.log("Room energy level: " + energyLevel)
+        switch (energyLevel) {
+            case 1: return [WORK, MOVE, MOVE, CARRY];
+            //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
+            case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
+            //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+            case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY];
+            default: return [WORK, MOVE, MOVE, CARRY];
+        }
+    };
+    RoomManager.prototype.getMinerBodyParts = function (roomID, energyLevel) {
+        //let energyLevel = this.getRoomEnergyLevel(roomID);
+        var room = Game.rooms[roomID];
+        var currentEnergy = room.energyAvailable;
+        //if we run out of creeps for any reason, this will keep us respawning automatically.
+        if (creeps.length < 3 && currentEnergy < 800)
+            energyLevel = 1;
+        //console.log("Room energy level: " + energyLevel)
+        switch (energyLevel) {
+            case 1: return [WORK, WORK, MOVE, CARRY];
+            //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
+            case 2: return [WORK, WORK, WORK, WORK, MOVE, CARRY];
+            //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+            case 3: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
+            default: return [WORK, MOVE, MOVE, CARRY];
+        }
+    };
+    RoomManager.getRoomEnergyLevel = function (roomID) {
+        var room = Game.rooms[roomID];
+        var cap = room.energyCapacityAvailable;
+        if (cap < 500)
+            return 1;
+        else if (cap <= 800)
+            return 2;
+        else
+            return 3;
+    };
+    RoomManager.loadHarvestingSpots = function (roomName) {
+        var room = Game.rooms[roomName];
+        var roomMemory = room.memory;
+        if (roomMemory.harvestLocations.length > 0)
+            return;
+        var sources = room.find(FIND_SOURCES);
+        var spots = [];
+        for (var sourceID in sources) {
+            var source = sources[sourceID];
+            var spot = {
+                sourceID: source.id,
+                roomName: roomName,
+                assignedTo: null,
+            };
+            spots.push(spot);
+            roomMemory.harvestLocations = spots;
+        }
+        // 	let sourcePosition = source.pos as RoomPosition;
+        // 	let right = room.getPositionAt(sourcePosition.x + 1, sourcePosition.y);
+        // 	if (right != null) possibles.push(new HarvestSpot(source.id, right));
+        // 	let left = room.getPositionAt(sourcePosition.x - 1, sourcePosition.y)
+        // 	if (left != null) possibles.push(new HarvestSpot(source.id, left));
+        // 	let top = room.getPositionAt(sourcePosition.x, sourcePosition.y - 1)
+        // 	if (top != null) possibles.push(new HarvestSpot(source.id, top));
+        // 	let bot = room.getPositionAt(sourcePosition.x, sourcePosition.y + 1)
+        // 	if (bot != null) possibles.push(new HarvestSpot(source.id, bot));
+        // 	let tr = room.getPositionAt(sourcePosition.x + 1, sourcePosition.y - 1)
+        // 	if (tr != null) possibles.push(new HarvestSpot(source.id, tr));
+        // 	let tl = room.getPositionAt(sourcePosition.x - 1, sourcePosition.y - 1)
+        // 	if (tl != null) possibles.push(new HarvestSpot(source.id, tl));
+        // 	let br = room.getPositionAt(sourcePosition.x + 1, sourcePosition.y + 1)
+        // 	if (br != null) possibles.push(new HarvestSpot(source.id, br));
+        // 	let bl = room.getPositionAt(sourcePosition.x - 1, sourcePosition.y + 1)
+        // 	if (bl != null) possibles.push(new HarvestSpot(source.id, bl));
+        // }
+        // for (const id in possibles)
+        // {
+        // 	let possible = possibles[id];
+        // 	if (possible.pos !== null)
+        // 	{
+        // 		const found: string = possible.pos.lookFor(LOOK_TERRAIN) as any;
+        // 		if (found != "wall")
+        // 		{
+        // 			spots.push(possible);
+        // 		}
+        // 	}
+        // }
+    };
+    RoomManager.GetClosestOrAssignedHarvestLocation = function (roomName, creepID, locationID) {
+        if (locationID === void 0) { locationID = ""; }
+        var creep = Game.getObjectById(creepID);
+        var room = Game.rooms[roomName];
+        var roomMemory = room.memory;
+        if (locationID == "") {
+            locationID = creep.id;
+        }
+        var locObj = Game.getObjectById(locationID);
+        if (roomMemory.harvestLocations == []) {
+            console.log("this should never happen...");
+            this.loadHarvestingSpots(roomName);
+        }
+        var harvestingSpots = roomMemory.harvestLocations.filter(function (spot) {
+            var source = Game.getObjectById(spot.sourceID);
+            return source.energy > 0;
+        });
+        var assignedSpot = harvestingSpots.filter(function (spot) {
+            return spot.assignedTo == creep.name;
+        })[0];
+        if (assignedSpot !== undefined)
+            return assignedSpot;
+        else {
+            var openSpots = harvestingSpots.filter(function (spot) {
+                return spot.assignedTo == null;
+            });
+            _.sortBy(openSpots, function (spot) {
+                var sourceID = spot.sourceID;
+                var source = Game.getObjectById(sourceID);
+                return locObj.pos.getRangeTo(source);
+            }).reverse();
+            if (openSpots == undefined)
+                return undefined;
+            var firstOpen = openSpots[0];
+            if (firstOpen == undefined)
+                return undefined;
+            firstOpen.assignedTo = creep.name;
+            return firstOpen;
+        }
+    };
+    RoomManager.minimumWorkerCount = 1;
+    RoomManager.minimumMinerCount = 2;
+    RoomManager.maxWorkersPerRoom = 2;
+    RoomManager.maxUpgradersPerRoom = 4;
+    return RoomManager;
+}());
 
 var MineRequest = /** @class */ (function (_super) {
     __extends(MineRequest, _super);
@@ -2881,7 +3188,8 @@ var MineRequest = /** @class */ (function (_super) {
             console.log("You cant init a mine request with an undefined source.");
         //console.log("after finding source: " + this.source.sourceID)
         _this.id = _.random(0, 10);
-        _this.maxConcurrent = sourceCount(_this.roomName);
+        _this.maxConcurrent = sourceCount(_this.roomName) * 2;
+        console.log("max concurrent: " + _this.maxConcurrent);
         return _this;
     }
     return MineRequest;
@@ -2920,11 +3228,22 @@ var Mine = /** @class */ (function (_super) {
         var unassigned = _.filter(mem.harvestLocations, function (h) { return h.assignedTo === null; });
         if (unassigned.length === 0)
             return;
+        var minersPerSource = 1;
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
+        if (energyLevel == 1) {
+            minersPerSource = 2;
+        }
         for (var key in unassigned) {
             var smartSource = unassigned[key];
-            //console.log("about to add source for this id: " + smartSource.sourceID)
-            var request = new MineRequest(roomName, smartSource.sourceID);
-            CreepTaskQueue.addPendingRequest(request);
+            for (var i = 0; i < minersPerSource; i++) {
+                var request = new MineRequest(roomName, smartSource.sourceID);
+                var totalCurrent = CreepTaskQueue.totalCount(request.roomName, request.name);
+                console.log("total current:" + totalCurrent);
+                if (totalCurrent < request.maxConcurrent) {
+                    console.log("about to add source for this id: " + smartSource.sourceID);
+                    CreepTaskQueue.addPendingRequest(request);
+                }
+            }
         }
     };
     Mine.prototype.harvest = function () {
@@ -3041,7 +3360,7 @@ var PickupEnergy = /** @class */ (function (_super) {
                 var tombstone = tombstones[key];
                 if (tombstone.store.energy == 0)
                     continue;
-                console.log("found " + resources.length + " tombstones with energy");
+                console.log("found a tombstone with energy");
                 var ts = new PickUpEnergyRequest(roomName, tombstone.id, "resource");
                 if (CreepTaskQueue.totalCount(roomName, ts.name) < ts.maxConcurrent) {
                     CreepTaskQueue.addPendingRequest(ts);
@@ -3087,26 +3406,9 @@ var Restock = /** @class */ (function (_super) {
         //this.collectFromContainer(this.request.roomName, creep.id);
         //temp code...
         if (this.creep.carry.energy < this.creep.carryCapacity) {
-            var resources = room.find(FIND_DROPPED_RESOURCES);
-            if (resources.length > 0) {
-                for (var key in resources) {
-                    if (!resources.hasOwnProperty(key))
-                        continue;
-                    var resource = resources[key];
-                    if (resource.resourceType != RESOURCE_ENERGY)
-                        continue;
-                    if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
-                        this.creep.moveTo(resource);
-                    }
-                }
-            }
-            else {
-                var sourceID = _.first(roomMem.harvestLocations).sourceID;
-                var source = Game.getObjectById(sourceID);
-                if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                    this.creep.moveTo(source);
-                }
-            }
+            this.collectFromDroppedEnergy(room.name);
+            this.collectFromTombstone(room.name);
+            this.collectFromSource(room.name);
         }
         else {
             this.request.status = TaskStatus.IN_PROGRESS;
@@ -3193,24 +3495,6 @@ var Build = /** @class */ (function (_super) {
             this.collectFromDroppedEnergy(room.name);
             this.collectFromTombstone(room.name);
             this.collectFromSource(room.name);
-            //let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
-            //if (resources.length > 0) {
-            //  for (const key in resources) {
-            //    if (!resources.hasOwnProperty(key)) continue;
-            //    const resource = resources[key] as Resource;
-            //    if (resource.resourceType != RESOURCE_ENERGY) continue;
-            //    if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
-            //      this.creep.moveTo(resource);
-            //    }
-            //  }
-            //}
-            //else {
-            //  var sourceID = _.first(roomMem.harvestLocations).sourceID;
-            //  var source = Game.getObjectById(sourceID) as Source
-            //  if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
-            //    this.creep.moveTo(source);
-            //  }
-            //}
         }
         else
             this.request.status = TaskStatus.IN_PROGRESS;
@@ -3251,6 +3535,66 @@ var Build = /** @class */ (function (_super) {
     return Build;
 }(CreepTask));
 
+var UpgradeRequest = /** @class */ (function (_super) {
+    __extends(UpgradeRequest, _super);
+    function UpgradeRequest(roomName, controllerID) {
+        var _this = _super.call(this, roomName, "\uD83C\uDF87", controllerID) || this;
+        _this.requiredRole = 4 /* ROLE_UPGRADER */;
+        _this.priority = 1;
+        _this.name = "Upgrade";
+        _this.maxConcurrent = RoomManager.maxUpgradersPerRoom;
+        return _this;
+    }
+    return UpgradeRequest;
+}(CreepTaskRequest));
+var Upgrade = /** @class */ (function (_super) {
+    __extends(Upgrade, _super);
+    function Upgrade(taskInfo) {
+        return _super.call(this, taskInfo) || this;
+    }
+    Upgrade.prototype.init = function () {
+        _super.prototype.init.call(this);
+        this.request.status = TaskStatus.PREPARE;
+    };
+    Upgrade.prototype.prepare = function () {
+        _super.prototype.prepare.call(this);
+        if (this.request.status == TaskStatus.FINISHED)
+            return;
+        var room = Game.rooms[this.request.roomName];
+        var roomMem = room.memory;
+        if (this.creep.carry.energy < this.creep.carryCapacity) {
+            this.collectFromDroppedEnergy(room.name);
+            this.collectFromTombstone(room.name);
+            this.collectFromSource(room.name);
+        }
+        else
+            this.request.status = TaskStatus.IN_PROGRESS;
+    };
+    Upgrade.prototype.continue = function () {
+        _super.prototype.continue.call(this);
+        if (this.request.status == TaskStatus.FINISHED)
+            return;
+        var creep = Game.creeps[this.request.assignedTo];
+        var info = this.request;
+        var controller = Game.getObjectById(info.targetID);
+        if (creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
+        }
+        if (creep.carry.energy == 0) {
+            this.request.status = TaskStatus.PREPARE;
+        }
+    };
+    Upgrade.addRequests = function (roomName) {
+        var controller = Game.rooms[roomName].controller;
+        var request = new UpgradeRequest(roomName, controller.id);
+        var tasksNeeded = request.maxConcurrent - CreepTaskQueue.totalCount(roomName, request.name);
+        for (var i = 0; i < tasksNeeded; i++) {
+            CreepTaskQueue.addPendingRequest(request);
+        }
+    };
+    return Upgrade;
+}(CreepTask));
+
 var TaskManager = /** @class */ (function () {
     function TaskManager() {
     }
@@ -3282,6 +3626,8 @@ var TaskManager = /** @class */ (function () {
                 TaskManager.runTask(new PickupEnergy(request));
             else if (request.name == "Restock")
                 TaskManager.runTask(new Restock(request));
+            else if (request.name == "Upgrade")
+                TaskManager.runTask(new Upgrade(request));
             else if (request.name == "Build")
                 TaskManager.runTask(new Build(request));
             else {
@@ -3309,7 +3655,7 @@ var TaskManager = /** @class */ (function () {
         //TransferEnergy.addRequests(roomName);
         //FillTower.addRequests(roomName);
         Build.addRequests(roomName);
-        //Upgrade.addRequests(roomName);
+        Upgrade.addRequests(roomName);
     };
     TaskManager.Run = function (roomName) {
         //this.addBuildingTasks(roomName);
@@ -3353,9 +3699,9 @@ var TaskManager = /** @class */ (function () {
     return TaskManager;
 }());
 
-var creeps;
-var creepCount$1 = 0;
-var RoomManager = /** @class */ (function () {
+var creeps$1;
+var creepCount$2 = 0;
+var RoomManager$1 = /** @class */ (function () {
     function RoomManager() {
         this.creeps = [];
         this.creepCount = 0;
@@ -3368,17 +3714,17 @@ var RoomManager = /** @class */ (function () {
         this.loadStructures(roomName);
         this.spawnMissingMiners(roomName);
         this.spawnMissingWorkers(roomName);
-        //this.spawnMissingUpgraders(roomName);
+        this.spawnMissingUpgraders(roomName);
         //TaskManager.processRoomTasks(roomName);
         TaskManager.Run(roomName);
     };
     RoomManager.prototype.loadCreeps = function (roomName) {
         var room = Game.rooms[roomName];
-        creeps = room.find(FIND_MY_CREEPS);
+        creeps$1 = room.find(FIND_MY_CREEPS);
         var spawn = room.find(FIND_MY_SPAWNS)[0];
-        creepCount$1 = creeps.length;
-        for (var id in creeps) {
-            var creep = creeps[id];
+        creepCount$2 = creeps$1.length;
+        for (var id in creeps$1) {
+            var creep = creeps$1[id];
             var mem = creep.memory;
             if (mem.alive === undefined || mem.alive == false) {
                 var memory = {
@@ -3478,13 +3824,18 @@ var RoomManager = /** @class */ (function () {
         var _this = this;
         //console.log("spawning miners")
         var spawns = findSpawns(roomName);
-        var currentMiners = creeps.filter(function (c) {
+        var currentMiners = creeps$1.filter(function (c) {
             var mem = c.memory;
             return mem.role == 2 /* ROLE_MINER */;
         });
+        var minersPerSource = 1;
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
+        if (energyLevel == 1) {
+            minersPerSource = 2;
+        }
         var room = Game.rooms[roomName];
         var sources = room.find(FIND_SOURCES);
-        this.minerCount = sources.length;
+        this.minerCount = sources.length * minersPerSource;
         var minersNeeded = this.minerCount - currentMiners.length;
         // console.log("Miners needed: " + minersNeeded)
         if (minersNeeded === 0)
@@ -3494,18 +3845,18 @@ var RoomManager = /** @class */ (function () {
             if (minersSpawned < minersNeeded) {
                 var spawner = spawn;
                 //console.log("spawning miner!")
-                if (CreepManager.trySpawnCreep(spawner, _this.getMinerBodyParts(roomName, _this.getRoomEnergyLevel(roomName)), 2 /* ROLE_MINER */)) {
+                if (CreepManager.trySpawnCreep(spawner, _this.getMinerBodyParts(roomName, RoomManager.getRoomEnergyLevel(roomName)), 2 /* ROLE_MINER */)) {
                     minersSpawned++;
                 }
             }
         });
     };
     RoomManager.prototype.getWorkerBodyParts = function (roomID) {
-        var energyLevel = this.getRoomEnergyLevel(roomID);
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomID);
         var room = Game.rooms[roomID];
         var currentEnergy = room.energyAvailable;
         //if we run out of creeps for any reason, this will keep us respawning automatically.
-        if (creeps.length < 3 && currentEnergy < 800)
+        if (creeps$1.length < 3 && currentEnergy < 800)
             energyLevel = 1;
         //console.log("Room energy level: " + energyLevel)
         switch (energyLevel) {
@@ -3518,15 +3869,15 @@ var RoomManager = /** @class */ (function () {
         }
     };
     RoomManager.prototype.getUpgraderBodyParts = function (roomID) {
-        var energyLevel = this.getRoomEnergyLevel(roomID);
+        var energyLevel = RoomManager.getRoomEnergyLevel(roomID);
         var room = Game.rooms[roomID];
         var currentEnergy = room.energyAvailable;
         //if we run out of creeps for any reason, this will keep us respawning automatically.
-        if (creeps.length < 3 && currentEnergy < 800)
+        if (creeps$1.length < 3 && currentEnergy < 800)
             energyLevel = 1;
         //console.log("Room energy level: " + energyLevel)
         switch (energyLevel) {
-            case 1: return [WORK, WORK, MOVE, CARRY];
+            case 1: return [WORK, MOVE, MOVE, CARRY];
             //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
             case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
             //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
@@ -3539,7 +3890,7 @@ var RoomManager = /** @class */ (function () {
         var room = Game.rooms[roomID];
         var currentEnergy = room.energyAvailable;
         //if we run out of creeps for any reason, this will keep us respawning automatically.
-        if (creeps.length < 3 && currentEnergy < 800)
+        if (creeps$1.length < 3 && currentEnergy < 800)
             energyLevel = 1;
         //console.log("Room energy level: " + energyLevel)
         switch (energyLevel) {
@@ -3551,7 +3902,7 @@ var RoomManager = /** @class */ (function () {
             default: return [WORK, MOVE, MOVE, CARRY];
         }
     };
-    RoomManager.prototype.getRoomEnergyLevel = function (roomID) {
+    RoomManager.getRoomEnergyLevel = function (roomID) {
         var room = Game.rooms[roomID];
         var cap = room.energyCapacityAvailable;
         if (cap < 500)
@@ -3652,11 +4003,11 @@ var RoomManager = /** @class */ (function () {
     RoomManager.minimumWorkerCount = 1;
     RoomManager.minimumMinerCount = 2;
     RoomManager.maxWorkersPerRoom = 2;
-    RoomManager.maxUpgradersPerRoom = 5;
+    RoomManager.maxUpgradersPerRoom = 4;
     return RoomManager;
 }());
 
-var rm = new RoomManager();
+var rm = new RoomManager$1();
 var initialized = false;
 function memoryInit() {
     console.log("Initializing Game");
@@ -3675,8 +4026,8 @@ function getTotalCreepCount() {
     var totalcreepCount = 0;
     for (var i in Game.rooms) {
         var room = Game.rooms[i];
-        var creeps$$1 = room.find(FIND_MY_CREEPS);
-        totalcreepCount += creeps$$1.length;
+        var creeps = room.find(FIND_MY_CREEPS);
+        totalcreepCount += creeps.length;
     }
     return totalcreepCount;
 }

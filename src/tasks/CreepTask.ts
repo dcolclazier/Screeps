@@ -115,6 +115,7 @@ export abstract class CreepTask extends Task {
     var result = this.creep.harvest(source)
     if (result == ERR_NOT_IN_RANGE) {
       this.creep.moveTo(source);
+      this.creep.harvest(source);
     }
   }
 

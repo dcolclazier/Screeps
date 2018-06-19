@@ -19,6 +19,7 @@ import { PickupEnergy } from "tasks/creep/PickupEnergy";
 import { ITaskRequest } from "contract/ITaskRequest";
 import { Restock } from "tasks/creep/Restock";
 import { Build } from "tasks/creep/Build";
+import { Upgrade } from "tasks/creep/Upgrade";
 
 export class TaskManager {
 
@@ -55,6 +56,7 @@ export class TaskManager {
       if (request.name == "Mine") TaskManager.runTask(new Mine(request));
       else if (request.name == "PickupEnergy") TaskManager.runTask(new PickupEnergy(request))
       else if (request.name == "Restock") TaskManager.runTask(new Restock(request));
+      else if (request.name == "Upgrade") TaskManager.runTask(new Upgrade(request))
       else if (request.name == "Build") TaskManager.runTask(new Build(request));
       else { console.log("Reqiest" + request.name)}
 
@@ -89,7 +91,7 @@ export class TaskManager {
     //TransferEnergy.addRequests(roomName);
     //FillTower.addRequests(roomName);
     Build.addRequests(roomName);
-    //Upgrade.addRequests(roomName);
+    Upgrade.addRequests(roomName);
   }
   static Run(roomName: string): void {
     //this.addBuildingTasks(roomName);

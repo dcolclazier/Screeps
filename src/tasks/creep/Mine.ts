@@ -5,6 +5,7 @@ import * as utils from "utils/utils";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import { CreepRole } from "utils/utils";
 import { Task, TaskStatus } from "../Task";
+import { RoomManager } from "RoomManager";
 
 export class MineRequest extends CreepTaskRequest {
   priority: number = 1;
@@ -24,7 +25,8 @@ export class MineRequest extends CreepTaskRequest {
 
     //console.log("after finding source: " + this.source.sourceID)
     this.id = _.random(0, 10);
-    this.maxConcurrent = utils.sourceCount(this.roomName);
+    this.maxConcurrent = utils.sourceCount(this.roomName) * 2;
+    console.log("max concurrent: " + this.maxConcurrent)
   }
 }
 
@@ -61,12 +63,25 @@ export class Mine extends CreepTask {
     const unassigned = _.filter(mem.harvestLocations, h => h.assignedTo === null) as SmartSource[];
     
     if (unassigned.length === 0) return;
-
+    var minersPerSource = 1;
+    var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
+    if (energyLevel == 1) {
+      minersPerSource = 2;
+    }
     for (const key in unassigned) {
       const smartSource = unassigned[key] as SmartSource;
-      //console.log("about to add source for this id: " + smartSource.sourceID)
-      const request = new MineRequest(roomName, smartSource.sourceID);
-      CreepTaskQueue.addPendingRequest(request);
+      
+      for (var i = 0; i < minersPerSource; i++) {
+        
+        var request = new MineRequest(roomName, smartSource.sourceID);
+        var totalCurrent = CreepTaskQueue.totalCount(request.roomName, request.name);
+        console.log("total current:" + totalCurrent)
+        if (totalCurrent < request.maxConcurrent) {
+          console.log("about to add source for this id: " + smartSource.sourceID)
+          CreepTaskQueue.addPendingRequest(request);
+        }
+      }
+      
     }
   }
 

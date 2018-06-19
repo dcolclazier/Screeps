@@ -38,25 +38,9 @@ export class Restock extends CreepTask {
 
     //temp code...
     if (this.creep.carry.energy < this.creep.carryCapacity) {
-      let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
-      if (resources.length > 0) {
-        for (const key in resources) {
-          if (!resources.hasOwnProperty(key)) continue;
-          const resource = resources[key] as Resource;
-          if (resource.resourceType != RESOURCE_ENERGY) continue;
-
-          if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
-            this.creep.moveTo(resource);
-          }
-        }
-      }
-      else {
-        var sourceID = _.first(roomMem.harvestLocations).sourceID;
-        var source = Game.getObjectById(sourceID) as Source
-        if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
-          this.creep.moveTo(source);
-        }
-      }
+      this.collectFromDroppedEnergy(room.name);
+      this.collectFromTombstone(room.name);
+      this.collectFromSource(room.name);
 
     }
     else {

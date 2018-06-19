@@ -92,10 +92,7 @@ export class CreepTaskQueue {
     let roomMem = Game.rooms[roomName].memory as RoomMemory;
     var count: number = 0;
     for (var i in roomMem.activeWorkerRequests) {
-      var request = roomMem.activeWorkerRequests[i];
-      if (request.status == TaskStatus.PENDING)
-        count++;
-
+       count++;
     }
     return count;
     //return Object.keys(roomMem.activeWorkerRequests).length;
