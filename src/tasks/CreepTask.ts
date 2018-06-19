@@ -14,7 +14,7 @@ export abstract class CreepTask extends Task {
     this.request = request as CreepTaskRequest;
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      console.log("You cant create a task with an undefined creep.";)
+      console.log("You cant create a task with an undefined creep.")
     }
     this.creepMemory = this.creep.memory as CreepMemory;
 
@@ -23,7 +23,7 @@ export abstract class CreepTask extends Task {
 
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined)
-      throw "You cant create a task with an undefined creep.";
+      console.log("You cant create a task with an undefined creep.")
      
   }
   protected prepare(): void
@@ -53,7 +53,7 @@ export abstract class CreepTask extends Task {
 
   protected finish(): void {
     // console.log(`CreepTask Finish: ${this.request.name}: ${this.request.assignedTo}`);
-    this.request.assignedTo = "";
+    //this.request.assignedTo = "";
     const creep = Game.creeps[this.request.assignedTo];
     if (creep != undefined && creep.memory != undefined) {
       var creepMemory = creep.memory as CreepMemory;
@@ -65,37 +65,31 @@ export abstract class CreepTask extends Task {
     }
   }
 
-  protected collectFromContainer(roomName: string, creepID: string) {
-    const creep = Game.creeps[this.request.assignedTo];
-    if (creep == undefined || creep.memory == undefined) {
-      this.request.status = TaskStatus.FINISHED;
-      return;
-    }
 
-    if (Game.time % 5 == 0) creep.say(`${this.request.wingDing}`);
+  //protected collectFromSource(roomName: string) {
 
-    const closestContainer = utils.findClosestContainer(roomName, creepID, true, false) as StructureContainer;
+  //}
+  //protected collectFromContainer(roomName: string) {
 
-    //no valid container at the moment...
-    if (closestContainer == undefined) {
-      if (Game.time % 5 == 0) creep.say(`⌛`);
+  //  if (Game.time % 5 == 0) this.creep.say(`${this.request.wingDing}`);
+
+  //  const closestContainer = utils.findClosestContainer(roomName, this.creep.id, true, false) as StructureContainer;
+
+  //  //no valid container at the moment...
+  //  if (closestContainer == undefined) {
 
 
-      //temp
-      creep.drop(RESOURCE_ENERGY);
-      return;
+  //    //if (Game.time % 5 == 0) this.creep.say(`⌛`);
+  //    //continue until empty, then try again.
+  //    //if(creep.carry.energy > 0) this.request.status = TaskState.IN_PROGRESS;
+  //    //else return;
 
+  //  }
 
-      //continue until empty, then try again.
-      //if(creep.carry.energy > 0) this.request.status = TaskState.IN_PROGRESS;
-      //else return;
+  //  if (creep.withdraw(closestContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+  //    creep.moveTo(closestContainer, { visualizePathStyle: { stroke: '#ffaa00' } });
+  //  }
 
-    }
-
-    if (creep.withdraw(closestContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-      creep.moveTo(closestContainer, { visualizePathStyle: { stroke: '#ffaa00' } });
-    }
-
-  }
+  //}
 
 }

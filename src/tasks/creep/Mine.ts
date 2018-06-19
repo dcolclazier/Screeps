@@ -17,12 +17,12 @@ export class MineRequest extends CreepTaskRequest {
     super(roomName, `💲`, sourceID);
 
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
-    console.log("source id in mine req ctor: " + sourceID)
+    //console.log("source id in mine req ctor: " + sourceID)
 
     this.source = _.find(roomMem.harvestLocations, h => h.sourceID == sourceID) as SmartSource;
     if (this.source == undefined) console.log("You cant init a mine request with an undefined source.")
 
-    console.log("after finding source: " + this.source.sourceID)
+    //console.log("after finding source: " + this.source.sourceID)
     this.id = _.random(0, 10);
     this.maxConcurrent = utils.sourceCount(this.roomName);
   }
@@ -31,7 +31,7 @@ export class MineRequest extends CreepTaskRequest {
 export class Mine extends CreepTask {
   protected init(): void {
     super.init();
-    console.log("mine init assigned to " + this.request.assignedTo)
+    //console.log("mine init assigned to " + this.request.assignedTo)
 
     const request = this.request as MineRequest;
     const source = request.source as SmartSource;
@@ -59,13 +59,14 @@ export class Mine extends CreepTask {
     const mem = room.memory as RoomMemory;
 
     const unassigned = _.filter(mem.harvestLocations, h => h.assignedTo === null) as SmartSource[];
+    
     if (unassigned.length === 0) return;
 
     for (const key in unassigned) {
       const smartSource = unassigned[key] as SmartSource;
-      console.log("about to add source for this id: " + smartSource.sourceID)
+      //console.log("about to add source for this id: " + smartSource.sourceID)
       const request = new MineRequest(roomName, smartSource.sourceID);
-      CreepTaskQueue.addPending(request);
+      CreepTaskQueue.addPendingRequest(request);
     }
   }
 

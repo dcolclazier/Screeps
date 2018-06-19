@@ -24,7 +24,7 @@ export class RoomManager {
     this.loadCreeps(roomName);
     this.loadStructures(roomName);
     this.spawnMissingMiners(roomName);
-    //this.spawnMissingWorkers(roomName);
+    this.spawnMissingWorkers(roomName);
     //this.spawnMissingUpgraders(roomName);
 
     //TaskManager.processRoomTasks(roomName);
@@ -99,7 +99,7 @@ export class RoomManager {
     // });
     let workersNeeded: number = RoomManager.maxWorkersPerRoom - currentWorkerCount;
     if (workersNeeded === 0) {
-      console.log("no workers needed.")
+      //console.log("no workers needed.")
       return;
     }
 
@@ -176,7 +176,7 @@ export class RoomManager {
 
     //console.log("Room energy level: " + energyLevel)
     switch (energyLevel) {
-      case 1: return [WORK, WORK, MOVE, CARRY];
+      case 1: return [WORK, MOVE, MOVE, CARRY];
       //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
       case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY]
       //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]

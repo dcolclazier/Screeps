@@ -68,6 +68,22 @@ export function creepIDsByRole(roomName: string, role: CreepRole): string[]
 	}
 	return found;
 }
+export function creepNamesByRole(roomName: string, role: CreepRole): string[]
+{
+	let room = Game.rooms[roomName];
+	let creeps = room.find(FIND_MY_CREEPS) as Creep[];
+	let found: string[] = [];
+	for (const key in creeps)
+	{
+		if (creeps.hasOwnProperty(key))
+		{
+			const creep = creeps[key];
+			const mem = creep.memory as CreepMemory;
+			if (mem.role == role || role == undefined) found.push(creep.name);
+		}
+	}
+	return found;
+}
 export function creepCount(roomName: string, role: CreepRole | undefined): number
 {
 	let creeps = Game.rooms[roomName].find(FIND_MY_CREEPS) as Creep[];

@@ -16,7 +16,7 @@ export abstract class Task implements ITask {
   constructor(taskInfo: ITaskRequest) {
     this.request = taskInfo;
   }
-
+  //protected abstract prerun(): void;
   protected abstract init(): void;
   protected abstract prepare(): void;
   protected abstract continue(): void;
@@ -34,19 +34,15 @@ export abstract class Task implements ITask {
       case TaskStatus.PREPARE: this.prepare(); break;
       //case TaskStatus.PRE_RUN: this.p(); break;
       case TaskStatus.IN_PROGRESS: this.continue(); break;
-      case TaskStatus.FINISHED:
-        console.log("finishing.")
-        this.finish();
-        delete this.request;
-        break;
-      // case TaskState.PRE_RUN: this.preRun();
+      case TaskStatus.FINISHED: this.finish(); break;
+      // case TaskState.POST_RUN: this.preRun();
     }
     if (this.request != null && oldStatus != this.request.status) this.run()
   }
   static getStatus(state: TaskStatus) {
     if (state == TaskStatus.PENDING) return "PENDING";
     if (state == TaskStatus.INIT) return "INIT";
-    if (state == TaskStatus.PREPARE) return "START";
+    if (state == TaskStatus.PREPARE) return "PREPARE";
     if (state == TaskStatus.PRE_RUN) return "PRE_RUN";
     if (state == TaskStatus.IN_PROGRESS) return "IN_PROGRESS";
     if (state == TaskStatus.POST_RUN) return "POST_RUN";
