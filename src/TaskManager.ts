@@ -40,7 +40,7 @@ export class TaskManager {
   static continueActiveRequests(roomName: string) {
 
     const activeWorkerTasks = CreepTaskQueue.allActive(roomName);
-    console.log(Object.keys(activeWorkerTasks).length);
+    //console.log(Object.keys(activeWorkerTasks).length);
 
     _.each(activeWorkerTasks, request => {
 
@@ -83,7 +83,6 @@ export class TaskManager {
   }
   private static addPendingRequests(roomName: string): void {
 
-    console.log("adding pending")
     PickupEnergy.addRequests(roomName);
     Restock.addRequests(roomName);
     Mine.addRequests(roomName);
@@ -108,10 +107,10 @@ export class TaskManager {
       let creep = idleCreeps[id] as Creep;
       if (creep != undefined) {
         let mem = creep.memory as CreepMemory;
-        if (mem.role == CreepRole.ROLE_MINER) {
-          console.log("found a miner: " + creep.name);
-          console.log("idle: " + mem.idle);
-        }
+        //if (mem.role == CreepRole.ROLE_MINER) {
+        //  console.log("found a miner: " + creep.name);
+        //  console.log("idle: " + mem.idle);
+        //}
 
         if (mem.idle) {
           CreepTaskQueue.startPendingRequest(creep.name, roomName)

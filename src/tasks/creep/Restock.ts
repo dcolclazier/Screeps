@@ -24,7 +24,7 @@ export class Restock extends CreepTask {
 
     var restock = this.request as RestockRequest;
 
-    console.log("status after init" + Task.getStatus(this.request.status))
+    //console.log("status after init" + Task.getStatus(this.request.status))
     this.request.status = TaskStatus.PREPARE;
   }
 
@@ -74,7 +74,7 @@ export class Restock extends CreepTask {
           structure.energy < structure.energyCapacity;
       }
     }).sort((structureA, structureB) => creep.pos.getRangeTo(structureA) - creep.pos.getRangeTo(structureB));
-    console.log("restock targets: " + targets.length);
+    //console.log("restock targets: " + targets.length);
     if (targets.length == 0) {
       this.request.status = TaskStatus.FINISHED;
     }
@@ -88,7 +88,7 @@ export class Restock extends CreepTask {
         this.request.status = TaskStatus.FINISHED;
       }
       else {
-        console.log(`${creep.name} couldn't restock: ${result}`)
+        //console.log(`${creep.name} couldn't restock: ${result}`)
         this.request.status = TaskStatus.FINISHED;
       }
     }

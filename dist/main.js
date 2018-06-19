@@ -2589,7 +2589,7 @@ var Task = /** @class */ (function () {
         this.request = taskInfo;
     }
     Task.prototype.run = function () {
-        console.log("RUN: " + this.request.name + " + " + this.request.assignedTo + " + " + Task.getStatus(this.request.status) + " ");
+        //console.log(`RUN: ${this.request.name} + ${this.request.assignedTo} + ${Task.getStatus(this.request.status)} `)
         if (Game.creeps[this.request.assignedTo] == undefined)
             console.log("creep was null during run - should handle.");
         var oldStatus = this.request.status;
@@ -2606,11 +2606,9 @@ var Task = /** @class */ (function () {
                 this.continue();
                 break;
             case TaskStatus.FINISHED:
-                console.log("finishing.");
                 this.finish();
-                //delete this.request;
                 break;
-            // case TaskState.PRE_RUN: this.preRun();
+            // case TaskState.POST_RUN: this.preRun();
         }
         if (this.request != null && oldStatus != this.request.status)
             this.run();
@@ -2671,7 +2669,7 @@ var CreepTaskQueue = /** @class */ (function () {
                     mem.currentTask = nextTask.name;
                     roomMem.activeWorkerRequests[creepName] = nextTask;
                     _.remove(roomMem.pendingWorkerRequests, nextTask);
-                    console.log(JSON.stringify(nextTask));
+                    //console.log(JSON.stringify(nextTask))
                     nextTask.status = TaskStatus.INIT;
                     break;
                 }
@@ -2768,20 +2766,25 @@ var CreepTask = /** @class */ (function (_super) {
         _this.request = request;
         _this.creep = Game.creeps[_this.request.assignedTo];
         if (_this.creep == undefined || _this.creep.memory == undefined) {
-            console.log("You cant create a task with an undefined creep.");
+            //console.log("You cant create a task with an undefined creep.")
+            _this.request.status == TaskStatus.FINISHED;
+            return _this;
         }
         _this.creepMemory = _this.creep.memory;
         return _this;
     }
     CreepTask.prototype.init = function () {
         this.creep = Game.creeps[this.request.assignedTo];
-        if (this.creep == undefined || this.creep.memory == undefined)
-            console.log("You cant create a task with an undefined creep.");
+        if (this.creep == undefined || this.creep.memory == undefined) {
+            //console.log("You cant create a task with an undefined creep.")
+            this.request.status == TaskStatus.FINISHED;
+            return;
+        }
     };
     CreepTask.prototype.prepare = function () {
         this.creep = Game.creeps[this.request.assignedTo];
         if (this.creep == undefined || this.creep.memory == undefined) {
-            console.log("during prep, creep was undefined - finishing task");
+            //console.log("during prep, creep was undefined - finishing task")
             this.request.status = TaskStatus.FINISHED;
         }
         else {
@@ -2791,7 +2794,7 @@ var CreepTask = /** @class */ (function (_super) {
     CreepTask.prototype.continue = function () {
         this.creep = Game.creeps[this.request.assignedTo];
         if (this.creep == undefined || this.creep.memory == undefined) {
-            console.log("during continue, creep was undefined - finishing task");
+            //console.log("during continue, creep was undefined - finishing task")
             this.request.status = TaskStatus.FINISHED;
         }
         else {
@@ -2801,15 +2804,64 @@ var CreepTask = /** @class */ (function (_super) {
         }
     };
     CreepTask.prototype.finish = function () {
-        // console.log(`CreepTask Finish: ${this.request.name}: ${this.request.assignedTo}`);
-        //this.request.assignedTo = "";
         var creep = Game.creeps[this.request.assignedTo];
         if (creep != undefined && creep.memory != undefined) {
             var creepMemory = creep.memory;
             creepMemory.idle = true;
             creepMemory.currentTask = "";
             creep.say("✔");
-            //shouldn't need
+        }
+    };
+    CreepTask.prototype.collectFromDroppedEnergy = function (roomName) {
+        var room = Game.rooms[roomName];
+        if (this.creep.carry.energy == this.creep.carryCapacity)
+            return false;
+        var resources = room.find(FIND_DROPPED_RESOURCES);
+        if (resources.length > 0) {
+            for (var key in resources) {
+                if (!resources.hasOwnProperty(key))
+                    continue;
+                var resource = resources[key];
+                if (resource.resourceType != RESOURCE_ENERGY)
+                    continue;
+                var result = this.creep.pickup(resource);
+                if (result == ERR_NOT_IN_RANGE) {
+                    this.creep.moveTo(resource);
+                }
+                else if (result == OK)
+                    return true;
+            }
+        }
+        return false;
+    };
+    CreepTask.prototype.collectFromTombstone = function (roomName) {
+        var room = Game.rooms[roomName];
+        if (this.creep.carry.energy == this.creep.carryCapacity)
+            return;
+        var tombstones = room.find(FIND_TOMBSTONES);
+        if (tombstones.length > 0) {
+            for (var key in tombstones) {
+                if (!tombstones.hasOwnProperty(key))
+                    continue;
+                var tombstone = tombstones[key];
+                if (tombstone.store.energy == 0)
+                    continue;
+                var result = this.creep.withdraw(tombstone, RESOURCE_ENERGY);
+                if (result == ERR_NOT_IN_RANGE) {
+                    this.creep.moveTo(tombstone);
+                }
+                else if (result == OK)
+                    return;
+            }
+        }
+    };
+    CreepTask.prototype.collectFromSource = function (roomName) {
+        var roomMem = Game.rooms[roomName].memory;
+        var sourceID = _.first(roomMem.harvestLocations).sourceID;
+        var source = Game.getObjectById(sourceID);
+        var result = this.creep.harvest(source);
+        if (result == ERR_NOT_IN_RANGE) {
+            this.creep.moveTo(source);
         }
     };
     return CreepTask;
@@ -2971,7 +3023,7 @@ var PickupEnergy = /** @class */ (function (_super) {
         if (workers.length == 0)
             return;
         if (resources.length > 0) {
-            console.log("found " + resources.length + " dropped resources");
+            //console.log("found " + resources.length + " dropped resources")
             for (var key in resources) {
                 if (!resources.hasOwnProperty(key))
                     continue;
@@ -3022,7 +3074,7 @@ var Restock = /** @class */ (function (_super) {
     Restock.prototype.init = function () {
         _super.prototype.init.call(this);
         var restock = this.request;
-        console.log("status after init" + Task.getStatus(this.request.status));
+        //console.log("status after init" + Task.getStatus(this.request.status))
         this.request.status = TaskStatus.PREPARE;
     };
     Restock.prototype.prepare = function () {
@@ -3071,7 +3123,7 @@ var Restock = /** @class */ (function (_super) {
                     structure.energy < structure.energyCapacity;
             }
         }).sort(function (structureA, structureB) { return creep.pos.getRangeTo(structureA) - creep.pos.getRangeTo(structureB); });
-        console.log("restock targets: " + targets.length);
+        //console.log("restock targets: " + targets.length);
         if (targets.length == 0) {
             this.request.status = TaskStatus.FINISHED;
         }
@@ -3085,7 +3137,7 @@ var Restock = /** @class */ (function (_super) {
                 this.request.status = TaskStatus.FINISHED;
             }
             else {
-                console.log(creep.name + " couldn't restock: " + result);
+                //console.log(`${creep.name} couldn't restock: ${result}`)
                 this.request.status = TaskStatus.FINISHED;
             }
         }
@@ -3138,30 +3190,30 @@ var Build = /** @class */ (function (_super) {
         var room = Game.rooms[this.request.roomName];
         var roomMem = room.memory;
         if (this.creep.carry.energy < this.creep.carryCapacity) {
-            var resources = room.find(FIND_DROPPED_RESOURCES);
-            if (resources.length > 0) {
-                for (var key in resources) {
-                    if (!resources.hasOwnProperty(key))
-                        continue;
-                    var resource = resources[key];
-                    if (resource.resourceType != RESOURCE_ENERGY)
-                        continue;
-                    if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
-                        this.creep.moveTo(resource);
-                    }
-                }
-            }
-            else {
-                var sourceID = _.first(roomMem.harvestLocations).sourceID;
-                var source = Game.getObjectById(sourceID);
-                if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                    this.creep.moveTo(source);
-                }
-            }
+            this.collectFromDroppedEnergy(room.name);
+            this.collectFromTombstone(room.name);
+            this.collectFromSource(room.name);
+            //let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
+            //if (resources.length > 0) {
+            //  for (const key in resources) {
+            //    if (!resources.hasOwnProperty(key)) continue;
+            //    const resource = resources[key] as Resource;
+            //    if (resource.resourceType != RESOURCE_ENERGY) continue;
+            //    if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
+            //      this.creep.moveTo(resource);
+            //    }
+            //  }
+            //}
+            //else {
+            //  var sourceID = _.first(roomMem.harvestLocations).sourceID;
+            //  var source = Game.getObjectById(sourceID) as Source
+            //  if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
+            //    this.creep.moveTo(source);
+            //  }
+            //}
         }
-        else {
+        else
             this.request.status = TaskStatus.IN_PROGRESS;
-        }
     };
     Build.prototype.continue = function () {
         _super.prototype.continue.call(this);
@@ -3181,6 +3233,7 @@ var Build = /** @class */ (function (_super) {
         else if (creep.carry.energy == 0) {
             this.request.status = TaskStatus.FINISHED;
         }
+        //this caused huge errors!! BE CAREFUL ABOUT THIS...
         //else if(status !== undefined) {
         //  console.log(`${creep.name} couldn't build: ${status}`);
         //}
@@ -3188,7 +3241,7 @@ var Build = /** @class */ (function (_super) {
     Build.addRequests = function (roomName) {
         var room = Game.rooms[roomName];
         var sites = room.find(FIND_CONSTRUCTION_SITES);
-        console.log("adding " + sites.length + " build site requests.");
+        //console.log("adding " + sites.length + " build site requests.")
         _.each(sites, function (site) {
             if (site.progressTotal > 0) {
                 CreepTaskQueue.addPendingRequest(new BuildRequest(roomName, site.id));
@@ -3214,7 +3267,7 @@ var TaskManager = /** @class */ (function () {
     };
     TaskManager.continueActiveRequests = function (roomName) {
         var activeWorkerTasks = CreepTaskQueue.allActive(roomName);
-        console.log(Object.keys(activeWorkerTasks).length);
+        //console.log(Object.keys(activeWorkerTasks).length);
         _.each(activeWorkerTasks, function (request) {
             if (Game.creeps[request.assignedTo] === undefined) {
                 request.status == TaskStatus.FINISHED;
@@ -3250,7 +3303,6 @@ var TaskManager = /** @class */ (function () {
         //console.log("finished building tasks")
     };
     TaskManager.addPendingRequests = function (roomName) {
-        console.log("adding pending");
         PickupEnergy.addRequests(roomName);
         Restock.addRequests(roomName);
         Mine.addRequests(roomName);
@@ -3271,10 +3323,10 @@ var TaskManager = /** @class */ (function () {
             var creep = idleCreeps[id];
             if (creep != undefined) {
                 var mem = creep.memory;
-                if (mem.role == 2 /* ROLE_MINER */) {
-                    console.log("found a miner: " + creep.name);
-                    console.log("idle: " + mem.idle);
-                }
+                //if (mem.role == CreepRole.ROLE_MINER) {
+                //  console.log("found a miner: " + creep.name);
+                //  console.log("idle: " + mem.idle);
+                //}
                 if (mem.idle) {
                     CreepTaskQueue.startPendingRequest(creep.name, roomName);
                 }
@@ -3562,7 +3614,6 @@ var RoomManager = /** @class */ (function () {
         var creep = Game.getObjectById(creepID);
         var room = Game.rooms[roomName];
         var roomMemory = room.memory;
-        console.log("GetClosest");
         if (locationID == "") {
             locationID = creep.id;
         }

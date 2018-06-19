@@ -296,7 +296,6 @@ export class RoomManager {
     let creep = Game.getObjectById(creepID) as Creep;
     let room = Game.rooms[roomName];
     let roomMemory = room.memory as RoomMemory;
-    console.log("GetClosest")
     if (locationID == "") {
       locationID = creep.id;
     }

@@ -28,30 +28,32 @@ export class Build extends CreepTask {
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
     if (this.creep.carry.energy < this.creep.carryCapacity) {
-      let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
-      if (resources.length > 0) {
-        for (const key in resources) {
-          if (!resources.hasOwnProperty(key)) continue;
-          const resource = resources[key] as Resource;
-          if (resource.resourceType != RESOURCE_ENERGY) continue;
 
-          if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
-            this.creep.moveTo(resource);
-          }
-        }
-      }
-      else {
-        var sourceID = _.first(roomMem.harvestLocations).sourceID;
-        var source = Game.getObjectById(sourceID) as Source
-        if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
-          this.creep.moveTo(source);
-        }
-      }
+      this.collectFromDroppedEnergy(room.name);
+      this.collectFromTombstone(room.name);
+      this.collectFromSource(room.name);
 
+      //let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
+      //if (resources.length > 0) {
+      //  for (const key in resources) {
+      //    if (!resources.hasOwnProperty(key)) continue;
+      //    const resource = resources[key] as Resource;
+      //    if (resource.resourceType != RESOURCE_ENERGY) continue;
+
+      //    if (this.creep.pickup(resource) == ERR_NOT_IN_RANGE) {
+      //      this.creep.moveTo(resource);
+      //    }
+      //  }
+      //}
+      //else {
+      //  var sourceID = _.first(roomMem.harvestLocations).sourceID;
+      //  var source = Game.getObjectById(sourceID) as Source
+      //  if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
+      //    this.creep.moveTo(source);
+      //  }
+      //}
     }
-    else {
-      this.request.status = TaskStatus.IN_PROGRESS;
-    }
+    else this.request.status = TaskStatus.IN_PROGRESS;
   }
   protected continue(): void {
     super.continue();
@@ -71,6 +73,7 @@ export class Build extends CreepTask {
     else if (creep.carry.energy == 0) {
       this.request.status = TaskStatus.FINISHED;
     }
+    //this caused huge errors!! BE CAREFUL ABOUT THIS...
     //else if(status !== undefined) {
     //  console.log(`${creep.name} couldn't build: ${status}`);
     //}
@@ -79,7 +82,7 @@ export class Build extends CreepTask {
   static addRequests(roomName: string): void {
     let room = Game.rooms[roomName];
     let sites = room.find(FIND_CONSTRUCTION_SITES);
-    console.log("adding " + sites.length + " build site requests.")
+    //console.log("adding " + sites.length + " build site requests.")
     _.each(sites, site => {
       
       if (site.progressTotal > 0) {

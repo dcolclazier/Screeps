@@ -1,12 +1,12 @@
 import { Task, TaskStatus } from "./Task";
 import { CreepTaskRequest } from "./CreepTaskRequest";
-import { CreepMemory } from "utils/memory"
+import { CreepMemory, RoomMemory } from "utils/memory"
 import * as utils from "utils/utils";
 
 export abstract class CreepTask extends Task {
   public request: CreepTaskRequest;
   protected creep: Creep;
-  creepMemory: CreepMemory;
+  creepMemory!: CreepMemory;
 
   constructor(request: CreepTaskRequest) {
     super(request);
@@ -14,7 +14,9 @@ export abstract class CreepTask extends Task {
     this.request = request as CreepTaskRequest;
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      console.log("You cant create a task with an undefined creep.")
+      //console.log("You cant create a task with an undefined creep.")
+      this.request.status == TaskStatus.FINISHED;
+      return;
     }
     this.creepMemory = this.creep.memory as CreepMemory;
 
@@ -22,15 +24,19 @@ export abstract class CreepTask extends Task {
   protected init(): void {
 
     this.creep = Game.creeps[this.request.assignedTo];
-    if (this.creep == undefined || this.creep.memory == undefined)
-      console.log("You cant create a task with an undefined creep.")
+    if (this.creep == undefined || this.creep.memory == undefined) {
+      //console.log("You cant create a task with an undefined creep.")
+      this.request.status == TaskStatus.FINISHED;
+      return;
+    }
+      
      
   }
   protected prepare(): void
   {
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      console.log("during prep, creep was undefined - finishing task")
+      //console.log("during prep, creep was undefined - finishing task")
       this.request.status = TaskStatus.FINISHED;
     }
     else {
@@ -42,7 +48,7 @@ export abstract class CreepTask extends Task {
   protected continue(): void {
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      console.log("during continue, creep was undefined - finishing task")
+      //console.log("during continue, creep was undefined - finishing task")
       this.request.status = TaskStatus.FINISHED;
     }
     else {
@@ -52,44 +58,64 @@ export abstract class CreepTask extends Task {
   }
 
   protected finish(): void {
-    // console.log(`CreepTask Finish: ${this.request.name}: ${this.request.assignedTo}`);
-    //this.request.assignedTo = "";
+
     const creep = Game.creeps[this.request.assignedTo];
     if (creep != undefined && creep.memory != undefined) {
       var creepMemory = creep.memory as CreepMemory;
       creepMemory.idle = true;
       creepMemory.currentTask = "";
       creep.say("✔")
-      //shouldn't need
       
     }
   }
 
+  protected collectFromDroppedEnergy(roomName: string) : boolean{
+    const room = Game.rooms[roomName];
+    if (this.creep.carry.energy == this.creep.carryCapacity) return false;
+    const resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
 
-  //protected collectFromSource(roomName: string) {
+    if (resources.length > 0) {
+      for (const key in resources) {
+        if (!resources.hasOwnProperty(key)) continue;
+        const resource = resources[key] as Resource;
+        if (resource.resourceType != RESOURCE_ENERGY) continue;
+        var result = this.creep.pickup(resource)
+        if (result == ERR_NOT_IN_RANGE) {
+          this.creep.moveTo(resource);
+        }
+        else if (result == OK) return true;
+      }
+    }
+    return false;
+  }
 
-  //}
-  //protected collectFromContainer(roomName: string) {
+  protected collectFromTombstone(roomName: string) {
+    const room = Game.rooms[roomName];
+    if (this.creep.carry.energy == this.creep.carryCapacity) return;
+    const tombstones = room.find(FIND_TOMBSTONES) as Tombstone[];
+    if (tombstones.length > 0) {
+      for (const key in tombstones) {
+        if (!tombstones.hasOwnProperty(key)) continue;
+        const tombstone = tombstones[key] as Tombstone;
+        if (tombstone.store.energy == 0) continue;
+        var result = this.creep.withdraw(tombstone, RESOURCE_ENERGY);
+        if (result == ERR_NOT_IN_RANGE) {
+          this.creep.moveTo(tombstone);
+        }
+        else if (result == OK) return;
+      }
+    }
+  }
 
-  //  if (Game.time % 5 == 0) this.creep.say(`${this.request.wingDing}`);
+  protected collectFromSource(roomName: string) {
 
-  //  const closestContainer = utils.findClosestContainer(roomName, this.creep.id, true, false) as StructureContainer;
-
-  //  //no valid container at the moment...
-  //  if (closestContainer == undefined) {
-
-
-  //    //if (Game.time % 5 == 0) this.creep.say(`⌛`);
-  //    //continue until empty, then try again.
-  //    //if(creep.carry.energy > 0) this.request.status = TaskState.IN_PROGRESS;
-  //    //else return;
-
-  //  }
-
-  //  if (creep.withdraw(closestContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-  //    creep.moveTo(closestContainer, { visualizePathStyle: { stroke: '#ffaa00' } });
-  //  }
-
-  //}
+    const roomMem = Game.rooms[roomName].memory as RoomMemory;
+    var sourceID = _.first(roomMem.harvestLocations).sourceID;
+    var source = Game.getObjectById(sourceID) as Source
+    var result = this.creep.harvest(source)
+    if (result == ERR_NOT_IN_RANGE) {
+      this.creep.moveTo(source);
+    }
+  }
 
 }

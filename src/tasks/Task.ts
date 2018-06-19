@@ -23,7 +23,7 @@ export abstract class Task implements ITask {
   //protected abstract postrun(): void;
   protected abstract finish(): void;
   public run(): void {
-    console.log(`RUN: ${this.request.name} + ${this.request.assignedTo} + ${Task.getStatus(this.request.status)} `)
+    //console.log(`RUN: ${this.request.name} + ${this.request.assignedTo} + ${Task.getStatus(this.request.status)} `)
 
     if (Game.creeps[this.request.assignedTo] == undefined) console.log("creep was null during run - should handle.")
 

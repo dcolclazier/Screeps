@@ -67,7 +67,7 @@ export class PickupEnergy extends CreepTask {
     if (workers.length == 0) return;
 
     if (resources.length > 0) {
-      console.log("found " + resources.length + " dropped resources")
+      //console.log("found " + resources.length + " dropped resources")
       for (const key in resources) {
         if (!resources.hasOwnProperty(key)) continue;
         const resource = resources[key] as Resource;
