@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}"
+	ProjectSection(SolutionItems) = preProject
+		creepFactory.ts = creepFactory.ts
+		main.ts = main.ts
+		RoomManager.ts = RoomManager.ts
+		TaskManager.ts = TaskManager.ts
+		types.d.ts = types.d.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{1050C986-E948-4A11-BE7F-ED6468FB6DEE}"
+	ProjectSection(SolutionItems) = preProject
+		utils\errorMapper.ts = utils\errorMapper.ts
+		utils\memory.ts = utils\memory.ts
+		utils\utils.ts = utils\utils.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tasks", "tasks", "{00DA8604-12AC-49B4-A740-4FDFE9487059}"
+	ProjectSection(SolutionItems) = preProject
+		tasks\CreepTask.ts = tasks\CreepTask.ts
+		tasks\CreepTaskQueue.ts = tasks\CreepTaskQueue.ts
+		tasks\CreepTaskRequest.ts = tasks\CreepTaskRequest.ts
+		tasks\Task.ts = tasks\Task.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contract", "contract", "{A8062669-B9FA-4D74-8054-26F01D92953D}"
+	ProjectSection(SolutionItems) = preProject
+		contract\ICreepTaskRequest.ts = contract\ICreepTaskRequest.ts
+		contract\ITask.ts = contract\ITask.ts
+		contract\ITaskRequest.ts = contract\ITaskRequest.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF-A9BF-4891-84B1-621CFC509CC0}"
+	ProjectSection(SolutionItems) = preProject
+		tasks\creep\Mine.ts = tasks\creep\Mine.ts
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1050C986-E948-4A11-BE7F-ED6468FB6DEE} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
+		{00DA8604-12AC-49B4-A740-4FDFE9487059} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
+		{A8062669-B9FA-4D74-8054-26F01D92953D} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
+		{A198E0CF-A9BF-4891-84B1-621CFC509CC0} = {00DA8604-12AC-49B4-A740-4FDFE9487059}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2E29B59A-330E-4529-9814-B0EA814D6A4F}
+	EndGlobalSection
+EndGlobal

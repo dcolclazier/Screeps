@@ -1,0 +1,11 @@
+{
+  "pserver": {
+    "email": "jdcolclazier@gmail.com",
+    "password": "test",
+    "protocol": "http",
+    "hostname": "127.0.0.1",
+    "port": 21026,
+    "path": "/",
+    "branch": "main"
+  }
+}
