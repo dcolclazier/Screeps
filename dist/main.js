@@ -2669,7 +2669,7 @@ var CreepTaskQueue = /** @class */ (function () {
                     mem.currentTask = nextTask.name;
                     roomMem.activeWorkerRequests[creepName] = nextTask;
                     _.remove(roomMem.pendingWorkerRequests, nextTask);
-                    //console.log(JSON.stringify(nextTask))
+                    console.log(JSON.stringify(nextTask));
                     nextTask.status = TaskStatus.INIT;
                     break;
                 }
@@ -2710,7 +2710,9 @@ var CreepTaskQueue = /** @class */ (function () {
         var roomMem = Game.rooms[roomName].memory;
         var count = 0;
         for (var i in roomMem.activeWorkerRequests) {
-            count++;
+            var request = roomMem.activeWorkerRequests[i];
+            if (request.name == taskName || taskName == "")
+                count++;
         }
         return count;
         //return Object.keys(roomMem.activeWorkerRequests).length;

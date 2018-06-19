@@ -49,7 +49,7 @@ export class CreepTaskQueue {
           roomMem.activeWorkerRequests[creepName] = nextTask;
           _.remove(roomMem.pendingWorkerRequests, nextTask);
 
-          //console.log(JSON.stringify(nextTask))
+          console.log(JSON.stringify(nextTask))
 
           nextTask.status = TaskStatus.INIT;
           break;
@@ -92,7 +92,10 @@ export class CreepTaskQueue {
     let roomMem = Game.rooms[roomName].memory as RoomMemory;
     var count: number = 0;
     for (var i in roomMem.activeWorkerRequests) {
-       count++;
+      var request = roomMem.activeWorkerRequests[i];
+      if (request.name == taskName || taskName == "")
+        count++;
+
     }
     return count;
     //return Object.keys(roomMem.activeWorkerRequests).length;
