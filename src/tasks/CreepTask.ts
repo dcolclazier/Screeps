@@ -75,32 +75,17 @@ export abstract class CreepTask extends Task {
     //console.log("collect from dropped")
     const room = Game.rooms[roomName];
     const roomMemory = room.memory as RoomMemory;
-
-    //const newClosest = _.sortBy(roomMemory.activeResourcePileIDs, id => {
-    //  const source = Game.getObjectById(id) as Resource;
-    //  return this.creep.pos.getRangeTo(source.pos.x, source.pos.y);
-    //})
-    const closestSources = roomMemory.activeResourcePileIDs.sort(r => {
-      const source = Game.getObjectById(r) as Resource;
-      return source.amount;
-      //return this.creep.pos.getRangeTo(source.pos.x, source.pos.y);
-    });
+  
     const debugSources = roomMemory.activeResourcePileIDs
       .map(s => Game.getObjectById(s) as Resource)
       .filter(ss => ss.amount > 50)
     if (debugSources.length == 0) return;
-      //.sort(sss => this.creep.p os.getRangeTo(sss.pos));
-    //console.log(JSON.stringify(debugSources))
-    const sortDebug = _.sortBy(debugSources, s => this.creep.pos.getRangeTo(s.pos))
-    //console.log("collect from dropped")
-    //console.log("Ranges: " + JSON.stringify(debugSources.map(s => this.creep.pos.getRangeTo(s.pos))))
-    //console.log("sorted Ranges: " + JSON.stringify(sortDebug.map(s => this.creep.pos.getRangeTo(s.pos))))
-    //console.log(JSON.stringify(biggestSource))
-    //const resources = room.find(FIND_DROPPED_RESOURCES).filter(r => r.resourceType == RESOURCE_ENERGY);
-    
+
+    //const sortDebug = _.sortBy(debugSources, s => this.creep.pos.getRangeTo(s.pos))
+    const sortDebug = _.sortBy(debugSources, s => s.amount).reverse();
+    console.log(JSON.stringify("sorted"+sortDebug.map(s=>s.amount)))
     var mine = _.first(sortDebug);
     var range = this.creep.pos.getRangeTo(mine);
-    //console.log("closest to " + this.creep.name + " : " + mine.amount + " " + mine.resourceType + ", " + range)
     var result = this.creep.pickup(mine)
     if (result == ERR_NOT_IN_RANGE) {
       this.creep.moveTo(mine);

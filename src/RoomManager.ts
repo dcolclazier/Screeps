@@ -23,7 +23,7 @@ export class RoomManager {
   public static minimumWorkerCount: number = 1;
   public static minimumMinerCount: number = 2;
   public static maxWorkersPerRoom: number = 3;
-  public static maxUpgradersPerRoom: number = 6;
+  public static maxUpgradersPerRoom: number = 5;
   minerCount: number = 0;
 
   public Run(roomName: string): void {
@@ -191,7 +191,7 @@ export class RoomManager {
     switch (energyLevel) {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
-      case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY]
+      case 2: return [WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];

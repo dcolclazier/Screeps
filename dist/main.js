@@ -2923,37 +2923,21 @@ var CreepTask = /** @class */ (function (_super) {
         }
     };
     CreepTask.prototype.collectFromDroppedEnergy = function (roomName) {
-        var _this = this;
         if (this.creep.carry.energy == this.creep.carryCapacity)
             return;
         //console.log("collect from dropped")
         var room = Game.rooms[roomName];
         var roomMemory = room.memory;
-        //const newClosest = _.sortBy(roomMemory.activeResourcePileIDs, id => {
-        //  const source = Game.getObjectById(id) as Resource;
-        //  return this.creep.pos.getRangeTo(source.pos.x, source.pos.y);
-        //})
-        var closestSources = roomMemory.activeResourcePileIDs.sort(function (r) {
-            var source = Game.getObjectById(r);
-            return source.amount;
-            //return this.creep.pos.getRangeTo(source.pos.x, source.pos.y);
-        });
         var debugSources = roomMemory.activeResourcePileIDs
             .map(function (s) { return Game.getObjectById(s); })
             .filter(function (ss) { return ss.amount > 50; });
         if (debugSources.length == 0)
             return;
-        //.sort(sss => this.creep.p os.getRangeTo(sss.pos));
-        //console.log(JSON.stringify(debugSources))
-        var sortDebug = _.sortBy(debugSources, function (s) { return _this.creep.pos.getRangeTo(s.pos); });
-        //console.log("collect from dropped")
-        //console.log("Ranges: " + JSON.stringify(debugSources.map(s => this.creep.pos.getRangeTo(s.pos))))
-        //console.log("sorted Ranges: " + JSON.stringify(sortDebug.map(s => this.creep.pos.getRangeTo(s.pos))))
-        //console.log(JSON.stringify(biggestSource))
-        //const resources = room.find(FIND_DROPPED_RESOURCES).filter(r => r.resourceType == RESOURCE_ENERGY);
+        //const sortDebug = _.sortBy(debugSources, s => this.creep.pos.getRangeTo(s.pos))
+        var sortDebug = _.sortBy(debugSources, function (s) { return s.amount; }).reverse();
+        console.log(JSON.stringify("sorted" + sortDebug.map(function (s) { return s.amount; })));
         var mine = _.first(sortDebug);
         var range = this.creep.pos.getRangeTo(mine);
-        //console.log("closest to " + this.creep.name + " : " + mine.amount + " " + mine.resourceType + ", " + range)
         var result = this.creep.pickup(mine);
         if (result == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(mine);
@@ -3257,7 +3241,7 @@ var Restock = /** @class */ (function (_super) {
         var roomMem = room.memory;
         //this.collectFromContainer(this.request.roomName, creep.id);
         //temp code...
-        if (this.creep.carry.energy < this.creep.carryCapacity) {
+        if (this.creep.carry.energy < 50) {
             this.collectFromDroppedEnergy(room.name);
             this.collectFromTombstone(room.name);
             this.collectFromSource(room.name);
@@ -3712,6 +3696,106 @@ var TowerRepair = /** @class */ (function (_super) {
     return TowerRepair;
 }(StructureTask));
 
+var FillStorageRequest = /** @class */ (function (_super) {
+    __extends(FillStorageRequest, _super);
+    function FillStorageRequest(roomName, restockID) {
+        var _this = _super.call(this, roomName, "\uD83D\uDCB0", restockID) || this;
+        _this.priority = 3;
+        _this.name = "FillStorage";
+        _this.requiredRole = 3 /* ROLE_WORKER */;
+        _this.maxConcurrent = 2;
+        return _this;
+    }
+    return FillStorageRequest;
+}(CreepTaskRequest));
+var FillStorage = /** @class */ (function (_super) {
+    __extends(FillStorage, _super);
+    function FillStorage(taskInfo) {
+        var _this = _super.call(this, taskInfo) || this;
+        _this.sources = [];
+        return _this;
+    }
+    FillStorage.prototype.init = function () {
+        _super.prototype.init.call(this);
+        var fillStorage = this.request;
+        //console.log("status after init" + Task.getStatus(this.request.status))
+        this.request.status = TaskStatus.PREPARE;
+    };
+    FillStorage.prototype.prepare = function () {
+        _super.prototype.prepare.call(this);
+        if (this.request.status == TaskStatus.FINISHED)
+            return;
+        var restockInfo = this.request;
+        var room = Game.rooms[this.request.roomName];
+        var roomMem = room.memory;
+        //this.collectFromContainer(this.request.roomName, creep.id);
+        //temp code...
+        if (this.creep.carry.energy == 0) {
+            this.collectFromDroppedEnergy(room.name);
+            this.collectFromTombstone(room.name);
+            //this.collectFromSource(room.name);
+        }
+        else {
+            this.request.status = TaskStatus.IN_PROGRESS;
+        }
+    };
+    FillStorage.prototype.continue = function () {
+        var _this = this;
+        _super.prototype.continue.call(this);
+        if (this.request.status == TaskStatus.FINISHED)
+            return;
+        var creep = Game.creeps[this.request.assignedTo];
+        var storages = creep.room.find(FIND_MY_STRUCTURES).filter(function (s) { return s.structureType == "storage"; });
+        var sortedByRange = _.sortBy(storages, function (s) { return _this.creep.pos.getRangeTo(s); });
+        console.log("sorted ranges: " + JSON.stringify(sortedByRange));
+        //let targets = creep.room.find(FIND_STRUCTURES, {
+        //  filter: (structure) => {
+        //    return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+        //      structure.energy < structure.energyCapacity;
+        //  }
+        //}).sort((structureA, structureB) => creep.pos.getRangeTo(structureA) - creep.pos.getRangeTo(structureB));
+        //console.log("restock targets: " + targets.length);
+        if (sortedByRange.length == 0) {
+            this.request.status = TaskStatus.FINISHED;
+        }
+        else {
+            var result = creep.transfer(sortedByRange[0], RESOURCE_ENERGY);
+            var target = sortedByRange[0];
+            if (result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+            }
+            else if (result == OK) {
+                this.request.status = TaskStatus.FINISHED;
+            }
+            else {
+                //console.log(`${creep.name} couldn't restock: ${result}`)
+                this.request.status = TaskStatus.FINISHED;
+            }
+        }
+    };
+    FillStorage.addRequests = function (roomName) {
+        var room = Game.rooms[roomName];
+        var storages = room.find(FIND_MY_STRUCTURES).filter(function (s) { return s.structureType == "storage"; });
+        //let workers = utils.creepNamesByRole(roomName, CreepRole.ROLE_WORKER).filter(name => {
+        //  const worker = Game.creeps[name] as Creep;
+        //  return worker.carry.energy > 0;
+        //})
+        //if (workers.length == 0) return;
+        for (var targetID in storages) {
+            var restockable = storages[targetID];
+            if (restockable.store.energy == restockable.storeCapacity)
+                continue;
+            var request = new FillStorageRequest(roomName, restockable.id);
+            var existingTaskCount = CreepTaskQueue.totalCount(roomName, request.name);
+            var maxConcurrentCount = request.maxConcurrent;
+            if (existingTaskCount < maxConcurrentCount) {
+                CreepTaskQueue.addPendingRequest(request);
+            }
+        }
+    };
+    return FillStorage;
+}(CreepTask));
+
 var TaskManager = /** @class */ (function () {
     function TaskManager() {
     }
@@ -3753,6 +3837,8 @@ var TaskManager = /** @class */ (function () {
                 TaskManager.runTask(new Build(request));
             else if (request.name == "FillTower")
                 TaskManager.runTask(new FillTower(request));
+            else if (request.name == "FillStorage")
+                TaskManager.runTask(new FillStorage(request));
             else {
                 console.log("Reqiest" + request.name);
             }
@@ -3793,6 +3879,7 @@ var TaskManager = /** @class */ (function () {
         FillTower.addRequests(roomName);
         Build.addRequests(roomName);
         Upgrade.addRequests(roomName, 6);
+        FillStorage.addRequests(roomName);
         //console.log("finished adding pending worker requests");
     };
     TaskManager.Run = function (roomName, energyLevel) {
@@ -4044,7 +4131,7 @@ var RoomManager = /** @class */ (function () {
         switch (energyLevel) {
             case 1: return [WORK, MOVE, MOVE, CARRY];
             //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
-            case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
+            case 2: return [WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
             //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
             case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
             default: return [WORK, MOVE, MOVE, CARRY];
@@ -4147,7 +4234,7 @@ var RoomManager = /** @class */ (function () {
     RoomManager.minimumWorkerCount = 1;
     RoomManager.minimumMinerCount = 2;
     RoomManager.maxWorkersPerRoom = 3;
-    RoomManager.maxUpgradersPerRoom = 6;
+    RoomManager.maxUpgradersPerRoom = 5;
     return RoomManager;
 }());
 
