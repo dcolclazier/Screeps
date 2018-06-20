@@ -49,7 +49,7 @@ export class CreepTaskQueue {
           roomMem.activeWorkerRequests[creepName] = nextTask;
           _.remove(roomMem.pendingWorkerRequests, nextTask);
 
-          console.log(JSON.stringify(nextTask))
+          //console.log(JSON.stringify(nextTask))
 
           nextTask.status = TaskStatus.INIT;
           break;

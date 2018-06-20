@@ -5,7 +5,6 @@ import * as utils from "utils/utils";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import { CreepRole } from "utils/utils";
 import { Task, TaskStatus } from "../Task";
-import { RoomManager } from "RoomManager";
 
 export class MineRequest extends CreepTaskRequest {
   priority: number = 1;
@@ -13,32 +12,34 @@ export class MineRequest extends CreepTaskRequest {
   name: string = "Mine";
   maxConcurrent: number;
   id: number
-  source: SmartSource;
+  //source: SmartSource;
   constructor(roomName: string, sourceID: string) {
     super(roomName, `💲`, sourceID);
 
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
     //console.log("source id in mine req ctor: " + sourceID)
-
-    this.source = _.find(roomMem.harvestLocations, h => h.sourceID == sourceID) as SmartSource;
-    if (this.source == undefined) console.log("You cant init a mine request with an undefined source.")
+    const source = roomMem.harvestLocations[sourceID] as SmartSource;
+    //this.source = _.find(roomMem.harvestLocations, h => h.sourceID == sourceID) as SmartSource;
+    if (source == undefined) console.log("You cant init a mine request with an undefined source.")
 
     //console.log("after finding source: " + this.source.sourceID)
     this.id = _.random(0, 10);
-    this.maxConcurrent = utils.sourceCount(this.roomName) * 2;
-    console.log("max concurrent: " + this.maxConcurrent)
+    var minerCount = utils.creepCount(roomName, CreepRole.ROLE_MINER);
+    this.maxConcurrent = minerCount;
+    //console.log("max concurrent: " + this.maxConcurrent)
   }
 }
 
 export class Mine extends CreepTask {
   protected init(): void {
     super.init();
-    //console.log("mine init assigned to " + this.request.assignedTo)
-
+    const roomMem = Game.rooms[this.request.roomName].memory as RoomMemory;
+    const source = roomMem.harvestLocations[this.request.targetID] as SmartSource;
     const request = this.request as MineRequest;
-    const source = request.source as SmartSource;
-    source.assignedTo = request.assignedTo;
+    source.assignedTo.push(request.assignedTo);
+    console.log("mine init assigned to " + source.assignedTo)
     this.request.status = TaskStatus.PREPARE;
+    
   }
 
   protected prepare(): void {
@@ -55,29 +56,34 @@ export class Mine extends CreepTask {
     else this.deliver();
 
   }
+  protected finish(): void {
+    super.finish();
+  }
 
-  static addRequests(roomName: string): void {
+  static addRequests(roomName: string, energyLevel: number): void {
     const room = Game.rooms[roomName];
     const mem = room.memory as RoomMemory;
 
-    const unassigned = _.filter(mem.harvestLocations, h => h.assignedTo === null) as SmartSource[];
+    //const unassigned = _.filter(mem.harvestLocations, h => h.assignedTo === null) as SmartSource[];
     
-    if (unassigned.length === 0) return;
+    //if (unassigned.length === 0) return;
     var minersPerSource = 1;
-    var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
-    if (energyLevel == 1) {
+    //var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
+    if (energyLevel < 3) {
       minersPerSource = 2;
     }
-    for (const key in unassigned) {
-      const smartSource = unassigned[key] as SmartSource;
-      
-      for (var i = 0; i < minersPerSource; i++) {
+    for (const key in mem.harvestLocations) {
+      const smartSource = mem.harvestLocations[key] as SmartSource;
+      //console.log("sourceid: " + smartSource.sourceID)
+      if (smartSource.assignedTo.length == minersPerSource) continue;
+      var needed = minersPerSource - smartSource.assignedTo.length;
+      for (var i = 0; i < needed; i++) {
         
         var request = new MineRequest(roomName, smartSource.sourceID);
         var totalCurrent = CreepTaskQueue.totalCount(request.roomName, request.name);
-        console.log("total current:" + totalCurrent)
+        //console.log("total current:" + totalCurrent)
         if (totalCurrent < request.maxConcurrent) {
-          console.log("about to add source for this id: " + smartSource.sourceID)
+          //console.log("about to add source for this id: " + smartSource.sourceID)
           CreepTaskQueue.addPendingRequest(request);
         }
       }

@@ -24,6 +24,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tasks", "tasks", "{00DA8604
 		tasks\CreepTask.ts = tasks\CreepTask.ts
 		tasks\CreepTaskQueue.ts = tasks\CreepTaskQueue.ts
 		tasks\CreepTaskRequest.ts = tasks\CreepTaskRequest.ts
+		tasks\StructureTask.ts = tasks\StructureTask.ts
+		tasks\StructureTaskQueue.ts = tasks\StructureTaskQueue.ts
+		tasks\StructureTaskRequest.ts = tasks\StructureTaskRequest.ts
 		tasks\Task.ts = tasks\Task.ts
 	EndProjectSection
 EndProject
@@ -37,10 +40,17 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF-A9BF-4891-84B1-621CFC509CC0}"
 	ProjectSection(SolutionItems) = preProject
 		tasks\creep\Build.ts = tasks\creep\Build.ts
+		tasks\creep\FillTower.ts = tasks\creep\FillTower.ts
 		tasks\creep\Mine.ts = tasks\creep\Mine.ts
 		tasks\creep\PickupEnergy.ts = tasks\creep\PickupEnergy.ts
 		tasks\creep\Restock.ts = tasks\creep\Restock.ts
 		tasks\creep\Upgrade.ts = tasks\creep\Upgrade.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "structure", "structure", "{5FEAC8C0-D849-405A-AB63-4D36A50569D7}"
+	ProjectSection(SolutionItems) = preProject
+		tasks\structure\TowerAttack.ts = tasks\structure\TowerAttack.ts
+		tasks\structure\TowerRepair.ts = tasks\structure\TowerRepair.ts
 	EndProjectSection
 EndProject
 Global
@@ -52,6 +62,7 @@ Global
 		{00DA8604-12AC-49B4-A740-4FDFE9487059} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
 		{A8062669-B9FA-4D74-8054-26F01D92953D} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
 		{A198E0CF-A9BF-4891-84B1-621CFC509CC0} = {00DA8604-12AC-49B4-A740-4FDFE9487059}
+		{5FEAC8C0-D849-405A-AB63-4D36A50569D7} = {00DA8604-12AC-49B4-A740-4FDFE9487059}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2E29B59A-330E-4529-9814-B0EA814D6A4F}

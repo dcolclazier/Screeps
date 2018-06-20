@@ -8,7 +8,7 @@ export class BuildRequest extends CreepTaskRequest {
   priority: number = 2;
   requiredRole: CreepRole = CreepRole.ROLE_WORKER;
   name = "Build";
-  maxConcurrent = 2;
+  maxConcurrent = 3;
   constructor(roomName: string, siteID: string) {
     super(roomName, `🚧`, siteID);
   }
@@ -27,7 +27,7 @@ export class Build extends CreepTask {
 
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
-    if (this.creep.carry.energy < this.creep.carryCapacity) {
+    if (this.creep.carry.energy == 0) {
 
       this.collectFromDroppedEnergy(room.name);
       this.collectFromTombstone(room.name);

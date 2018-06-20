@@ -8,27 +8,35 @@ export let creeps: Creep[];
 export let creepCount: number = 0;
 
 export class RoomManager {
+  loadResources(roomName: string): void {
+    const room = Game.rooms[roomName];
+    const roomMem = room.memory as RoomMemory
+    const resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
+    //console.log(JSON.stringify(resources))
+    const sorted = _.sortBy(resources, r => r.amount);
+    roomMem.activeResourcePileIDs = sorted.map(u => u.id);
+
+  }
   creeps: Array<Creep> = [];
   creepCount: number = 0;
 
   public static minimumWorkerCount: number = 1;
   public static minimumMinerCount: number = 2;
-  public static maxWorkersPerRoom: number = 2;
-  public static maxUpgradersPerRoom: number = 4;
+  public static maxWorkersPerRoom: number = 3;
+  public static maxUpgradersPerRoom: number = 6;
   minerCount: number = 0;
-  //taskManager: TaskManager = new TaskManager();
 
   public Run(roomName: string): void {
     RoomManager.loadHarvestingSpots(roomName);
 
     this.loadCreeps(roomName);
+    this.loadResources(roomName);
     this.loadStructures(roomName);
     this.spawnMissingMiners(roomName);
     this.spawnMissingWorkers(roomName);
     this.spawnMissingUpgraders(roomName);
 
-    //TaskManager.processRoomTasks(roomName);
-    TaskManager.Run(roomName);
+    TaskManager.Run(roomName, RoomManager.getRoomEnergyLevel(roomName));
   }
   private loadCreeps(roomName: string) {
     let room = Game.rooms[roomName];
@@ -149,7 +157,7 @@ export class RoomManager {
     });
     var minersPerSource = 1;
     var energyLevel = RoomManager.getRoomEnergyLevel(roomName);
-    if (energyLevel == 1) {
+    if (energyLevel < 3) {
       minersPerSource = 2;
     }
     let room = Game.rooms[roomName]
@@ -201,7 +209,7 @@ export class RoomManager {
     switch (energyLevel) {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       //case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
-      case 2: return [WORK, WORK, MOVE, MOVE, CARRY, CARRY]
+      case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
       //case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
@@ -238,21 +246,22 @@ export class RoomManager {
     let room = Game.rooms[roomName];
     let roomMemory = room.memory as RoomMemory;
 
-    if (roomMemory.harvestLocations.length > 0) return;
-
+    if (Object.keys(roomMemory.harvestLocations).length > 0) return;
+    console.log("loading harvesting spots")
     let sources = room.find(FIND_SOURCES);
 
 
-    let spots: Array<SmartSource> = [];
+    let spots: { [index: string]: SmartSource } = { };
 
     for (const sourceID in sources) {
       let source = sources[sourceID];
       const spot: SmartSource = {
         sourceID: source.id,
         roomName: roomName,
-        assignedTo: null,
+        assignedTo: [],
       }
-      spots.push(spot);
+      spots[source.id] = spot;
+      //spots.push(spot);
       roomMemory.harvestLocations = spots;
     }
     // 	let sourcePosition = source.pos as RoomPosition;
@@ -297,48 +306,48 @@ export class RoomManager {
 
   }
 
-  static GetClosestOrAssignedHarvestLocation(roomName: string, creepID: string, locationID: string = ""): SmartSource | undefined {
-    let creep = Game.getObjectById(creepID) as Creep;
-    let room = Game.rooms[roomName];
-    let roomMemory = room.memory as RoomMemory;
-    if (locationID == "") {
-      locationID = creep.id;
-    }
+  //static GetClosestOrAssignedHarvestLocation(roomName: string, creepID: string, locationID: string = ""): SmartSource | undefined {
+  //  let creep = Game.getObjectById(creepID) as Creep;
+  //  let room = Game.rooms[roomName];
+  //  let roomMemory = room.memory as RoomMemory;
+  //  if (locationID == "") {
+  //    locationID = creep.id;
+  //  }
 
-    let locObj = Game.getObjectById(locationID) as Structure | Creep;
-    if (roomMemory.harvestLocations == []) {
-      console.log("this should never happen...")
-      this.loadHarvestingSpots(roomName);
-    }
-    let harvestingSpots = roomMemory.harvestLocations.filter(spot => {
+  //  let locObj = Game.getObjectById(locationID) as Structure | Creep;
+  //  if (roomMemory.harvestLocations == {}) {
+  //    console.log("this should never happen...")
+  //    this.loadHarvestingSpots(roomName);
+  //  }
+  //  let harvestingSpots = roomMemory.harvestLocations.filter(spot => {
 
-      let source = Game.getObjectById(spot.sourceID) as Source;
-      return source.energy > 0;
-    });
+  //    let source = Game.getObjectById(spot.sourceID) as Source;
+  //    return source.energy > 0;
+  //  });
 
-    let assignedSpot = harvestingSpots.filter((spot) => {
-      return spot.assignedTo == creep.name;
-    })[0];
+  //  let assignedSpot = harvestingSpots.filter((spot) => {
+  //    return spot.assignedTo == creep.name;
+  //  })[0];
 
-    if (assignedSpot !== undefined) return assignedSpot;
-    else {
-      let openSpots = harvestingSpots.filter((spot) => {
-        return spot.assignedTo == null;
-      });
-      _.sortBy(openSpots, spot => {
-        let sourceID = spot.sourceID;
-        let source = Game.getObjectById(sourceID) as Source;
-        return locObj.pos.getRangeTo(source);
-      }).reverse();
+  //  if (assignedSpot !== undefined) return assignedSpot;
+  //  else {
+  //    let openSpots = harvestingSpots.filter((spot) => {
+  //      return spot.assignedTo == null;
+  //    });
+  //    _.sortBy(openSpots, spot => {
+  //      let sourceID = spot.sourceID;
+  //      let source = Game.getObjectById(sourceID) as Source;
+  //      return locObj.pos.getRangeTo(source);
+  //    }).reverse();
 
-      if (openSpots == undefined) return undefined;
-      let firstOpen = openSpots[0];
-      if (firstOpen == undefined) return undefined;
+  //    if (openSpots == undefined) return undefined;
+  //    let firstOpen = openSpots[0];
+  //    if (firstOpen == undefined) return undefined;
 
-      firstOpen.assignedTo = creep.name;
-      return firstOpen;
-    }
-  }
+  //    firstOpen.assignedTo = creep.name;
+  //    return firstOpen;
+  //  }
+  //}
 
 }
 

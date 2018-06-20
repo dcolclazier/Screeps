@@ -25,7 +25,7 @@ export abstract class Task implements ITask {
   public run(): void {
     //console.log(`RUN: ${this.request.name} + ${this.request.assignedTo} + ${Task.getStatus(this.request.status)} `)
 
-    if (Game.creeps[this.request.assignedTo] == undefined) console.log("creep was null during run - should handle.")
+    //if (Game.creeps[this.request.assignedTo] == undefined) console.log("creep was null during run - should handle.")
 
     var oldStatus = this.request.status;
     switch (this.request.status) {
