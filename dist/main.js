@@ -2356,7 +2356,7 @@ function initRoomMemory(roomName) {
     rm.smartStructures = [];
 }
 function cleanupCreeps() {
-    for (var name_1 in Memory.creeps) {
+    var _loop_1 = function (name_1) {
         if (!Game.creeps[name_1]) {
             console.log("Clearing dead creeps from memory.");
             for (var roomName in Game.rooms) {
@@ -2367,13 +2367,16 @@ function cleanupCreeps() {
                     var site = sites[sourceID];
                     if (_.includes(site.assignedTo, name_1)) {
                         console.log("unassiging harvest spot for " + name_1 + " source: " + site.sourceID);
-                        site.assignedTo = _.remove(site.assignedTo, name_1);
+                        site.assignedTo = site.assignedTo.filter(function (s) { return s != name_1; });
                         console.log(JSON.stringify(site.assignedTo));
                     }
                 }
             }
             delete Memory.creeps[name_1];
         }
+    };
+    for (var name_1 in Memory.creeps) {
+        _loop_1(name_1);
     }
 }
 

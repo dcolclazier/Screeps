@@ -86,7 +86,7 @@ export function cleanupCreeps(): void {
           let site = sites[sourceID];
           if (_.includes(site.assignedTo, name)) {
             console.log("unassiging harvest spot for " + name + " source: " + site.sourceID)
-            site.assignedTo = _.remove(site.assignedTo, name);
+            site.assignedTo = site.assignedTo.filter(s=>s!=name);
             console.log(JSON.stringify(site.assignedTo))
           }
         }
