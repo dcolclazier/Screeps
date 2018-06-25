@@ -19,6 +19,7 @@ export class UpgradeRequest extends CreepTaskRequest {
 }
 
 export class Upgrade extends CreepTask {
+  
   protected init(): void {
     super.init();
     this.request.status = TaskStatus.PREPARE;
@@ -30,10 +31,15 @@ export class Upgrade extends CreepTask {
 
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
+    if (room.energyAvailable < 900) return;
     if (this.creep.carry.energy == 0) {
 
-      this.collectFromDroppedEnergy(room.name);
-      this.collectFromTombstone(room.name);
+      if (this.collectFromContainer(room.name)) return;
+      if (this.collectFromDroppedEnergy(room.name)) return;
+      if (this.collectFromTombstone(room.name)) return;
+      if (this.collectFromStorage(room.name)) return;
+      
+      
       //this.collectFromSource(room.name);
 
     }

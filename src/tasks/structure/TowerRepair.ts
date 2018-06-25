@@ -72,8 +72,11 @@ export class TowerRepair extends StructureTask {
     //console.log("Sorted: " + sorted.map(s => s.id))
     //console.log("Non Sorted: " + targets.map(s => s.hits))
     var target = _.first(sorted);
+    if (target != undefined) {
+      StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
+    }
     //console.log("before: " + target.id);
-    StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
+    
     //_.each(sorted, target => StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id)))
     //for (const id in sorted) {
     //  const repairTarget = sorted[id];

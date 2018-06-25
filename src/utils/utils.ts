@@ -157,7 +157,7 @@ export const enum CreepRole
 	// ROLE_CUSTOMCONTROL,
 	ROLE_WORKER,
 	ROLE_UPGRADER,
-	// ROLE_UPGRADETRANSPORT
+	ROLE_SCOUT
 }
 export function getRoleString(job: CreepRole): string
 {

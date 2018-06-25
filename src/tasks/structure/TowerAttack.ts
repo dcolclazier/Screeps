@@ -6,7 +6,7 @@ import { TaskStatus } from "../Task";
 export class TowerAttackRequest extends StructureTaskRequest {
   priority: number = 0
   name: string = "TowerAttack";
-  maxConcurrent: number = 3;
+  maxConcurrent: number = 6;
   constructor(roomName: string, hostileID: string) {
     super(roomName, hostileID)
   }
@@ -47,7 +47,28 @@ export class TowerAttack extends StructureTask {
 
     //let sorted = targets.sort((a, b) => a.hits - b.hits);
     const sorted = _.sortBy(targets, t => t.hits)
-    _.each(sorted, t => StructureTaskQueue.addPendingRequest(new TowerAttackRequest(roomName, t.id)));
+
+    var maxConcurrent = new TowerAttackRequest(roomName, "").maxConcurrent;
+
+    var currentCount = StructureTaskQueue.totalCount(roomName, "TowerAttack");
+    console.log("current: " + currentCount + ", max: " + maxConcurrent)
+
+    if (sorted.length == 0) return;
+    for (var i = currentCount; i < maxConcurrent; ) {
+      _.each(sorted, t => {
+        StructureTaskQueue.addPendingRequest(new TowerAttackRequest(roomName, t.id))
+        i++;
+      });
+    }
+    //do {
+     
+    //  _.each(sorted, t => {
+
+    //    StructureTaskQueue.addPendingRequest(new TowerAttackRequest(roomName, t.id))
+    //    currentCount++;  
+    //  });
+    //} while (currentCount < maxConcurrent)
+    
 
     //for (const id in sorted) {
     //  let thing = sorted[id];

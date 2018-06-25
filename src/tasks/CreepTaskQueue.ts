@@ -26,12 +26,12 @@ export class CreepTaskQueue {
       
     const sortedValidTasks = _.sortByAll(validTasks, ['priority', t => creep.pos.getRangeTo(Game.getObjectById(validTasks[0].targetID) as AnyStructure | Creep | RoomObject)]);
 
-    //let debug: string = ""
-    //for (const key in sorted) {
-    //  let task = sorted[key];
-    //  if (task != undefined) debug += task.priority + ", "
-    //}
-    //console.log("Debug: " + debug);
+    let debug: string = ""
+    for (const key in sortedValidTasks) {
+      let task = sortedValidTasks[key];
+      if (task != undefined) debug += task.priority + ", "
+    }
+    console.log("Debug: " + debug);
 
     for (const key in sortedValidTasks)
     {

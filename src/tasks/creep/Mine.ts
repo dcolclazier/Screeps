@@ -52,9 +52,9 @@ export class Mine extends CreepTask {
     super.continue();
     if (this.request.status == TaskStatus.FINISHED) return;
 
-    if (this.creep.carry.energy < this.creep.carryCapacity) this.harvest();
-    else this.deliver();
-
+    /*if (this.creep.carry.energy < this.creep.carryCapacity)*/ this.harvest();
+    //else this.deliver();
+    //else(this.creep.drop(RESOURCE_ENERGY))
   }
   protected finish(): void {
     super.finish();
@@ -94,7 +94,9 @@ export class Mine extends CreepTask {
   private harvest() {
     const creep = Game.creeps[this.request.assignedTo] as Creep;
     const source = Game.getObjectById(this.request.targetID) as Source
+    //creep.say("moving")
     if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+      
       creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
     }
 

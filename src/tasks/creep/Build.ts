@@ -27,11 +27,13 @@ export class Build extends CreepTask {
 
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
-    if (this.creep.carry.energy == 0) {
+    if (this.creep.carry.energy < this.creep.carryCapacity) {
 
-      this.collectFromDroppedEnergy(room.name);
-      this.collectFromTombstone(room.name);
-      this.collectFromSource(room.name);
+     
+      if (this.collectFromTombstone(room.name)) return;
+      if(this.collectFromContainer(room.name)) return;
+      if (this.collectFromDroppedEnergy(room.name)) return;
+      if(this.collectFromSource(room.name)) return;
       
     }
     else this.request.status = TaskStatus.IN_PROGRESS;

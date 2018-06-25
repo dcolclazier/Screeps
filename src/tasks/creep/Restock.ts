@@ -10,7 +10,7 @@ export class RestockRequest extends CreepTaskRequest {
   priority: number = 1;
   name = "Restock";
   requiredRole = CreepRole.ROLE_WORKER
-  maxConcurrent = 3;
+  maxConcurrent = 4;
   constructor(roomName: string, restockID: string) {
     super(roomName, `🛒`, restockID);
   }
@@ -39,9 +39,14 @@ export class Restock extends CreepTask {
 
     //temp code...
     if (this.creep.carry.energy < 50) {
-      this.collectFromDroppedEnergy(room.name);
-      this.collectFromTombstone(room.name);
-      this.collectFromSource(room.name);
+      //if (this.collectFromStorage(room.name)) return;
+      if (this.collectFromContainer(room.name)) return;
+      if (this.collectFromDroppedEnergy(room.name)) return;
+      if (this.collectFromTombstone(room.name)) return;
+      if (this.collectFromSource(room.name)) return;
+      //this.collectFromDroppedEnergy(room.name);
+      //this.collectFromTombstone(room.name);
+      //this.collectFromSource(room.name);
 
     }
     else {

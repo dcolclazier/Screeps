@@ -28,10 +28,12 @@ export class FillTower extends CreepTask {
 
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
-    if (this.creep.carry.energy == 0) {
+    if (this.creep.carry.energy < this.creep.carryCapacity) {
 
-      this.collectFromDroppedEnergy(room.name);
-      this.collectFromTombstone(room.name);
+      
+      if(this.collectFromTombstone(room.name)) return;
+      if (this.collectFromContainer(room.name)) return;
+      if (this.collectFromDroppedEnergy(room.name)) return;
       //this.collectFromSource(room.name);
 
     }
@@ -61,6 +63,7 @@ export class FillTower extends CreepTask {
         && t.energy < t.energyCapacity * FillTowerRequest.RefillThreshold) as StructureTower[];
 
     let sorted = towers.sort((a, b) => a.energy - b.energy);
+    console.log("sorted" + sorted.map(s => s.energy))
 
     for (const id in sorted) {
       let tower = sorted[id] as StructureTower;

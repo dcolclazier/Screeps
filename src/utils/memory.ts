@@ -40,8 +40,10 @@ export interface RoomMemory {
   pendingWorkerRequests: CreepTaskRequest[];
   pendingStructureRequests: StructureTaskRequest[];
   activeStructureRequests: { [index: string]: StructureTaskRequest };
+  containers: {[index:string]:SmartContainer}
   activeResourcePileIDs: string[];
   smartStructures: SmartStructure[];
+  settings: RoomSettings;
 }
 export interface StructureMemory {
   idle: boolean;
@@ -60,6 +62,8 @@ export function initRoomMemory(roomName: string): void {
   rm.activeStructureRequests = {};
   rm.pendingStructureRequests = []
   rm.smartStructures = [];
+  rm.containers = {};
+  rm.settings = new RoomSettings(roomName);
 
 }
 export interface SmartStructure {
@@ -95,6 +99,18 @@ export function cleanupCreeps(): void {
     }
   }
 }
+export class SmartContainer {
+  containerID: string;
+  roomName: string;
+  shouldFill: boolean;
+  allowedWithdrawRoles: CreepRole[];
+  constructor(roomName: string, containerID: string, shouldFill: boolean, allowedWithdrawRoles: CreepRole[]) {
+    this.containerID = containerID;
+    this.roomName = roomName;
+    this.allowedWithdrawRoles = allowedWithdrawRoles;
+    this.shouldFill = shouldFill;
+  }
+}
 export class SmartSource {
   sourceID: string;
   roomName: string;
@@ -105,4 +121,14 @@ export class SmartSource {
   }
 }
 
+export class RoomSettings {
+  roomName: string;
+  minimumWorkerCount: number = 1;
+  lowLevelMinersPerSource: number = 2;
+  highLevelMinersPerSource: number = 1;
+  minimumMinerCount: number = 2;
+  maxWorkerCount: number = 2;
+  maxUpgraderCount: number = 4;
+  constructor(roomName: string) { this.roomName = roomName; }
+}
 

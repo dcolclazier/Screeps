@@ -22,7 +22,7 @@ import { Upgrade } from "tasks/creep/Upgrade";
 import { FillTower } from "tasks/creep/FillTower";
 import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
-import { FillStorage } from "FillStorage";
+import { FillStorage, FillContainers } from "FillStorage";
 
 export class TaskManager {
 
@@ -66,6 +66,7 @@ export class TaskManager {
       else if (request.name == "Build") TaskManager.runTask(new Build(request));
       else if (request.name == "FillTower") TaskManager.runTask(new FillTower(request))
       else if (request.name == "FillStorage") TaskManager.runTask(new FillStorage(request))
+      else if (request.name == "FillContainers") TaskManager.runTask(new FillContainers(request))
       else { console.log("Reqiest" + request.name)}
 
     })
@@ -112,6 +113,7 @@ export class TaskManager {
     Build.addRequests(roomName);
     Upgrade.addRequests(roomName, 6);
     FillStorage.addRequests(roomName)
+    FillContainers.addRequests(roomName)
     //console.log("finished adding pending worker requests");
   }
   static Run(roomName: string, energyLevel: number): void {
@@ -148,6 +150,7 @@ export class TaskManager {
       if (structure != undefined) {
         let memory = structure.memory as StructureMemory;
         if (memory.idle) {
+          console.log("id: " + structure.id)
           StructureTaskQueue.startTask(structure.id, roomName);
         }
       }
