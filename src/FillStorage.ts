@@ -9,7 +9,7 @@ import { TaskStatus, Task } from "tasks/Task";
 export class FillContainersRequest extends CreepTaskRequest {
   name: string = "FillContainers";
   priority: number = 2;
-  requiredRole: utils.CreepRole = CreepRole.ROLE_WORKER;
+  requiredRole: CreepRole[] = [CreepRole.ROLE_CARRIER];
   maxConcurrent: number = 3;
   constructor(roomName: string, restockID: string) {
     super(roomName, `💰2`, restockID);
@@ -38,9 +38,11 @@ export class FillContainers extends CreepTask {
 
     //temp code...
     if (this.creep.carry.energy == 0) {
+
       if (this.collectFromContainer(room.name)) return;
       if (this.collectFromDroppedEnergy(room.name)) return;
       if (this.collectFromTombstone(room.name)) return;
+      
       //this.collectFromSource(room.name);
 
     }
@@ -131,9 +133,9 @@ export class FillContainers extends CreepTask {
 
 
 export class FillStorageRequest extends CreepTaskRequest {
-  priority: number = 3;
+  priority: number = 4;
   name = "FillStorage";
-  requiredRole = CreepRole.ROLE_WORKER
+  requiredRole = [6]
   maxConcurrent = 2;
   constructor(roomName: string, restockID: string) {
     super(roomName, `💰`, restockID);
@@ -162,9 +164,10 @@ export class FillStorage extends CreepTask {
 
     //temp code...
     if (this.creep.carry.energy == 0) {
-      if (this.collectFromContainer(room.name)) return;
+      
       if(this.collectFromDroppedEnergy(room.name)) return;
-      if(this.collectFromTombstone(room.name)) return;
+      if (this.collectFromTombstone(room.name)) return;
+      if (this.collectFromContainer(room.name)) return;
       //this.collectFromSource(room.name);
 
     }
@@ -179,7 +182,7 @@ export class FillStorage extends CreepTask {
 
     let storages = creep.room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[]
     const sortedByRange = _.sortBy(storages, s => this.creep.pos.getRangeTo(s));
-    console.log("sorted ranges: " + JSON.stringify(sortedByRange))
+    //console.log("sorted ranges: " + JSON.stringify(sortedByRange))
     
     if (sortedByRange.length == 0) {
       this.request.status = TaskStatus.FINISHED;

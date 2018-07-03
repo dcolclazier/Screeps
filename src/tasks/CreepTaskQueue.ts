@@ -21,17 +21,18 @@ export class CreepTaskQueue {
     const creep = Game.creeps[creepName] as Creep;
     const mem = creep.memory as CreepMemory;
 
-    const validTasks = roomMem.pendingWorkerRequests.filter(r => r.requiredRole == mem.role);
+    const validTasks = roomMem.pendingWorkerRequests.filter(r => _.includes(r.requiredRole, mem.role));
     if (validTasks.length == 0) return;
+    //console.log("valid: " + mem.role + " , " + validTasks[0].requiredRole)
       
     const sortedValidTasks = _.sortByAll(validTasks, ['priority', t => creep.pos.getRangeTo(Game.getObjectById(validTasks[0].targetID) as AnyStructure | Creep | RoomObject)]);
 
-    let debug: string = ""
-    for (const key in sortedValidTasks) {
-      let task = sortedValidTasks[key];
-      if (task != undefined) debug += task.priority + ", "
-    }
-    console.log("Debug: " + debug);
+    //let debug: string = ""
+    //for (const key in sortedValidTasks) {
+    //  let task = sortedValidTasks[key];
+    //  if (task != undefined) debug += task.priority + ", "
+    //}
+    //console.log("Debug: " + debug);
 
     for (const key in sortedValidTasks)
     {
@@ -55,7 +56,7 @@ export class CreepTaskQueue {
           break;
         }
         else {
-          console.log("ARGH!!!.")
+          //console.log("ARGH!!!.")
         }
       }
     }

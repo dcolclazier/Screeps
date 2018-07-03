@@ -55,7 +55,7 @@ export class StructureTaskQueue {
     //console.log("addpending")
     let roomMem = Game.rooms[request.roomName].memory as RoomMemory;
     var totalCurrent = StructureTaskQueue.totalCount(request.roomName, request.name);
-    console.log("total current pending tasks: "+ request.name + " "+ totalCurrent)
+    //console.log("total current pending tasks: "+ request.name + " "+ totalCurrent)
     //console.log("when adding: "+ request.targetID)
     if (totalCurrent < request.maxConcurrent) {
       let roomMem = Game.rooms[request.roomName].memory as RoomMemory;
@@ -66,11 +66,11 @@ export class StructureTaskQueue {
   static startTask(buildingID: string, roomName: string): void {
     let roomMem = Game.rooms[roomName].memory as RoomMemory;
     if (roomMem.pendingStructureRequests.length == 0) {
-      console.log("no pending requests.")
+      //console.log("no pending requests.")
       return;
     }
     const sortedTasks = _.sortBy(roomMem.pendingStructureRequests, s => s.priority);
-    console.log("sorted priority: " + JSON.stringify(sortedTasks.map(t => t.priority)))
+    //console.log("sorted priority: " + JSON.stringify(sortedTasks.map(t => t.priority)))
     for (const key in sortedTasks) {
       if (sortedTasks.hasOwnProperty(key)) {
         const task = sortedTasks[key];
@@ -90,7 +90,7 @@ export class StructureTaskQueue {
           break;
         }
         else {
-          console.log("ARGH!!!.")
+          //console.log("ARGH!!!.")
         }
       }
     }

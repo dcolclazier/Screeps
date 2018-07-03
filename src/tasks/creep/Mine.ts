@@ -8,7 +8,7 @@ import { Task, TaskStatus } from "../Task";
 
 export class MineRequest extends CreepTaskRequest {
   priority: number = 1;
-  requiredRole: CreepRole = CreepRole.ROLE_MINER
+  requiredRole: CreepRole[] = [CreepRole.ROLE_MINER]
   name: string = "Mine";
   maxConcurrent: number;
   id: number

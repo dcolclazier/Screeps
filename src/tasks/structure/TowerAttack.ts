@@ -31,7 +31,7 @@ export class TowerAttack extends StructureTask {
     let tower = Game.getObjectById(attackRequest.assignedTo) as StructureTower;
     //console.log("Tower: " + tower.structureType + " " + tower.owner)
     if (hostile == undefined || hostile.hits == 0) {
-      console.log("he died!")
+      //console.log("he died!")
       this.request.status = TaskStatus.FINISHED;
       return;
     }
@@ -51,7 +51,7 @@ export class TowerAttack extends StructureTask {
     var maxConcurrent = new TowerAttackRequest(roomName, "").maxConcurrent;
 
     var currentCount = StructureTaskQueue.totalCount(roomName, "TowerAttack");
-    console.log("current: " + currentCount + ", max: " + maxConcurrent)
+    //console.log("current: " + currentCount + ", max: " + maxConcurrent)
 
     if (sorted.length == 0) return;
     for (var i = currentCount; i < maxConcurrent; ) {

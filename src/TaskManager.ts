@@ -17,12 +17,29 @@ import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { PickupEnergy } from "tasks/creep/PickupEnergy";
 import { ITaskRequest } from "contract/ITaskRequest";
 import { Restock } from "tasks/creep/Restock";
-import { Build } from "tasks/creep/Build";
-import { Upgrade } from "tasks/creep/Upgrade";
+import { Build, Scout, RemoteUpgrade } from "tasks/creep/Build";
+import { Upgrade, Defend } from "tasks/creep/Upgrade";
 import { FillTower } from "tasks/creep/FillTower";
 import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
 import { FillStorage, FillContainers } from "FillStorage";
+
+export enum RoomLevel {
+  One,
+  Two,
+  Three,
+  Four,
+  Five,
+  Six
+}
+
+export abstract class CreepManager {
+
+  public abstract Run(roomName: string, roomLevel: number): void;
+
+}
+
+
 
 export class TaskManager {
 
@@ -48,7 +65,7 @@ export class TaskManager {
     const roomMem = Game.rooms[request.roomName].memory as RoomMemory;
     delete roomMem.activeStructureRequests[request.assignedTo];
   }
-  static continueActiveRequests(roomName: string) {
+  private static continueActiveRequests(roomName: string) {
 
     const activeWorkerTasks = CreepTaskQueue.allActive(roomName);
     //console.log(Object.keys(activeWorkerTasks).length);
@@ -67,7 +84,10 @@ export class TaskManager {
       else if (request.name == "FillTower") TaskManager.runTask(new FillTower(request))
       else if (request.name == "FillStorage") TaskManager.runTask(new FillStorage(request))
       else if (request.name == "FillContainers") TaskManager.runTask(new FillContainers(request))
-      else { console.log("Reqiest" + request.name)}
+      else if (request.name == "Scout") TaskManager.runTask(new Scout(request))
+      else if (request.name == "Defend") TaskManager.runTask(new Defend(request))
+      else if (request.name == "RemoteUpgrade") TaskManager.runTask(new RemoteUpgrade(request))
+      else { console.log("Request not found..." + request.name)}
 
     })
     //for (const assignedName in activeWorkerTasks) {
@@ -114,6 +134,9 @@ export class TaskManager {
     Upgrade.addRequests(roomName, 6);
     FillStorage.addRequests(roomName)
     FillContainers.addRequests(roomName)
+    Scout.addRequests(roomName);
+    //Defend.addRequests(roomName, 3);
+    RemoteUpgrade.addRequests(roomName);
     //console.log("finished adding pending worker requests");
   }
   static Run(roomName: string, energyLevel: number): void {
@@ -150,7 +173,7 @@ export class TaskManager {
       if (structure != undefined) {
         let memory = structure.memory as StructureMemory;
         if (memory.idle) {
-          console.log("id: " + structure.id)
+          //console.log("id: " + structure.id)
           StructureTaskQueue.startTask(structure.id, roomName);
         }
       }

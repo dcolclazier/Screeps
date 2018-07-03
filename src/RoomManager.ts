@@ -22,20 +22,24 @@ export class RoomManager {
 
 
   public Run(roomName: string): void {
-   
+
+    //this.test(roomName);
     this.loadCreeps(roomName);
+    var energyLevel = this.getRoomEnergyLevel(roomName);
     this.loadResources(roomName);
     this.loadHarvestingSpots(roomName);
     this.loadSmartContainers(roomName);
     this.loadSmartStructures(roomName);
-    CreepManager.spawnMissingCreeps(roomName, this.getRoomEnergyLevel(roomName));
+    CreepManager.spawnMissingCreeps(roomName, energyLevel);
 
-    TaskManager.Run(roomName, this.getRoomEnergyLevel(roomName));
+    TaskManager.Run(roomName, energyLevel);
   }
+  _defaultSpawn: string = "";
   private loadCreeps(roomName: string) {
     let room = Game.rooms[roomName];
     creeps = room.find(FIND_MY_CREEPS);
     let spawn = room.find(FIND_MY_SPAWNS)[0];
+    if (spawn != undefined) this._defaultSpawn = spawn.id;
     creepCount = creeps.length;
     for (let id in creeps) {
       let creep = creeps[id];
@@ -43,7 +47,7 @@ export class RoomManager {
       if (mem.alive === undefined || mem.alive == false) {
         const memory: CreepMemory =
         {
-          spawnID: spawn.id,
+          spawnID: (spawn != undefined ? spawn.id : this._defaultSpawn),
           idle: true,
           alive: true,
           role: utils.getRole(creep.name),
@@ -52,7 +56,7 @@ export class RoomManager {
         creep.memory = memory;
       }
     }
-    console.log("creeps loaded: " + creeps.length)
+    //console.log("creeps loaded: " + creeps.length)
   }
   private loadSmartStructures(roomName: string) {
 
@@ -86,6 +90,23 @@ export class RoomManager {
 
     
   }
+  //private test(roomName: string) {
+
+  //  var flags = Game.flags;
+  //  for (var id in flags) {
+  //    var flag = flags[id];
+  //    if (flag.color == COLOR_WHITE && flag.secondaryColor == COLOR_WHITE) {
+  //      var room = flag.room as Room;
+  //      if (room != undefined) {
+  //        console.log("found a future room flag! " + room.name);
+  //        var scoutCount = utils.creepCountAllRooms(CreepRole.ROLE_SCOUT);
+  //        if (scoutCount > 0) return;
+          
+  //        CreepManager.trySpawnCreep(_.first(utils.findSpawns(roomName)) as StructureSpawn, CreepRole.ROLE_SCOUT, this.getRoomEnergyLevel(roomName));
+  //      }
+  //    }
+  //  }
+  //}
 
   private getRoomEnergyLevel(roomID: string): number {
     let room = Game.rooms[roomID];
@@ -93,8 +114,8 @@ export class RoomManager {
 
     let cap = room.energyCapacityAvailable;
 
-    if (cap < 500) return 1;
-    else if (cap <= 800) return 2;
+    if (cap < 550) return 1;
+    else if (cap <= 950) return 2;
     else return 3;
   }
   private loadSmartContainers(roomName: string) {
@@ -102,7 +123,7 @@ export class RoomManager {
     let roomMemory = room.memory as RoomMemory;
 
     //if (Object.keys(roomMemory.harvestLocations).length > 0) return;
-    console.log("loading smart containers")
+    //console.log("loading smart containers")
     let sources = room.find(FIND_SOURCES);
     let controller = _.first(room.find(FIND_STRUCTURES).filter(s => s.structureType == "controller"));
     let containers = room.find(FIND_STRUCTURES).filter(s => s.structureType == "container");
@@ -113,7 +134,7 @@ export class RoomManager {
       var sorted = _.sortBy(rangeToSources, s => s);
       if (_.first(sorted) == 1) {
         //miner depository
-        let smart = new SmartContainer(roomName, c.id, false, [CreepRole.ROLE_WORKER, CreepRole.ROLE_UPGRADER])
+        let smart = new SmartContainer(roomName, c.id, false, [CreepRole.ROLE_WORKER, CreepRole.ROLE_CARRIER])
         roomMemory.containers[c.id] = smart;
       }
       else {
@@ -130,7 +151,7 @@ export class RoomManager {
     let roomMemory = room.memory as RoomMemory;
 
     if (Object.keys(roomMemory.harvestLocations).length > 0) return;
-    console.log("loading harvesting spots")
+    //console.log("loading harvesting spots")
     let sources = room.find(FIND_SOURCES);
 
 

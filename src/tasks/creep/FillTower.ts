@@ -8,10 +8,10 @@ import { TaskStatus } from "tasks/Task";
 
 export class FillTowerRequest extends CreepTaskRequest {
   static RefillThreshold: number = .75
-  priority: number = 3
-  requiredRole: CreepRole = CreepRole.ROLE_WORKER;
+  priority: number = 2
+  requiredRole: CreepRole[] = [CreepRole.ROLE_CARRIER];
   name = "FillTower";
-  maxConcurrent = 3;
+  maxConcurrent = 1;
   constructor(roomName: string, towerID: string) {
     super(roomName, `⚗`, towerID);
   }
@@ -28,12 +28,12 @@ export class FillTower extends CreepTask {
 
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
-    if (this.creep.carry.energy < this.creep.carryCapacity) {
+    if (this.creep.carry.energy == 0) {
 
       
       if(this.collectFromTombstone(room.name)) return;
-      if (this.collectFromContainer(room.name)) return;
       if (this.collectFromDroppedEnergy(room.name)) return;
+      if (this.collectFromContainer(room.name)) return;
       //this.collectFromSource(room.name);
 
     }
@@ -63,7 +63,7 @@ export class FillTower extends CreepTask {
         && t.energy < t.energyCapacity * FillTowerRequest.RefillThreshold) as StructureTower[];
 
     let sorted = towers.sort((a, b) => a.energy - b.energy);
-    console.log("sorted" + sorted.map(s => s.energy))
+    //console.log("sorted" + sorted.map(s => s.energy))
 
     for (const id in sorted) {
       let tower = sorted[id] as StructureTower;

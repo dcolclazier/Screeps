@@ -11,7 +11,7 @@ export abstract class CreepTaskRequest implements ITaskRequest
 	roomName: string;
 	assignedTo: string = "";
 	abstract priority: number;
-	abstract requiredRole: CreepRole;
+	abstract requiredRole: CreepRole[];
 	abstract maxConcurrent: number;
 	constructor(roomName: string, wingDing: string, targetID: string = "")
 	{

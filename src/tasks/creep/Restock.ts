@@ -9,7 +9,7 @@ import { TaskStatus, Task } from "../Task";
 export class RestockRequest extends CreepTaskRequest {
   priority: number = 1;
   name = "Restock";
-  requiredRole = CreepRole.ROLE_WORKER
+  requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER, CreepRole.ROLE_WORKER];
   maxConcurrent = 4;
   constructor(roomName: string, restockID: string) {
     super(roomName, `🛒`, restockID);
@@ -38,11 +38,14 @@ export class Restock extends CreepTask {
     //this.collectFromContainer(this.request.roomName, creep.id);
 
     //temp code...
-    if (this.creep.carry.energy < 50) {
+    if (this.creep.carry.energy < this.creep.carryCapacity) {
+      //console.log("collecting...")
       //if (this.collectFromStorage(room.name)) return;
-      if (this.collectFromContainer(room.name)) return;
       if (this.collectFromDroppedEnergy(room.name)) return;
+      //console.log("no dropped energy...")
       if (this.collectFromTombstone(room.name)) return;
+      if (this.collectFromContainer(room.name)) return;
+      if (this.collectFromStorage(room.name)) return;
       if (this.collectFromSource(room.name)) return;
       //this.collectFromDroppedEnergy(room.name);
       //this.collectFromTombstone(room.name);
@@ -74,13 +77,7 @@ export class Restock extends CreepTask {
       if (result == ERR_NOT_IN_RANGE) {
         creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
       }
-      else if (result == OK) {
-        this.request.status = TaskStatus.FINISHED;
-      }
-      else {
-        //console.log(`${creep.name} couldn't restock: ${result}`)
-        this.request.status = TaskStatus.FINISHED;
-      }
+      if (this.creep.carry.energy == 0) this.request.status = TaskStatus.FINISHED;
     }
   }
   constructor(taskInfo: CreepTaskRequest) {

@@ -8,7 +8,7 @@ import { TaskStatus } from "tasks/Task";
 export class PickUpEnergyRequest extends CreepTaskRequest {
   priority: number = 0;
   name: string = "PickupEnergy";
-  requiredRole: CreepRole = CreepRole.ROLE_WORKER;
+  requiredRole: CreepRole[] = [CreepRole.ROLE_WORKER];
   maxConcurrent: number = 2;
   resourceType: string;
   constructor(roomName: string, resourceID: string, resourceType: string) {
@@ -82,7 +82,7 @@ export class PickupEnergy extends CreepTask {
         if (!tombstones.hasOwnProperty(key)) continue;
         const tombstone = tombstones[key] as Tombstone;
         if (tombstone.store.energy == 0) continue;
-        console.log("found a tombstone with energy")
+        //console.log("found a tombstone with energy")
         let ts = new PickUpEnergyRequest(roomName, tombstone.id, "resource")
         if (CreepTaskQueue.totalCount(roomName, ts.name) < ts.maxConcurrent) {
           CreepTaskQueue.addPendingRequest(ts);

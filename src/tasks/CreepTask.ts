@@ -29,6 +29,10 @@ export abstract class CreepTask extends Task {
       this.request.status == TaskStatus.FINISHED;
       return;
     }
+    else {
+      this.creepMemory = this.creep.memory as CreepMemory;
+      if (Game.time % 5 == 0) this.creep.say(`${this.request.wingDing}`);
+    }
 
 
   }
@@ -81,9 +85,9 @@ export abstract class CreepTask extends Task {
       .filter(ss => ss.amount > 50)
     if (debugSources.length == 0) return false;
 
-    const sortDebug = _.sortBy(debugSources, s => this.creep.pos.getRangeTo(s.pos))
+    const sortDebug = _.sortBy(debugSources, s => s.amount / this.creep.pos.getRangeTo(s.pos)).reverse();
     //const sortDebug = _.sortBy(debugSources, s => s.amount).reverse();
-    console.log(JSON.stringify("sorted"+sortDebug.map(s=>s.amount)))
+    //console.log(JSON.stringify("sorted"+sortDebug.map(s=>s.amount)))
     var mine = _.first(sortDebug);
     var range = this.creep.pos.getRangeTo(mine);
     var result = this.creep.pickup(mine)
@@ -120,18 +124,18 @@ export abstract class CreepTask extends Task {
     for (var i in containers) {
       var smartContainer = containers[i];
       var container = Game.getObjectById(smartContainer.containerID) as StructureContainer;
-      if (_.includes(smartContainer.allowedWithdrawRoles, creepRole) && container.store.energy > 50) {
+      if (_.includes(smartContainer.allowedWithdrawRoles, creepRole) && container.store.energy > 0) {
         valids.push(smartContainer);
       }
     }
     if (valids.length == 0) return false;
-    console.log("valids found")
+    //console.log("valids found")
     const sortDebug = _.sortBy(valids, s => {
       var c = Game.getObjectById(s.containerID) as StructureContainer;
-      return this.creep.pos.getRangeTo(c.pos)
-    })
+      return c.store.energy / this.creep.pos.getRangeTo(c.pos)
+    }).reverse();
     var mine = Game.getObjectById(_.first(sortDebug).containerID) as StructureContainer;
-    console.log(JSON.stringify(mine))
+    //console.log(JSON.stringify(mine))
     //var range = this.creep.pos.getRangeTo(mine);
     var result = this.creep.withdraw(mine, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
@@ -205,7 +209,7 @@ export abstract class CreepTask extends Task {
   protected collectFromSource(roomName: string) : boolean {
 
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
-    var smartSources = roomMem.harvestLocations;
+    var smartSources = _.sortBy(roomMem.harvestLocations, h => this.creep.pos.getRangeTo(Game.getObjectById(h.sourceID) as Source));
     _.forIn(smartSources, s => {
 
     })

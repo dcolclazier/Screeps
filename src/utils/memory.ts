@@ -10,6 +10,8 @@ export function m(): GameMemory {
 export interface GameMemory {
   uuid: number;
   memVersion: number;
+  gcl: any;
+  map: any;
   initialized: boolean;
   creeps:
   {
@@ -43,7 +45,7 @@ export interface RoomMemory {
   containers: {[index:string]:SmartContainer}
   activeResourcePileIDs: string[];
   smartStructures: SmartStructure[];
-  settings: RoomSettings;
+  settingsMap: {[energyLevel:number]:RoomSettings};
 }
 export interface StructureMemory {
   idle: boolean;
@@ -63,9 +65,35 @@ export function initRoomMemory(roomName: string): void {
   rm.pendingStructureRequests = []
   rm.smartStructures = [];
   rm.containers = {};
-  rm.settings = new RoomSettings(roomName);
+  rm.settingsMap = SetupRoomSettings(roomName);
 
 }
+interface RoomSettingsMap {
+  [energyLevel: number]: RoomSettings;
+}
+export function SetupRoomSettings(roomName: string) : RoomSettingsMap
+{
+  const settingsMap: RoomSettingsMap = {};
+  var level1Settings = new RoomSettings(roomName);
+  level1Settings.minersPerSource = 2;
+  level1Settings.maxWorkerCount = 4;
+  level1Settings.maxUpgraderCount = 5;
+  settingsMap[1] = level1Settings;
+
+  var level2Settings = new RoomSettings(roomName);
+  level2Settings.minersPerSource = 2
+  level2Settings.maxUpgraderCount = 4;
+  level2Settings.maxWorkerCount = 3;
+  settingsMap[2] = level2Settings;
+
+  var level3Settings = new RoomSettings(roomName);
+  level3Settings.minersPerSource = 1;
+  level3Settings.maxCarrierCount = 2;
+  settingsMap[3] = level3Settings;
+
+  return settingsMap;
+}
+
 export interface SmartStructure {
   memory: StructureMemory;
   id: string;
@@ -91,7 +119,7 @@ export function cleanupCreeps(): void {
           if (_.includes(site.assignedTo, name)) {
             console.log("unassiging harvest spot for " + name + " source: " + site.sourceID)
             site.assignedTo = site.assignedTo.filter(s=>s!=name);
-            console.log(JSON.stringify(site.assignedTo))
+            //console.log(JSON.stringify(site.assignedTo))
           }
         }
       }
@@ -124,11 +152,14 @@ export class SmartSource {
 export class RoomSettings {
   roomName: string;
   minimumWorkerCount: number = 1;
-  lowLevelMinersPerSource: number = 2;
-  highLevelMinersPerSource: number = 1;
+  //lowLevelMinersPerSource: number = 2;
+  //highLevelMinersPerSource: number = 1;
+  minersPerSource: number = 2;
+  minimumCarrierCount: number = 1;
+  maxCarrierCount: number = 3;
   minimumMinerCount: number = 2;
-  maxWorkerCount: number = 2;
-  maxUpgraderCount: number = 4;
+  maxWorkerCount: number = 1;
+  maxUpgraderCount: number = 3;
   constructor(roomName: string) { this.roomName = roomName; }
 }
 
