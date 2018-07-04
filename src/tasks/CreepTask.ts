@@ -1,7 +1,8 @@
 import { Task, TaskStatus } from "./Task";
 import { CreepTaskRequest } from "./CreepTaskRequest";
-import { CreepMemory, RoomMemory, SmartContainer } from "utils/memory"
+import { CreepMemory, RoomMemory, SmartContainer, SmartSource, LinkMode, SmartLink } from "utils/memory"
 import * as utils from "utils/utils";
+import { CreepRole } from "utils/utils";
 
 export abstract class CreepTask extends Task {
   public request: CreepTaskRequest;
@@ -73,13 +74,30 @@ export abstract class CreepTask extends Task {
 
     }
   }
+  protected collectFromMasterLink(roomName: string): boolean {
 
-  protected collectFromDroppedEnergy(roomName: string) :boolean {
+    const room = Game.rooms[roomName];
+    const roomMem = room.memory as RoomMemory;
+   
+    let masterLink = _.find(roomMem.links, l => l.linkMode == LinkMode.MASTER_RECEIVE) as SmartLink;
+    if (masterLink == undefined) return false
+    
+
+    var link = Game.getObjectById(masterLink.linkID) as StructureLink;
+    if (link.energy < link.energyCapacity / 2) return false;
+
+    var result = this.creep.withdraw(link, RESOURCE_ENERGY)
+    if (result == ERR_NOT_IN_RANGE) {
+      this.creep.moveTo(link);
+    }
+    return true;
+  }
+  protected collectFromDroppedEnergy(roomName: string): boolean {
     //if (this.creep.carry.energy == this.creep.carryCapacity) return;
     //console.log("collect from dropped")
     const room = Game.rooms[roomName];
     const roomMemory = room.memory as RoomMemory;
-  
+
     const debugSources = roomMemory.activeResourcePileIDs
       .map(s => Game.getObjectById(s) as Resource)
       .filter(ss => ss.amount > 50)
@@ -159,9 +177,10 @@ export abstract class CreepTask extends Task {
   }
   protected collectFromStorage(roomName: string): boolean {
     const room = Game.rooms[roomName];
-    const storage = _.first(room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage" && s.store.energy > 10000));
+    const roomMem = room.memory as RoomMemory;
+    const storage = _.first(room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage"));
+
     if (storage == undefined) {
-      //console.log("nope.")
       return false;
     }
 
@@ -206,23 +225,45 @@ export abstract class CreepTask extends Task {
     //else return false;
   }
 
-  protected collectFromSource(roomName: string) : boolean {
+  protected collectFromSource(roomName: string): boolean {
 
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
-    var smartSources = _.sortBy(roomMem.harvestLocations, h => this.creep.pos.getRangeTo(Game.getObjectById(h.sourceID) as Source));
-    _.forIn(smartSources, s => {
+    var smartSources = _.sortBy(roomMem.harvestLocations, h => { this.creep.pos.getRangeTo(Game.getObjectById(h.sourceID) as Source) }) as SmartSource[];
+    var withEnergy = _.filter(smartSources, s => {
+      var source = Game.getObjectById(s.sourceID) as Source;
+      return source.energy > 0;
+    });
+    //if (this.creepMemory.role == CreepRole.ROLE_REMOTE_UPGRADER && roomName == "W5S43") {
+    //  for (var id in smartSources) {
+    //    var smartSource = smartSources[id];
+    //    var source = Game.getObjectById(smartSource.sourceID) as Source;
+    //    console.log("id: " + source.id + ", distance: " + this.creep.pos.getRangeTo(source));
 
-    })
-    var test = roomMem.harvestLocations[Object.keys(roomMem.harvestLocations)[0]]
+    //  }
+    //  //_.forIn(smartSources, s => {
+    //  //  var smartSource = smartSources[s];
+    //  //  var source = Game.getObjectById(smartSource.sourceID) as Source;
 
-    //var sourceID = _.first(roomMem.harvestLocations).sourceID;
-    var source = Game.getObjectById(test.sourceID) as Source
+    //  //  var path = PathFinder.search(this.creep.pos, source.pos);
+    //  //  var length = path.path.length;
+    //  //  console.log("Path length: " + length)
+    //  //})
+    //}
+    //var test = roomMem.harvestLocations[Object.keys(roomMem.harvestLocations)[0]]
+
+
+
+    var sourceID = _.first(withEnergy).sourceID;
+    var source = Game.getObjectById(sourceID) as Source
+    //if (this.creepMemory.role == CreepRole.ROLE_REMOTE_UPGRADER && roomName == "W5S43")  console.log("to test: " + this.creep.pos.getRangeTo(source))
+
     var result = this.creep.harvest(source)
     if (result == ERR_NOT_IN_RANGE) {
       this.creep.moveTo(source);
       this.creep.harvest(source);
     }
     return true;
+
   }
 
 }

@@ -5,7 +5,7 @@ import { CreepTaskQueue } from "../CreepTaskQueue";
 import { CreepRole } from "utils/utils";
 import { TaskStatus, Task } from "../Task";
 export class BuildRequest extends CreepTaskRequest {
-  priority: number = 2;
+  priority: number = 1;
   requiredRole: CreepRole[] = [CreepRole.ROLE_WORKER, CreepRole.ROLE_REMOTE_UPGRADER];
   name = "Build";
   maxConcurrent = 5;
@@ -23,7 +23,7 @@ export class ScoutRequest extends CreepTaskRequest {
   }
 }
 export class RemoteUpgradeRequest extends CreepTaskRequest {
-  priority: number = 3;
+  priority: number = 2;
   requiredRole: CreepRole[] = [CreepRole.ROLE_REMOTE_UPGRADER];
   name = "RemoteUpgrade";
   maxConcurrent = 3;
@@ -95,6 +95,10 @@ export class RemoteUpgrade extends CreepTask {
   protected continue(): void {
     super.continue();
     if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.creep.room.name != this.request.roomName) {
+      this.creep.moveTo(new RoomPosition(25, 25, this.request.roomName));
+      return;
+    }
     if (this.creep.carry.energy == 0) {
       this.request.status = TaskStatus.PREPARE;
       return;
@@ -114,7 +118,9 @@ export class RemoteUpgrade extends CreepTask {
       var flag = flags[id];
       if (flag.color == COLOR_BLUE && flag.secondaryColor == COLOR_BLUE) {
         var room = flag.room as Room;
+        if (room == undefined) return;
         var controller = room.controller as StructureController;
+        if (controller == undefined) return;
         var request = new RemoteUpgradeRequest(roomName, controller.id);
         let existingTaskCount = CreepTaskQueue.totalCount(roomName, request.name);
         let maxConcurrentCount = request.maxConcurrent;
@@ -196,7 +202,7 @@ export class Scout extends CreepTask {
     var flags = Game.flags;
     for (var id in flags) {
       var flag = flags[id];
-      if (flag.color == COLOR_WHITE && flag.secondaryColor == COLOR_WHITE) {
+      if (flag.color == COLOR_BLUE && flag.secondaryColor == COLOR_BLUE) {
         var room = flag.room as Room;
         var request = new ScoutRequest(roomName, flag.name)
         let existingTaskCount = CreepTaskQueue.totalCount(roomName, request.name);
@@ -233,6 +239,7 @@ export class Build extends CreepTask {
       if (this.collectFromTombstone(room.name)) return;
       if (this.collectFromDroppedEnergy(room.name)) return;
       //if(this.collectFromContainer(room.name)) return;
+      if (this.collectFromMasterLink(room.name)) return;
       if (this.collectFromStorage(room.name)) return;
       if(this.collectFromSource(room.name)) return;
       

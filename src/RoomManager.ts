@@ -1,4 +1,4 @@
-import { RoomMemory, CreepMemory, StructureMemory, SmartStructure, SmartSource, SmartContainer } from "utils/memory";
+import { RoomMemory, CreepMemory, StructureMemory, SmartStructure, SmartSource, SmartContainer, SmartLink, LinkMode } from "utils/memory";
 import { CreepManager } from "CreepFactory";
 import * as utils from "utils/utils";
 import { TaskManager } from "taskManager";
@@ -27,8 +27,10 @@ export class RoomManager {
     this.loadCreeps(roomName);
     var energyLevel = this.getRoomEnergyLevel(roomName);
     this.loadResources(roomName);
-    this.loadHarvestingSpots(roomName);
+    
     this.loadSmartContainers(roomName);
+    this.loadLinks(roomName);
+    this.loadHarvestingSpots(roomName);
     this.loadSmartStructures(roomName);
     CreepManager.spawnMissingCreeps(roomName, energyLevel);
 
@@ -62,8 +64,8 @@ export class RoomManager {
 
     let room = Game.rooms[roomName]
     let memory = room.memory as RoomMemory;
-    if (memory.smartStructures.length == 0) {
-      memory.smartStructures = [];
+    if (memory.towers.length == 0) {
+      memory.towers = [];
       let structures = room.find(FIND_STRUCTURES);
       let smartStructures = _.filter(structures, function (structure) {
         return (
@@ -84,11 +86,11 @@ export class RoomManager {
           memory: newStructureMemory
         }
 
-        memory.smartStructures.push(smartStructure);
+        memory.towers.push(smartStructure);
       }
     }
 
-    
+
   }
   //private test(roomName: string) {
 
@@ -101,7 +103,7 @@ export class RoomManager {
   //        console.log("found a future room flag! " + room.name);
   //        var scoutCount = utils.creepCountAllRooms(CreepRole.ROLE_SCOUT);
   //        if (scoutCount > 0) return;
-          
+
   //        CreepManager.trySpawnCreep(_.first(utils.findSpawns(roomName)) as StructureSpawn, CreepRole.ROLE_SCOUT, this.getRoomEnergyLevel(roomName));
   //      }
   //    }
@@ -116,7 +118,8 @@ export class RoomManager {
 
     if (cap < 550) return 1;
     else if (cap <= 950) return 2;
-    else return 3;
+    else if (cap <= 1500) return 3;
+    else return 4;
   }
   private loadSmartContainers(roomName: string) {
     let room = Game.rooms[roomName];
@@ -130,7 +133,7 @@ export class RoomManager {
 
     _.each(containers, c => {
       var rangeToSources = sources.map(s => s.pos.getRangeTo(c));
-      
+
       var sorted = _.sortBy(rangeToSources, s => s);
       if (_.first(sorted) == 1) {
         //miner depository
@@ -142,7 +145,57 @@ export class RoomManager {
         let smart = new SmartContainer(roomName, c.id, true, [CreepRole.ROLE_UPGRADER])
         roomMemory.containers[c.id] = smart;
       }
-        
+
+    })
+
+  }
+  private loadLinks(roomName: string) {
+    let room = Game.rooms[roomName];
+    let roomMemory = room.memory as RoomMemory;
+
+    //if (Object.keys(roomMemory.harvestLocations).length > 0) return;
+    //console.log("loading smart containers")
+    let sources = room.find(FIND_SOURCES);
+    let controller = _.first(room.find(FIND_STRUCTURES).filter(s => s.structureType == "controller"));
+    let storage = _.first(room.find(FIND_STRUCTURES).filter(s => s.structureType == "storage"))
+    let links = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "link");
+    let smartContainers = roomMemory.containers;
+
+    if (room.name == "W6S43") {
+      //console.log("links: " + JSON.stringify(links))
+    }
+
+    _.each(links, c => {
+      var rangeToSources = sources.map(s => s.pos.getRangeTo(c));
+      var rangeToStorage = storage.pos.getRangeTo(c);
+      var sorted = _.sortBy(rangeToSources, s => s);
+      if (_.first(sorted) <= 2) {
+        let smart = new SmartLink(roomName, c.id, LinkMode.SEND)
+        roomMemory.links[c.id] = smart;
+      }
+      else if (rangeToStorage == 1) {
+        //storage link
+        let smart = new SmartLink(roomName, c.id, LinkMode.MASTER_RECEIVE)
+        roomMemory.links[c.id] = smart;
+
+      }
+      else {
+        let valids: StructureController[] = [];
+        for (var s in smartContainers) {
+          var smart = smartContainers[s];
+          if (smart.shouldFill) {
+            valids.push(Game.getObjectById(s) as StructureController);
+          }
+        }
+        var closestRanges = _.sortBy(valids.map(container => container.pos.getRangeTo(c)), n => n)
+        var closest = _.first(closestRanges);
+        if (closest == 1) {
+          let smart = new SmartLink(roomName, c.id, LinkMode.SLAVE_RECEIVE)
+          roomMemory.links[c.id] = smart;
+        }
+
+      }
+
     })
 
   }
@@ -153,9 +206,9 @@ export class RoomManager {
     if (Object.keys(roomMemory.harvestLocations).length > 0) return;
     //console.log("loading harvesting spots")
     let sources = room.find(FIND_SOURCES);
+    let links = roomMemory.links;
 
-
-    let spots: { [index: string]: SmartSource } = { };
+    let spots: { [index: string]: SmartSource } = {};
 
     for (const sourceID in sources) {
       let source = sources[sourceID];
@@ -163,11 +216,20 @@ export class RoomManager {
         sourceID: source.id,
         roomName: roomName,
         assignedTo: [],
+        linkID: ""
+      }
+      
+      for (var i in links) {
+        var link = Game.getObjectById(i) as StructureLink;
+        if (source.pos.getRangeTo(link) <= 2) {
+          //harvesting spot has link;
+          spot.linkID = link.id;
+        }
       }
       spots[source.id] = spot;
       //spots.push(spot);
-      roomMemory.harvestLocations = spots;
     }
+    roomMemory.harvestLocations = spots;
     // 	let sourcePosition = source.pos as RoomPosition;
     // 	let right = room.getPositionAt(sourcePosition.x + 1, sourcePosition.y);
     // 	if (right != null) possibles.push(new HarvestSpot(source.id, right));
@@ -210,7 +272,7 @@ export class RoomManager {
 
   }
 
-  
+
 
 }
 

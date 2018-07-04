@@ -111,18 +111,22 @@ export class Upgrade extends CreepTask {
     if (this.request.status == TaskStatus.FINISHED) return;
 
     var room = Game.rooms[this.request.roomName];
+    var controller = room.controller as StructureController;
     var roomMem = room.memory as RoomMemory;
     //if (room.energyAvailable < 1000) return;
     if (this.creep.carry.energy == 0) {
 
       if (this.collectFromContainer(room.name)) return;
-      if (room.energyCapacityAvailable > 1300) return;
+      if (room.energyCapacityAvailable > 1300) {
+        this.creep.moveTo(controller);
+        return;
+      }
       if (this.collectFromDroppedEnergy(room.name)) return;
       if (this.collectFromTombstone(room.name)) return;
       if (this.collectFromStorage(room.name)) return;
       
       
-      //this.collectFromSource(room.name);
+      this.collectFromSource(room.name);
 
     }
     else this.request.status = TaskStatus.IN_PROGRESS;
@@ -130,6 +134,11 @@ export class Upgrade extends CreepTask {
   protected continue(): void {
     super.continue();
     if (this.request.status == TaskStatus.FINISHED) return;
+
+    if (this.creep.room.name != this.request.roomName) {
+      this.creep.moveTo(new RoomPosition(25, 25, this.request.roomName));
+      return;
+    }
     //const creep = Game.creeps[this.request.assignedTo];
     if (this.creep.carry.energy == 0) {
       this.request.status = TaskStatus.PREPARE;
@@ -148,6 +157,7 @@ export class Upgrade extends CreepTask {
 
   static addRequests(roomName: string, maxPerRoom: number): void {
     let controller = Game.rooms[roomName].controller as StructureController;
+    if (controller == undefined) return;
     let request = new UpgradeRequest(roomName, controller.id, maxPerRoom);
     let tasksNeeded = request.maxConcurrent - CreepTaskQueue.totalCount(roomName, request.name);
     for (let i = 0; i < tasksNeeded; i++) {

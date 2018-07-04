@@ -1,4 +1,4 @@
-import { CreepMemory, StructureMemory, SmartStructure } from "utils/memory"
+import { CreepMemory, StructureMemory, SmartStructure, SmartLink, LinkMode } from "utils/memory"
 import * as utils from "utils/utils";
 //import { Upgrade } from "tasks/creep/Upgrade";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
@@ -24,24 +24,58 @@ import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
 import { FillStorage, FillContainers } from "FillStorage";
 
-export enum RoomLevel {
-  One,
-  Two,
-  Three,
-  Four,
-  Five,
-  Six
-}
-
-export abstract class CreepManager {
-
-  public abstract Run(roomName: string, roomLevel: number): void;
-
-}
-
 
 
 export class TaskManager {
+  static runLinks(roomName: string): void {
+    var room = Game.rooms[roomName];
+    if (room == undefined) return;
+
+    var roomMem = room.memory as RoomMemory;
+    if (roomMem == undefined) throw Error("Room Memory was undefined in runLinks");
+
+    var links = roomMem.links;
+
+    var master = _.find(links, l => l.linkMode == LinkMode.MASTER_RECEIVE) as SmartLink;
+    if (master == undefined) return;
+
+    var masterLink = Game.getObjectById(master.linkID) as StructureLink;
+
+    var slaves = _.filter(links, l => {
+      var link = Game.getObjectById(l.linkID) as StructureLink;
+      l.linkMode == LinkMode.SLAVE_RECEIVE && link.energy < link.energyCapacity
+    }) as SmartLink[];
+
+    var senders = _.filter(links, l => {
+      //console.log("link id: " + l.roomName + l.linkID)
+      var link = Game.getObjectById(l.linkID) as StructureLink;
+      return l.linkMode == LinkMode.SEND && link.energy > 0;
+    }) as SmartLink[];
+    //console.log("senders: " + senders.length);
+    for (var i in senders) {
+      var smartLink = senders[i] as SmartLink;
+      //console.log(smartLink.linkID);
+      var link = Game.getObjectById(smartLink.linkID) as StructureLink;
+      //console.log("sending")
+      if (masterLink.energy < masterLink.energyCapacity) {
+        var roomFor = masterLink.energyCapacity - masterLink.energy;
+        if (roomFor > link.energy) roomFor = link.energy;
+        link.transferEnergy(masterLink, roomFor)
+      }
+      else {
+        var sortedSlaves = _.sortBy(slaves, s => {
+          var slaveLink = Game.getObjectById(s.linkID) as StructureLink;
+          return slaveLink.energy;
+        });
+
+        let target = Game.getObjectById(_.first(sortedSlaves).linkID) as StructureLink;
+        if (target != undefined && target.energy < target.energyCapacity) {
+          var roomFor = target.energyCapacity - target.energy;
+          link.transferEnergy(target, roomFor)
+        }
+      }
+    }
+  }
 
   private static runTask(task: Task) {
 
@@ -142,6 +176,7 @@ export class TaskManager {
   static Run(roomName: string, energyLevel: number): void {
 
     this.addBuildingTasks(roomName);
+    this.runLinks(roomName);
     this.continueActiveRequests(roomName);
 
     this.addPendingRequests(roomName, energyLevel);

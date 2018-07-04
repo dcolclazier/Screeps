@@ -110,7 +110,7 @@ export function findAllContainers(roomName: string): Array<StructureContainer> {
 export function findIdleSmartStructures(roomName: string): Array<SmartStructure> {
 
   let roomMem = Game.rooms[roomName].memory as RoomMemory;
-  let structs = roomMem.smartStructures;
+  let structs = roomMem.towers;
   return structs.filter(struc => {
     let mem = struc.memory as StructureMemory;
     return mem.idle;

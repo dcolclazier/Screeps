@@ -33,7 +33,7 @@ export class FillTower extends CreepTask {
       
       if(this.collectFromTombstone(room.name)) return;
       if (this.collectFromDroppedEnergy(room.name)) return;
-      if (this.collectFromContainer(room.name)) return;
+      if (this.collectFromStorage(room.name)) return;
       //this.collectFromSource(room.name);
 
     }

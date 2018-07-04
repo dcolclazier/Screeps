@@ -3,14 +3,14 @@ import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import * as utils from "utils/utils"
 import { CreepRole } from "utils/utils";
-import { CreepMemory, RoomMemory } from "utils/memory";
+import { CreepMemory, RoomMemory, LinkMode } from "utils/memory";
 import { TaskStatus, Task } from "tasks/Task";
 
 export class FillContainersRequest extends CreepTaskRequest {
   name: string = "FillContainers";
   priority: number = 2;
   requiredRole: CreepRole[] = [CreepRole.ROLE_CARRIER];
-  maxConcurrent: number = 3;
+  maxConcurrent: number = 1;
   constructor(roomName: string, restockID: string) {
     super(roomName, `💰2`, restockID);
   }
@@ -35,14 +35,22 @@ export class FillContainers extends CreepTask {
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
     //this.collectFromContainer(this.request.roomName, creep.id);
+    var masterLink = _.find(roomMem.links, l => l.linkMode == LinkMode.MASTER_RECEIVE);
 
     //temp code...
     if (this.creep.carry.energy == 0) {
-
-      if (this.collectFromContainer(room.name)) return;
-      if (this.collectFromDroppedEnergy(room.name)) return;
-      if (this.collectFromTombstone(room.name)) return;
-      
+      if (masterLink == undefined) {
+        if (this.collectFromStorage(room.name)) return;
+        if (this.collectFromContainer(room.name)) return;
+        if (this.collectFromDroppedEnergy(room.name)) return;
+        if (this.collectFromTombstone(room.name)) return;
+      }
+      else {
+        if (this.collectFromDroppedEnergy(room.name)) return;
+        if (this.collectFromTombstone(room.name)) return;
+        if (this.collectFromMasterLink(room.name)) return;
+        if (this.collectFromStorage(room.name)) return;
+      }
       //this.collectFromSource(room.name);
 
     }
@@ -143,6 +151,7 @@ export class FillStorageRequest extends CreepTaskRequest {
 }
 
 export class FillStorage extends CreepTask {
+  
 
   sources: Source[] = []
   protected init(): void {
@@ -164,7 +173,7 @@ export class FillStorage extends CreepTask {
 
     //temp code...
     if (this.creep.carry.energy == 0) {
-      
+      if (this.collectFromMasterLink(room.name)) return;
       if(this.collectFromDroppedEnergy(room.name)) return;
       if (this.collectFromTombstone(room.name)) return;
       if (this.collectFromContainer(room.name)) return;

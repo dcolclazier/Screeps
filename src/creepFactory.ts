@@ -35,7 +35,7 @@ export class CreepManager {
 
   static trySpawnCreep(spawn: StructureSpawn, role: CreepRole, energyLevel: number) {
 
-    console.log("trying to spawn a " + utils.getRoleString(role))
+    console.log("trying to spawn a " + utils.getRoleString(role) + " for " + spawn.room.name)
     var bodyParts = CreepManager.GetCreepParts(role, energyLevel);
     return this.spawnCreep(spawn, bodyParts, role) == OK
 
@@ -46,6 +46,7 @@ export class CreepManager {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
+      case 4: return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -55,6 +56,7 @@ export class CreepManager {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       case 2: return [ATTACK, ATTACK, MOVE, MOVE]
       case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
+      case 4: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -63,7 +65,8 @@ export class CreepManager {
     switch (energyLevel) {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
-      case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+      case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+      case 4: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -73,16 +76,18 @@ export class CreepManager {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+      case 4: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
   private static getCarrierBodyParts(energyLevel: number): BodyPartConstant[] {
 
-    console.log("getting carrier body parts")
+    //console.log("getting carrier body parts")
     switch (energyLevel) {
       case 1: return [MOVE, MOVE, CARRY, CARRY];
       case 2: return [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY]
       case 3: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
+      case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -91,17 +96,19 @@ export class CreepManager {
     switch (energyLevel) {
       case 1: return [WORK, WORK, MOVE, MOVE];
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE]
-      case 3: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]
+      case 3: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY]
+      case 4: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY]
       default: return [WORK, WORK, MOVE, MOVE];
     }
   }
   private static getScoutBodyParts(energyLevel: number): BodyPartConstant[] {
 
     switch (energyLevel) {
-      case 1: return [TOUGH, TOUGH, TOUGH, WORK, MOVE, MOVE, MOVE, MOVE];
-      case 2: return [TOUGH, TOUGH, TOUGH, HEAL, MOVE, MOVE, MOVE, MOVE]
-      case 3: return [TOUGH, TOUGH, TOUGH, CLAIM, MOVE, MOVE, MOVE, MOVE]
-      default: return [TOUGH, TOUGH, MOVE, MOVE];
+      case 1: return [MOVE, MOVE, MOVE];
+      case 2: return [MOVE, MOVE, MOVE ]
+      case 3: return [CLAIM, MOVE, MOVE,]
+      case 4: return [CLAIM, MOVE, MOVE,]
+      default: return [MOVE, MOVE];
     }
   }
   static spawnMissingRemoteUpgraders(roomName: string, energyLevel: number) {
@@ -222,7 +229,7 @@ export class CreepManager {
     const settings = roomMem.settingsMap[energyLevel];
     const currentCarrierCount = utils.creepCount(roomName, CreepRole.ROLE_CARRIER);
     if (miners < settings.minimumMinerCount - 1 && workers < settings.minimumWorkerCount && currentCarrierCount > 0) {
-      console.log("skipping carriers for now.")
+      //console.log("skipping carriers for now.")
       return;
     }
     const spawns = utils.findSpawns(roomName);
@@ -321,7 +328,7 @@ export class CreepManager {
         role: role
       };
 
-      console.log("Started creating new creep: " + creepName);
+      //console.log("Started creating new creep: " + creepName);
 
       status = spawn.spawnCreep(bodyParts, creepName, { memory: memory });
 

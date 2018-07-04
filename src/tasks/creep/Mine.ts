@@ -52,9 +52,17 @@ export class Mine extends CreepTask {
     super.continue();
     if (this.request.status == TaskStatus.FINISHED) return;
 
-    /*if (this.creep.carry.energy < this.creep.carryCapacity)*/ this.harvest();
-    //else this.deliver();
+    if (this.creep.carryCapacity == 0) {
+      this.harvest();
+
+    }
+    else {
+      if (this.creep.carry.energy < this.creep.carryCapacity) this.harvest();
+      else this.deliver();
+    
+    }
     //else(this.creep.drop(RESOURCE_ENERGY))
+    
   }
   protected finish(): void {
     super.finish();
@@ -103,17 +111,35 @@ export class Mine extends CreepTask {
   }
   private deliver() {
     const creep = Game.creeps[this.request.assignedTo];
-    const container = utils.findClosestContainer(this.request.roomName, creep.id, true, true) as StructureContainer;
-    if (container == undefined) {
-      creep.drop(RESOURCE_ENERGY);
-      return;
+    const room = Game.rooms[this.request.roomName];
+    const roomMemory = room.memory as RoomMemory;
+
+    var smartSource = roomMemory.harvestLocations[this.request.targetID];
+   
+    if (smartSource.linkID != "") {
+
+      var link = Game.getObjectById(smartSource.linkID) as StructureLink;
+      if (creep.transfer(link, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(link, { visualizePathStyle: { stroke: '#ffffff' } });
+      }
+
+    }
+    else {
+      const container = utils.findClosestContainer(this.request.roomName, creep.id, true, true) as StructureContainer;
+      if (container == undefined) {
+        creep.drop(RESOURCE_ENERGY);
+        return;
+      }
+
+      if (container.store.energy == container.storeCapacity) return;
+
+      if (creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(container, { visualizePathStyle: { stroke: '#ffffff' } });
+      }
+
     }
 
-    if (container.store.energy == container.storeCapacity) return;
-
-    if (creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-      creep.moveTo(container, { visualizePathStyle: { stroke: '#ffffff' } });
-    }
+    
   }
 
   constructor(taskInfo: CreepTaskRequest) {

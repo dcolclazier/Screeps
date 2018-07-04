@@ -43,8 +43,9 @@ export interface RoomMemory {
   pendingStructureRequests: StructureTaskRequest[];
   activeStructureRequests: { [index: string]: StructureTaskRequest };
   containers: {[index:string]:SmartContainer}
+  links: {[index:string]:SmartLink}
   activeResourcePileIDs: string[];
-  smartStructures: SmartStructure[];
+  towers: SmartStructure[];
   settingsMap: {[energyLevel:number]:RoomSettings};
 }
 export interface StructureMemory {
@@ -63,8 +64,9 @@ export function initRoomMemory(roomName: string): void {
   rm.activeResourcePileIDs = [];
   rm.activeStructureRequests = {};
   rm.pendingStructureRequests = []
-  rm.smartStructures = [];
+  rm.towers = [];
   rm.containers = {};
+  rm.links = {};
   rm.settingsMap = SetupRoomSettings(roomName);
 
 }
@@ -90,6 +92,12 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
   level3Settings.minersPerSource = 1;
   level3Settings.maxCarrierCount = 2;
   settingsMap[3] = level3Settings;
+
+
+  var level4Settings = new RoomSettings(roomName);
+  level4Settings.minersPerSource = 1;
+  level4Settings.maxCarrierCount = 2;
+  settingsMap[4] = level3Settings;
 
   return settingsMap;
 }
@@ -143,9 +151,23 @@ export class SmartSource {
   sourceID: string;
   roomName: string;
   assignedTo: string[] = [];
+  linkID: string = "";
   constructor(sourceID: string, roomName: string) {
     this.sourceID = sourceID;
     this.roomName = roomName;
+  }
+}
+export enum LinkMode {
+  SEND, MASTER_RECEIVE, SLAVE_RECEIVE
+}
+export class SmartLink {
+  linkID: string;
+  roomName: string;
+  linkMode: LinkMode;
+  constructor(roomName: string, linkID: string, linkMode: LinkMode = LinkMode.SEND) {
+    this.linkID = linkID;
+    this.roomName = roomName;
+    this.linkMode = linkMode;
   }
 }
 
