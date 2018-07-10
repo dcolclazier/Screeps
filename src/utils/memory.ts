@@ -79,7 +79,7 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
   var level1Settings = new RoomSettings(roomName);
   level1Settings.minersPerSource = 2;
   level1Settings.maxWorkerCount = 4;
-  level1Settings.maxUpgraderCount = 5;
+  level1Settings.maxUpgraderCount = 3;
   settingsMap[1] = level1Settings;
 
   var level2Settings = new RoomSettings(roomName);
@@ -91,13 +91,21 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
   var level3Settings = new RoomSettings(roomName);
   level3Settings.minersPerSource = 1;
   level3Settings.maxCarrierCount = 2;
+  level3Settings.maxUpgraderCount = 2;
   settingsMap[3] = level3Settings;
-
 
   var level4Settings = new RoomSettings(roomName);
   level4Settings.minersPerSource = 1;
   level4Settings.maxCarrierCount = 2;
-  settingsMap[4] = level3Settings;
+  level4Settings.maxUpgraderCount = 2;
+  settingsMap[4] = level4Settings;
+
+
+  var level5Settings = new RoomSettings(roomName);
+  level5Settings.minersPerSource = 1;
+  level5Settings.maxCarrierCount = 2;
+  level5Settings.maxUpgraderCount = 1;
+  settingsMap[5] = level5Settings;
 
   return settingsMap;
 }

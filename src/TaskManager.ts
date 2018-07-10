@@ -17,12 +17,14 @@ import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { PickupEnergy } from "tasks/creep/PickupEnergy";
 import { ITaskRequest } from "contract/ITaskRequest";
 import { Restock } from "tasks/creep/Restock";
-import { Build, Scout, RemoteUpgrade } from "tasks/creep/Build";
+import { Build, Scout } from "tasks/creep/Build";
 import { Upgrade, Defend } from "tasks/creep/Upgrade";
 import { FillTower } from "tasks/creep/FillTower";
 import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
-import { FillStorage, FillContainers } from "FillStorage";
+import { FillStorage } from "FillStorage";
+import { FillContainers } from "FillContainers";
+import { RemoteUpgrade } from "RemoteUpgrade";
 
 
 
@@ -160,7 +162,7 @@ export class TaskManager {
   private static addPendingRequests(roomName: string, energyLevel: number): void {
 
     //PickupEnergy.addRequests(roomName);
-    Restock.addRequests(roomName);
+    Restock.addRequests(roomName, energyLevel);
     Mine.addRequests(roomName, energyLevel);
     //TransferEnergy.addRequests(roomName);
     FillTower.addRequests(roomName);

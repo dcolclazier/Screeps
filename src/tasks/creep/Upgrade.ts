@@ -30,10 +30,16 @@ export class DefendRequest extends CreepTaskRequest {
 }
 
 export class Defend extends CreepTask {
+
   
+  northDefendPositionW6S43_1: RoomPosition = new RoomPosition(33,4,"W6S43");
+  northDefendPositionW6S43_2: RoomPosition = new RoomPosition(33,6,"W6S43");
+  northDefendPositionW6S43_3: RoomPosition = new RoomPosition(33, 7, "W6S43");
+
   protected init(): void {
     super.init();
     this.request.status = TaskStatus.PREPARE;
+
   }
 
   protected prepare(): void {
@@ -64,6 +70,7 @@ export class Defend extends CreepTask {
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
     var enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);
+    var closestRampartToEn
     if (enemies.length == 0) {
       this.request.status = TaskStatus.FINISHED;
       return;
@@ -114,11 +121,17 @@ export class Upgrade extends CreepTask {
     var controller = room.controller as StructureController;
     var roomMem = room.memory as RoomMemory;
     //if (room.energyAvailable < 1000) return;
-    if (this.creep.carry.energy == 0) {
+    if (this.creep.carry.energy < this.creep.carryCapacity) {
 
       if (this.collectFromContainer(room.name)) return;
-      if (room.energyCapacityAvailable > 1300) {
-        this.creep.moveTo(controller);
+      if (room.energyCapacityAvailable > 1200) {
+        if (this.creep.carry.energy > 0) {
+          this.request.status = TaskStatus.IN_PROGRESS
+        }
+        else {
+          this.creep.moveTo(controller);
+        }
+        
         return;
       }
       if (this.collectFromDroppedEnergy(room.name)) return;

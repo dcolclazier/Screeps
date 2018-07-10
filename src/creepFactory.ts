@@ -2,6 +2,8 @@ import { CreepMemory, RoomMemory } from "utils/memory";
 import { CreepRole, getRoleString } from "utils/utils";
 import * as utils from "utils/utils"
 import { RoomManager } from "RoomManager";
+import { ScoutRequest } from "tasks/creep/Build";
+import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 
 export class CreepManager {
   
@@ -47,6 +49,7 @@ export class CreepManager {
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
       case 4: return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
+      //case 5: return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -66,7 +69,7 @@ export class CreepManager {
       case 1: return [WORK, MOVE, MOVE, CARRY];
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
-      case 4: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+      case 4: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -77,6 +80,7 @@ export class CreepManager {
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       case 4: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
+      case 5: return [WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -88,6 +92,7 @@ export class CreepManager {
       case 2: return [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY]
       case 3: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
+      case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -98,6 +103,7 @@ export class CreepManager {
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE]
       case 3: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY]
       case 4: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY]
+      case 5: return [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY]
       default: return [WORK, WORK, MOVE, MOVE];
     }
   }
@@ -176,28 +182,33 @@ export class CreepManager {
       || miners < settings.minimumMinerCount
       || carriers < settings.maxCarrierCount) return;
 
+    
+    var taskName = new ScoutRequest("test", "temp", false).name;
+    var totalPendingTaskCount = CreepTaskQueue.pendingCountAllRooms(taskName);
+
     const spawns = utils.findSpawns(roomName);
     //console.log("spawning scout?")
-    let scoutsNeeded: number = 1 - currentScoutCount;
+    let scoutsNeeded: number = totalPendingTaskCount - currentScoutCount;
     //console.log("spawning " + scoutsNeeded + " scouts")
-    if (scoutsNeeded === 0) return;
+    if (scoutsNeeded < 0) return;
 
-    //let scoutsSpawned: number = 0;
-    //_.each(spawns, (spawn) => {
-    //  if (scoutsSpawned < scoutsNeeded) {
-    //    let spawner = spawn as StructureSpawn;
-    //    if (CreepManager.trySpawnCreep(spawner, CreepRole.ROLE_SCOUT, energyLevel)) {
-    //      scoutsSpawned++;
-    //    }
-    //  }
-    //})
+    let scoutsSpawned: number = 0;
+    _.each(spawns, (spawn) => {
+      if (scoutsSpawned < scoutsNeeded) {
+        let spawner = spawn as StructureSpawn;
+        if (CreepManager.trySpawnCreep(spawner, CreepRole.ROLE_SCOUT, energyLevel)) {
+          scoutsSpawned++;
+        }
+      }
+    })
 
   }
   private static spawnMissingWorkers(roomName: string, energyLevel: number) {
     const miners = utils.creepCount(roomName, CreepRole.ROLE_MINER);
     const carriers = utils.creepCount(roomName, CreepRole.ROLE_CARRIER);
     const upgraders = utils.creepCount(roomName, CreepRole.ROLE_UPGRADER);
-    const roomMem = Game.rooms[roomName].memory as RoomMemory;
+    const room = Game.rooms[roomName]
+    const roomMem = room.memory as RoomMemory;
     const settings = roomMem.settingsMap[energyLevel];
     const currentWorkerCount = utils.creepCount(roomName, CreepRole.ROLE_WORKER);
     if (miners < settings.minimumMinerCount - 1 && currentWorkerCount > 0) {
@@ -205,6 +216,8 @@ export class CreepManager {
       return;
     }
     if (carriers < settings.minimumCarrierCount || upgraders < settings.maxUpgraderCount) return;
+
+    if(room.find(FIND_CONSTRUCTION_SITES).length == 0) return;
 
     const spawns = utils.findSpawns(roomName);
 
@@ -225,7 +238,9 @@ export class CreepManager {
   private static spawnMissingCarriers(roomName: string, energyLevel: number) {
     const miners = utils.creepCount(roomName, CreepRole.ROLE_MINER);
     const workers = utils.creepCount(roomName, CreepRole.ROLE_WORKER);
-    const roomMem = Game.rooms[roomName].memory as RoomMemory;
+
+    const room = Game.rooms[roomName];
+    const roomMem = room.memory as RoomMemory;
     const settings = roomMem.settingsMap[energyLevel];
     const currentCarrierCount = utils.creepCount(roomName, CreepRole.ROLE_CARRIER);
     if (miners < settings.minimumMinerCount - 1 && workers < settings.minimumWorkerCount && currentCarrierCount > 0) {
@@ -235,6 +250,10 @@ export class CreepManager {
     const spawns = utils.findSpawns(roomName);
 
     let needed: number = settings.maxCarrierCount - currentCarrierCount;
+    //if (room.name == "W6S43") {
+    //  console.log(`Energy level for W6S43: ${energyLevel}`)
+    //  console.log(`Carrier Count: ${currentCarrierCount}, Max Carriers at this level: ${settings.maxCarrierCount}`)
+    //}
     if (needed === 0) return;
 
     let spawned: number = 0;

@@ -7,9 +7,9 @@ import { CreepMemory, RoomMemory, LinkMode, SmartLink } from "utils/memory";
 import { TaskStatus, Task } from "../Task";
 
 export class RestockRequest extends CreepTaskRequest {
-  priority: number = 1;
+  priority: number = 0;
   name = "Restock";
-  requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER, CreepRole.ROLE_WORKER, CreepRole.ROLE_REMOTE_UPGRADER];
+  requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER, CreepRole.ROLE_WORKER];
   maxConcurrent = 5;
   constructor(roomName: string, restockID: string) {
     super(roomName, `🛒`, restockID);
@@ -38,7 +38,18 @@ export class Restock extends CreepTask {
     var masterLink = _.find(roomMem.links, l => l.linkMode == LinkMode.MASTER_RECEIVE);
 
     //this.collectFromContainer(this.request.roomName, creep.id);
+    let targets = this.creep.room.find(FIND_STRUCTURES, {
+      filter: (structure) => {
+        return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+          structure.energy < structure.energyCapacity;
+      }
+    }).sort((structureA, structureB) => this.creep.pos.getRangeTo(structureA) - this.creep.pos.getRangeTo(structureB));
+    //console.log("restock targets: " + targets.length);
+    if (targets.length == 0) {
 
+      this.request.status = TaskStatus.FINISHED;
+      return;
+    }
     //temp code...
     if (this.creep.carry.energy < this.creep.carryCapacity) {
       if (masterLink == undefined) {
@@ -47,7 +58,7 @@ export class Restock extends CreepTask {
         if (this.collectFromDroppedEnergy(room.name)) return;
         //console.log("no dropped energy...")
         if (this.collectFromTombstone(room.name)) return;
-        //if (this.collectFromContainer(room.name)) return;
+        if (this.collectFromContainer(room.name)) return;
         if (this.collectFromMasterLink(room.name)) return;
         if (this.collectFromStorage(room.name)) return;
         if (this.collectFromSource(room.name)) return;
@@ -58,9 +69,13 @@ export class Restock extends CreepTask {
       else {
         if (this.collectFromDroppedEnergy(room.name)) return;
         //console.log("no dropped energy...")
-        if (this.collectFromTombstone(room.name)) return;
         if (this.collectFromMasterLink(room.name)) return;
+        if (this.collectFromTombstone(room.name)) return;
+        
+        if (this.collectFromContainer(room.name)) return;
+        
         if (this.collectFromStorage(room.name)) return;
+        
       }
 
     }
@@ -107,17 +122,15 @@ export class Restock extends CreepTask {
     super(taskInfo);
   }
 
-  static addRequests(roomName: string) {
+  static addRequests(roomName: string, energyLevel: number) {
     let restockables = utils.getRestockables(roomName);
-    //let workers = utils.creepNamesByRole(roomName, CreepRole.ROLE_WORKER).filter(name => {
-    //  const worker = Game.creeps[name] as Creep;
-    //  return worker.carry.energy > 0;
-    //})
-    //if (workers.length == 0) return;
-
+  
     for (const targetID in restockables) {
       let restockable = restockables[targetID];
       let request = new RestockRequest(roomName, restockable.id);
+      if (energyLevel > 2) {
+        request.requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER]
+      }
       let existingTaskCount = CreepTaskQueue.totalCount(roomName, request.name);
       let maxConcurrentCount = request.maxConcurrent;
 

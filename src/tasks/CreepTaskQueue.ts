@@ -4,6 +4,8 @@ import * as utils from "utils/utils"
 import { TaskStatus } from "./Task";
 
 export class CreepTaskQueue {
+  
+  
 
   static addPendingRequest(request: CreepTaskRequest): any {
 
@@ -67,6 +69,17 @@ export class CreepTaskQueue {
     let roomMem = Game.rooms[roomName].memory as RoomMemory;
     return roomMem.activeWorkerRequests as { [index: string]: CreepTaskRequest };
   }
+  static getActiveRequest(roomName: string, creepName: string): CreepTaskRequest | undefined {
+    let roomMem = Game.rooms[roomName].memory as RoomMemory;
+    var request = roomMem.activeWorkerRequests[creepName];
+    return request;
+  }
+  //}
+  //static getPendingRequest(roomName: string, creepName: string): CreepTaskRequest | undefined {
+  //  let roomMem = Game.rooms[roomName].memory as RoomMemory;
+  //  var request = roomMem.activeWorkerRequests[creepName];
+  //  return request;
+  //}
   static totalCount(roomName: string, taskName: string = "") {
     return CreepTaskQueue.activeCount(roomName, taskName)
       + CreepTaskQueue.pendingCount(roomName, taskName)
@@ -88,6 +101,26 @@ export class CreepTaskQueue {
       return count;
     }
   }
+  static activeCountAllRooms(taskName: string): number {
+
+    var count: number = 0;
+    for (var i in Game.rooms) {
+      var room = Game.rooms[i];
+      if (room == undefined) continue;
+      count += this.activeCount(room.name, taskName);
+    }
+    return count;
+  }
+  static pendingCountAllRooms(taskName: string): number {
+
+    var count: number = 0;
+    for (var i in Game.rooms) {
+      var room = Game.rooms[i];
+      if (room == undefined) continue;
+      count += this.pendingCount(room.name, taskName);
+    }
+    return count;
+  }
   static activeCount(roomName: string, taskName: string = ""): number {
 
     let roomMem = Game.rooms[roomName].memory as RoomMemory;
@@ -99,6 +132,33 @@ export class CreepTaskQueue {
 
     }
     return count;
+    //return Object.keys(roomMem.activeWorkerRequests).length;
+
+  }
+  static active(roomName: string, taskName: string = ""): string[] {
+
+    let roomMem = Game.rooms[roomName].memory as RoomMemory;
+    var requests: string[] = [];
+    for (var i in roomMem.activeWorkerRequests) {
+      var request = roomMem.activeWorkerRequests[i];
+      if (request.name == taskName || taskName == "")
+        requests.push(i);
+
+    }
+    return requests;
+    //return Object.keys(roomMem.activeWorkerRequests).length;
+
+  }
+  static pending(roomName: string, taskName: string = ""): CreepTaskRequest[] {
+
+    let roomMem = Game.rooms[roomName].memory as RoomMemory;
+    var requests: CreepTaskRequest[] = [];
+    for (var i in roomMem.pendingWorkerRequests) {
+      var request = roomMem.pendingWorkerRequests[i];
+      if (request.name == taskName || taskName == "")
+        requests.push(request);
+    }
+    return requests;
     //return Object.keys(roomMem.activeWorkerRequests).length;
 
   }

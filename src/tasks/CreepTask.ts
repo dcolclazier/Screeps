@@ -100,7 +100,7 @@ export abstract class CreepTask extends Task {
 
     const debugSources = roomMemory.activeResourcePileIDs
       .map(s => Game.getObjectById(s) as Resource)
-      .filter(ss => ss.amount > 50)
+      .filter(ss => ss.amount > 100)
     if (debugSources.length == 0) return false;
 
     const sortDebug = _.sortBy(debugSources, s => s.amount / this.creep.pos.getRangeTo(s.pos)).reverse();
@@ -142,7 +142,17 @@ export abstract class CreepTask extends Task {
     for (var i in containers) {
       var smartContainer = containers[i];
       var container = Game.getObjectById(smartContainer.containerID) as StructureContainer;
-      if (_.includes(smartContainer.allowedWithdrawRoles, creepRole) && container.store.energy > 0) {
+      if (container == null) {
+        return false;
+        //destroyed, filter out.
+        //var newContainers: { [index: string]: SmartContainer } = { };
+        //for (var i_1 in containers) {
+        //  if (i_1 != i) newContainers[i_1] = containers[i_1];
+        //}
+        //roomMemory.containers = newContainers;
+        //return false;
+      }
+      if (_.includes(smartContainer.allowedWithdrawRoles, creepRole) && container.store.energy > (this.creep.carryCapacity - this.creep.carry.energy)/4) {
         valids.push(smartContainer);
       }
     }
@@ -178,11 +188,12 @@ export abstract class CreepTask extends Task {
   protected collectFromStorage(roomName: string): boolean {
     const room = Game.rooms[roomName];
     const roomMem = room.memory as RoomMemory;
-    const storage = _.first(room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage"));
+    const storage = _.first(room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage")) as StructureStorage;
 
     if (storage == undefined) {
       return false;
     }
+    if (storage.store.energy < 1000) return false;
 
     var result = this.creep.withdraw(storage, RESOURCE_ENERGY);
     if (result == ERR_NOT_IN_RANGE) {
@@ -196,16 +207,33 @@ export abstract class CreepTask extends Task {
     //console.log("collect from tombstone")
     const room = Game.rooms[roomName];
     //if (this.creep.carry.energy == this.creep.carryCapacity) return;
-    const tombstones = room.find(FIND_TOMBSTONES).filter(t => t.store.energy > 0) as Tombstone[];
+    const tombstones = room.find(FIND_TOMBSTONES).filter(t => Object.keys(t.store).length > 0) as Tombstone[]
+
+
     const byRange = _.sortBy(tombstones, t => this.creep.pos.getRangeTo(t));
 
     const tombstone = _.first(byRange);
     if (tombstone == undefined) return false;
-    var result = this.creep.withdraw(tombstone, RESOURCE_ENERGY);
-    if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(tombstone);
+
+    if (this.request.name == "FillStorage") {
+      var result = this.creep.withdraw(tombstone, _.findKey(tombstone.store) as ResourceConstant);
+      if (result == ERR_NOT_IN_RANGE) {
+        this.creep.moveTo(tombstone);
+        return true;
+      }
+      else if (result == OK) return true;
+      return true;
     }
-    return true;
+    else {
+      var result = this.creep.withdraw(tombstone, RESOURCE_ENERGY);
+      if (result == ERR_NOT_IN_RANGE) {
+        this.creep.moveTo(tombstone);
+      }
+      else if (result == OK) return true;
+      return false;
+    }
+    
+   
     //const withResources = _.filter(tombstones, t => t.store.energy > 0)
 
     //if (withResources.length > 0) {
@@ -228,11 +256,14 @@ export abstract class CreepTask extends Task {
   protected collectFromSource(roomName: string): boolean {
 
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
-    var smartSources = _.sortBy(roomMem.harvestLocations, h => { this.creep.pos.getRangeTo(Game.getObjectById(h.sourceID) as Source) }) as SmartSource[];
-    var withEnergy = _.filter(smartSources, s => {
+   
+    var withEnergy = _.filter(roomMem.harvestLocations, s => {
       var source = Game.getObjectById(s.sourceID) as Source;
       return source.energy > 0;
     });
+    var site = Game.getObjectById(this.request.targetID) as AnyStructure | ConstructionSite | Source;
+    if (site == null) return false;
+    //var sortedByRange = _.sortBy(withEnergy, h => { site.pos.getRangeTo(Game.getObjectById(h.sourceID) as Source) }).reverse() as SmartSource[];
     //if (this.creepMemory.role == CreepRole.ROLE_REMOTE_UPGRADER && roomName == "W5S43") {
     //  for (var id in smartSources) {
     //    var smartSource = smartSources[id];
@@ -250,10 +281,18 @@ export abstract class CreepTask extends Task {
     //  //})
     //}
     //var test = roomMem.harvestLocations[Object.keys(roomMem.harvestLocations)[0]]
+    var closest = _.min(withEnergy, s => site.pos.getRangeTo(Game.getObjectById(s.sourceID) as Source))
 
+    if (closest == undefined) return false;
+    //console.log("test: " + closest.sourceID);
+    //for (var i in sortedByRange) {
+    //  var s = sortedByRange[i];
+    //  if (s != undefined) {
+    //    if (this.request.name == "Build") console.log("id: " + s.sourceID + ", distance: " + site.pos.getRangeTo(Game.getObjectById(s.sourceID) as Source));
+    //  }
+    //}
 
-
-    var sourceID = _.first(withEnergy).sourceID;
+    var sourceID = closest.sourceID;
     var source = Game.getObjectById(sourceID) as Source
     //if (this.creepMemory.role == CreepRole.ROLE_REMOTE_UPGRADER && roomName == "W5S43")  console.log("to test: " + this.creep.pos.getRangeTo(source))
 

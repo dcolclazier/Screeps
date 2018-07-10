@@ -57,8 +57,8 @@ export class Mine extends CreepTask {
 
     }
     else {
-      if (this.creep.carry.energy < this.creep.carryCapacity) this.harvest();
-      else this.deliver();
+      if (this.creep.carry.energy >= this.creep.carryCapacity - 10) this.deliver();
+      else this.harvest();
     
     }
     //else(this.creep.drop(RESOURCE_ENERGY))
@@ -115,9 +115,11 @@ export class Mine extends CreepTask {
     const roomMemory = room.memory as RoomMemory;
 
     var smartSource = roomMemory.harvestLocations[this.request.targetID];
-   
+    //if (room.name == "W5S43") {
+    //  console.log("smartsource id:" + smartSource.linkID)
+    //}
     if (smartSource.linkID != "") {
-
+      
       var link = Game.getObjectById(smartSource.linkID) as StructureLink;
       if (creep.transfer(link, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
         creep.moveTo(link, { visualizePathStyle: { stroke: '#ffffff' } });

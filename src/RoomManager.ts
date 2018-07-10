@@ -119,7 +119,8 @@ export class RoomManager {
     if (cap < 550) return 1;
     else if (cap <= 950) return 2;
     else if (cap <= 1500) return 3;
-    else return 4;
+    else if (cap <= 3500) return 4;
+    else return 5;
   }
   private loadSmartContainers(roomName: string) {
     let room = Game.rooms[roomName];
@@ -137,7 +138,7 @@ export class RoomManager {
       var sorted = _.sortBy(rangeToSources, s => s);
       if (_.first(sorted) == 1) {
         //miner depository
-        let smart = new SmartContainer(roomName, c.id, false, [CreepRole.ROLE_WORKER, CreepRole.ROLE_CARRIER])
+        let smart = new SmartContainer(roomName, c.id, false, [CreepRole.ROLE_WORKER, CreepRole.ROLE_CARRIER, CreepRole.ROLE_UPGRADER])
         roomMemory.containers[c.id] = smart;
       }
       else {

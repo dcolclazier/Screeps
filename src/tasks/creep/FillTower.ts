@@ -8,7 +8,7 @@ import { TaskStatus } from "tasks/Task";
 
 export class FillTowerRequest extends CreepTaskRequest {
   static RefillThreshold: number = .75
-  priority: number = 2
+  priority: number = 1.5
   requiredRole: CreepRole[] = [CreepRole.ROLE_CARRIER];
   name = "FillTower";
   maxConcurrent = 1;
@@ -33,7 +33,9 @@ export class FillTower extends CreepTask {
       
       if(this.collectFromTombstone(room.name)) return;
       if (this.collectFromDroppedEnergy(room.name)) return;
+      if (this.collectFromMasterLink(room.name)) return;
       if (this.collectFromStorage(room.name)) return;
+      if (this.collectFromContainer(room.name)) return;
       //this.collectFromSource(room.name);
 
     }
