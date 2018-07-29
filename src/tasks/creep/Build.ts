@@ -38,7 +38,7 @@ export class Scout extends CreepTask {
     super.prepare();
     if (this.request.status == TaskStatus.FINISHED) return;
 
-    var targetRoom = this.request.roomName;
+    var targetRoom = this.request.targetID;
     var targetPos = new RoomPosition(25, 25, targetRoom);
 
     this.creep.moveTo(targetPos);
@@ -73,17 +73,21 @@ export class Scout extends CreepTask {
       //blue/blue = scout, blue/white  = claim
       if (flag.color == COLOR_BLUE) {
         var targetRoomName = flag.pos.roomName;
+        var sourceRoomName = flag.name;
+        if (sourceRoomName != roomName) return;
 
-        var request = new ScoutRequest(targetRoomName, roomName)
-        if (CreepTaskQueue.active(targetRoomName, request.name).length + CreepTaskQueue.pending(targetRoomName, request.name).length > 0) return;
+        //var request = new ScoutRequest(sourceRoomName, targetRoomName)
+        //var currentCount = CreepTaskQueue.activeCount(roomName, request.name) + CreepTaskQueue.pendingCount(roomName, request.name);
+        //console.log("Current Scout task count for " + roomName)
+        //if (currentCount > 0) return;
 
-        if (flag.secondaryColor == COLOR_BLUE) {
-          request.claiming = true;
-          CreepTaskQueue.addPendingRequest(request);
-        }
-        else if (flag.secondaryColor == COLOR_WHITE) {
-          CreepTaskQueue.addPendingRequest(request);
-        }
+        //if (flag.secondaryColor == COLOR_BLUE) {
+        //  request.claiming = true;
+        //  CreepTaskQueue.addPendingRequest(request);
+        //}
+        //else if (flag.secondaryColor == COLOR_WHITE) {
+        //  CreepTaskQueue.addPendingRequest(request);
+        //}
       }
       
     }
@@ -107,13 +111,18 @@ export class Build extends CreepTask {
     if (this.request.status == TaskStatus.FINISHED) return;
     const info = this.request as BuildRequest;
     const site = Game.getObjectById(info.targetID) as ConstructionSite;
+
+    if (this.creep.carry.energy == this.creep.carryCapacity) {
+      this.request.status = TaskStatus.IN_PROGRESS
+    }
     if (site == null || site.progressTotal - site.progress == 0) {
       this.request.status = TaskStatus.FINISHED;
       return;
     }
+    var progressLeft = site.progressTotal - site.progress
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
-    if (this.creep.carry.energy < this.creep.carryCapacity) {
+    if (this.creep.carry.energy < progressLeft) {
 
       
       if (this.collectFromTombstone(room.name)) return;
@@ -126,12 +135,13 @@ export class Build extends CreepTask {
       //this.creep.moveTo(this.creep.room.controller as StructureController)
     }
     else this.request.status = TaskStatus.IN_PROGRESS;
+
   }
   protected continue(): void {
     super.continue();
+    
     if (this.request.status == TaskStatus.FINISHED) return;
     const creep = Game.creeps[this.request.assignedTo];
-
     const info = this.request as BuildRequest;
     const site = Game.getObjectById(info.targetID) as ConstructionSite;
     if (site == null || site.progressTotal - site.progress == 0) {

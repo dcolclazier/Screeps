@@ -137,7 +137,11 @@ export class CreepTaskQueue {
   }
   static active(roomName: string, taskName: string = ""): string[] {
 
-    let roomMem = Game.rooms[roomName].memory as RoomMemory;
+    //console.log("RoomName: " + roomName)
+    let room = Game.rooms[roomName];
+    if (room == undefined) return [];
+
+    let roomMem = room.memory as RoomMemory;
     var requests: string[] = [];
     for (var i in roomMem.activeWorkerRequests) {
       var request = roomMem.activeWorkerRequests[i];
@@ -151,7 +155,10 @@ export class CreepTaskQueue {
   }
   static pending(roomName: string, taskName: string = ""): CreepTaskRequest[] {
 
-    let roomMem = Game.rooms[roomName].memory as RoomMemory;
+    let room = Game.rooms[roomName];
+    if (room == undefined) return [];
+
+    let roomMem = room.memory as RoomMemory;
     var requests: CreepTaskRequest[] = [];
     for (var i in roomMem.pendingWorkerRequests) {
       var request = roomMem.pendingWorkerRequests[i];

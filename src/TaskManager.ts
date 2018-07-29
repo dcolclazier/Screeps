@@ -81,14 +81,19 @@ export class TaskManager {
 
   private static runTask(task: Task) {
 
-    if (task.request.status == TaskStatus.FINISHED)
-    {
-      if (task.request.isCreepTask) TaskManager.removeWorkerTasks(task.request);
-      else TaskManager.removeStructureTasks(task.request);
-      return;
-    }
+    //if (!task.request.isCreepTask) console.log("running structure task!")
+    
     
     task.run();
+
+    if (task.request.status == TaskStatus.FINISHED) {
+      if (task.request.isCreepTask) TaskManager.removeWorkerTasks(task.request);
+      else {
+        //console.log("removing structure task!")
+        TaskManager.removeStructureTasks(task.request);
+      }
+      return;
+    }
   }
   private static removeWorkerTasks(request: ITaskRequest): void {
 
@@ -126,30 +131,17 @@ export class TaskManager {
       else { console.log("Request not found..." + request.name)}
 
     })
-    //for (const assignedName in activeWorkerTasks) {
-    //  //else if (taskInfo.name == "TransferEnergy") (new TransferEnergy(taskInfo)).run();
-      
-    //}
+    
     let activeStructureTasks = StructureTaskQueue.allActive(roomName);
     _.each(activeStructureTasks, request => {
       if (Game.getObjectById(request.assignedTo) as AnyOwnedStructure === undefined) {
-        console.log("here.")
         request.status == TaskStatus.FINISHED;
       }
       
-      if (request.name == "TowerRepair") (new TowerRepair(request)).run();
-      if (request.name == "TowerAttack") (new TowerAttack(request)).run();
+      if (request.name == "TowerRepair") TaskManager.runTask(new TowerRepair(request));
+      if (request.name == "TowerAttack") TaskManager.runTask(new TowerAttack(request));
     })
     
-    //for (let buildingID in activeStructureTasks)
-    //{
-      
-    //	let request = activeStructureTasks[buildingID];
-    //	if (request.assignedTo != buildingID) request.assignedTo = buildingID;
-
-    	
-    //}
-    //console.log("finished continueActiveRequests")
   }
   private static addBuildingTasks(roomName: string) {
     //console.log("add attack")

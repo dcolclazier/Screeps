@@ -8,7 +8,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
   priority: number = 2;
   name: string = "TowerRepair";
   maxConcurrent: number = 3;
-  static maxHitPoints: number = 1000000;
+  static maxHitPoints: number = 1300000;
   constructor(roomName: string, siteID: string) {
     super(roomName, siteID)
   }
@@ -33,33 +33,19 @@ export class TowerRepair extends StructureTask {
     if (tower == null || site == null) {
       console.log("something went wrong")
     }
-    if (/*site.hits == site.hitsMax * .5 || */tower.energy < tower.energyCapacity * .5) {
+    if (tower.energy < tower.energyCapacity * .5) {
       this.request.status = TaskStatus.FINISHED;
       return;
     }
-    //console.log("repairing: " + site.id);
     var status = tower.repair(site);
-    //console.log(status)
-    //console.log("about to finish")
-    this.request.status = TaskStatus.FINISHED;
+    if (status == OK) {
+      this.request.status = TaskStatus.FINISHED;
+    }
+
+    console.log(status)
+    
   }
-  // protected doWork(): void
-  //{
-  //	//if(Game.time % 4 != 0) return;
-  //	let info = this.request as TowerRepairRequest;
-  //	let site = Game.getObjectById(info.targetID) as AnyStructure;
-  //	// if(site.structureType == "rampart")  console.log("got a rampart!");
-  //	let tower = Game.getObjectById(info.assignedTo) as StructureTower;
-  //	//console.log("Tower: " + tower.structureType + " " + tower.owner)
-  //	if(tower == null || site == null){
-  //		console.log("something went wrong")
-  //	}
-  //	if(site.hits == site.hitsMax || tower.energy < tower.energyCapacity*.5){
-  //		this.finish();
-  //		return;
-  //	}
-  //	tower.repair(site);
-  //}
+  
   constructor(taskInfo: StructureTaskRequest) {
     super(taskInfo);
   }
@@ -69,24 +55,10 @@ export class TowerRepair extends StructureTask {
       .filter(structure => structure.hits < structure.hitsMax * .75 && structure.hits < TowerRepairRequest.maxHitPoints)
 
     const sorted = _.sortBy(targets, t => t.hits);
-    //console.log("Sorted: " + sorted.map(s => s.id))
-    //console.log("Non Sorted: " + targets.map(s => s.hits))
     var target = _.first(sorted);
     if (target != undefined) {
       StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
     }
-    //console.log("before: " + target.id);
-    
-    //_.each(sorted, target => StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id)))
-    //for (const id in sorted) {
-    //  const repairTarget = sorted[id];
-    //  const request = new TowerRepairRequest(roomName, repairTarget.id);
-    //  StructureTaskQueue.addPendingRequest(request);
-    //  //const existingTaskCount = StructureTaskQueue.totalCount(roomName, request.name);
 
-    //  //if (existingTaskCount < request.maxConcurrent) {
-    //  //  StructureTaskQueue.addPendingRequest(request);
-    //  //}
-    //}
   }
 }

@@ -45,7 +45,7 @@ export interface RoomMemory {
   containers: {[index:string]:SmartContainer}
   links: {[index:string]:SmartLink}
   activeResourcePileIDs: string[];
-  towers: SmartStructure[];
+  towers: { [id: string]: SmartStructure };
   settingsMap: {[energyLevel:number]:RoomSettings};
 }
 export interface StructureMemory {
@@ -64,7 +64,7 @@ export function initRoomMemory(roomName: string): void {
   rm.activeResourcePileIDs = [];
   rm.activeStructureRequests = {};
   rm.pendingStructureRequests = []
-  rm.towers = [];
+  rm.towers = {};
   rm.containers = {};
   rm.links = {};
   rm.settingsMap = SetupRoomSettings(roomName);
@@ -97,7 +97,7 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
   var level4Settings = new RoomSettings(roomName);
   level4Settings.minersPerSource = 1;
   level4Settings.maxCarrierCount = 2;
-  level4Settings.maxUpgraderCount = 2;
+  level4Settings.maxUpgraderCount = 3;
   settingsMap[4] = level4Settings;
 
 

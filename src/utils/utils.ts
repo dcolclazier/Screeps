@@ -111,10 +111,19 @@ export function findIdleSmartStructures(roomName: string): Array<SmartStructure>
 
   let roomMem = Game.rooms[roomName].memory as RoomMemory;
   let structs = roomMem.towers;
-  return structs.filter(struc => {
-    let mem = struc.memory as StructureMemory;
-    return mem.idle;
-  })
+  //console.log("Tower memory count: " + Object.keys(structs).length);
+  var t: SmartStructure[] = [];
+  for (var s in structs) {
+    var smart = structs[s] as SmartStructure;
+    var mem = smart.memory as StructureMemory;
+    t.push(smart);
+  }
+  //console.log("Smart Structure Count: " + t.length);
+  return t;
+  //return structs.filter(struc => {
+  //  let mem = struc.memory as StructureMemory;
+  //  return mem.idle;
+  //})
 
 }
 export function getRestockables(roomName: string): Array<AnyStructure> {

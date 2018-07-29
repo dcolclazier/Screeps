@@ -11,7 +11,7 @@ export class FillStorageRequest extends CreepTaskRequest {
   priority: number = 4;
   name = "FillStorage";
   requiredRole = [6]
-  maxConcurrent = 2;
+  maxConcurrent = 1;
   constructor(roomName: string, restockID: string) {
     super(roomName, `💰`, restockID);
   }

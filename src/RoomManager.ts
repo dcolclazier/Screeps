@@ -64,8 +64,8 @@ export class RoomManager {
 
     let room = Game.rooms[roomName]
     let memory = room.memory as RoomMemory;
-    if (memory.towers.length == 0) {
-      memory.towers = [];
+    if (Object.keys(memory.towers).length == 0) {
+      memory.towers = {};
       let structures = room.find(FIND_STRUCTURES);
       let smartStructures = _.filter(structures, function (structure) {
         return (
@@ -86,7 +86,7 @@ export class RoomManager {
           memory: newStructureMemory
         }
 
-        memory.towers.push(smartStructure);
+        memory.towers[structure.id] = smartStructure;
       }
     }
 

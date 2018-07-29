@@ -28,7 +28,7 @@ export class CreepManager {
     CreepManager.spawnMissingWorkers(roomName, energyLevel);
     CreepManager.spawnMissingUpgraders(roomName, energyLevel);
     CreepManager.spawnMissingCarriers(roomName, energyLevel);
-    CreepManager.spawnMissingScouts(roomName, energyLevel);
+    //CreepManager.spawnMissingScouts(roomName, energyLevel);
     CreepManager.spawnMissingRemoteUpgraders(roomName, energyLevel);
     //CreepManager.spawnMissingDefenders(roomName, energyLevel);
     //console.log("spawned missing creeps.")
@@ -49,7 +49,7 @@ export class CreepManager {
       case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY, CARRY]
       case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
       case 4: return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
-      //case 5: return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
+      case 5: return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]
       default: return [WORK, MOVE, MOVE, CARRY];
     }
   }
@@ -112,8 +112,9 @@ export class CreepManager {
     switch (energyLevel) {
       case 1: return [MOVE, MOVE, MOVE];
       case 2: return [MOVE, MOVE, MOVE ]
-      case 3: return [CLAIM, MOVE, MOVE,]
-      case 4: return [CLAIM, MOVE, MOVE,]
+      case 3: return [CLAIM, MOVE,]
+      case 4: return [CLAIM, MOVE,]
+      case 5: return [MOVE, CLAIM ]
       default: return [MOVE, MOVE];
     }
   }
@@ -178,29 +179,35 @@ export class CreepManager {
     const settings = roomMem.settingsMap[energyLevel];
     const currentScoutCount = utils.creepCountAllRooms(CreepRole.ROLE_SCOUT);
     if (miners < settings.minimumMinerCount
-      || workers < settings.maxWorkerCount
       || miners < settings.minimumMinerCount
-      || carriers < settings.maxCarrierCount) return;
+      || carriers < settings.maxCarrierCount) {
+      return;
+    }
 
-    
     var taskName = new ScoutRequest("test", "temp", false).name;
-    var totalPendingTaskCount = CreepTaskQueue.pendingCountAllRooms(taskName);
-
-    const spawns = utils.findSpawns(roomName);
-    //console.log("spawning scout?")
-    let scoutsNeeded: number = totalPendingTaskCount - currentScoutCount;
-    //console.log("spawning " + scoutsNeeded + " scouts")
-    if (scoutsNeeded < 0) return;
-
-    let scoutsSpawned: number = 0;
-    _.each(spawns, (spawn) => {
-      if (scoutsSpawned < scoutsNeeded) {
-        let spawner = spawn as StructureSpawn;
-        if (CreepManager.trySpawnCreep(spawner, CreepRole.ROLE_SCOUT, energyLevel)) {
-          scoutsSpawned++;
+    var pendingCount = CreepTaskQueue.pendingCount(roomName);
+    if (pendingCount > 0) {
+      const spawns = utils.findSpawns(roomName);
+      let scoutsSpawned: number = 0;
+      _.each(spawns, (spawn) => {
+        if (scoutsSpawned < pendingCount) {
+          let spawner = spawn as StructureSpawn;
+          if (CreepManager.trySpawnCreep(spawner, CreepRole.ROLE_SCOUT, energyLevel)) {
+            scoutsSpawned++;
+          }
         }
-      }
-    })
+      })
+    }
+
+    //var totalPendingTaskCount = CreepTaskQueue.pendingCountAllRooms(taskName);
+
+    //const spawns = utils.findSpawns(roomName);
+    ////console.log("spawning scout?")
+    //let scoutsNeeded: number = totalPendingTaskCount - currentScoutCount;
+    //console.log("spawning " + scoutsNeeded + " scouts")
+    //if (scoutsNeeded < 0) return;
+
+   
 
   }
   private static spawnMissingWorkers(roomName: string, energyLevel: number) {

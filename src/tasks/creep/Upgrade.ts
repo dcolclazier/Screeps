@@ -159,6 +159,12 @@ export class Upgrade extends CreepTask {
     }
     const info = this.request as UpgradeRequest
     let controller = Game.getObjectById(info.targetID) as StructureController;
+    var sign = controller.sign as SignDefinition;
+    if (sign == undefined || sign.username != "KeyserSoze") {
+      var result = this.creep.signController(controller, "The greatest trick the devil ever pulled was convincing the world he did not exist.");
+      if (result == ERR_NOT_IN_RANGE) this.creep.moveTo(controller);
+    }
+
     if (this.creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
       this.creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
     }

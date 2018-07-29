@@ -79,30 +79,4 @@ export class FillTower extends CreepTask {
     super(taskInfo);
   }
 
-    // doWork(): void
-  // {
-  // 	let info = this.request as FillTowerRequest;
-  // 	let tower = Game.getObjectById(info.targetID) as StructureTower;
-  // 	let creep = Game.creeps[this.request.assignedTo] as Creep;
-  // 	let creepMemory = creep.memory as CreepMemory;
-
-  // 	if (tower.energy == tower.energyCapacity)
-  // 	{
-  // 		this.finish();
-  // 		return;
-  // 	}
-  // 	if (creepMemory.preppingForTask) this.collectFromContainer(this.request.roomName, creep.id);
-  // 	else
-  // 	{
-  // 		let result = creep.transfer(tower, RESOURCE_ENERGY)
-  // 		if (result == ERR_NOT_IN_RANGE)
-  // 		{
-  // 			creep.moveTo(tower, { visualizePathStyle: { stroke: '#ffffff' } });
-  // 		}
-  // 		else if(result == OK){
-  // 			this.finish();
-  // 		}
-  // 	}
-
-  // }
 }

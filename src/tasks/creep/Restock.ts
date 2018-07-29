@@ -75,7 +75,7 @@ export class Restock extends CreepTask {
         if (this.collectFromContainer(room.name)) return;
         
         if (this.collectFromStorage(room.name)) return;
-        
+        if (this.collectFromSource(room.name)) return;
       }
 
     }
@@ -128,9 +128,9 @@ export class Restock extends CreepTask {
     for (const targetID in restockables) {
       let restockable = restockables[targetID];
       let request = new RestockRequest(roomName, restockable.id);
-      if (energyLevel > 2) {
-        request.requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER]
-      }
+      //if (energyLevel > 2) {
+      //  request.requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER]
+      //}
       let existingTaskCount = CreepTaskQueue.totalCount(roomName, request.name);
       let maxConcurrentCount = request.maxConcurrent;
 
