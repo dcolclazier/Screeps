@@ -1,62 +1,80 @@
 //import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
-import { CreepRole } from "utils/utils";
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
-
+import * as utils from "utils/utils";
 export const MemoryVersion = 0;
-export function m(): GameMemory {
-  return Memory as any as GameMemory;
-}
-export interface GameMemory {
-  uuid: number;
-  memVersion: number;
-  gcl: any;
-  map: any;
-  initialized: boolean;
-  creeps:
-  {
-    [name: string]: any;
-  };
+//export function m(): GameMemory {
+//  return Memory as any as GameMemory;
+//}
+//export interface GameMemory {
+//  uuid: number;
+//  memVersion: number;
+//  gcl: any;
+//  map: any;
+//  initialized: boolean;
+//  creeps:
+//  {
+//    [name: string]: any;
+//  };
 
-  flags:
-  {
-    [name: string]: any;
-  };
+//  flags:
+//  {
+//    [name: string]: any;
+//  };
 
-  rooms:
-  {
-    [name: string]: RoomMemory;
-  };
+//  rooms:
+//  {
+//    [name: string]: RoomMemory;
+//  };
 
-  spawns:
-  {
-    [name: string]: any;
-  };
-}
+//  spawns:
+//  {
+//    [name: string]: any;
+//  };
+//}
 
+//export enum CreepRole {
+//  ROLE_UNASSIGNED = 0,
+//  ROLE_ALL = 1,
+//  ROLE_MINER = 2,
+//  ROLE_WORKER = 3,
+//  ROLE_UPGRADER = 4,
+//  ROLE_SCOUT = 5,
+//  ROLE_CARRIER = 6,
+//  ROLE_REMOTE_UPGRADER = 7,
+//  ROLE_DEFENDER = 8
+//}
+//export enum TaskStatus {
+//  PENDING = 0,
+//  INIT = 1,
+//  PREPARE = 2,
+//  PRE_RUN = 3,
+//  IN_PROGRESS = 4,
+//  POST_RUN = 5,
+//  FINISHED = 6,
+//}
+//export enum LinkMode {
+//  SEND = 0, MASTER_RECEIVE = 1, SLAVE_RECEIVE = 2
+//}
 
-export interface RoomMemory {
-  harvestLocations: { [index: string]: SmartSource };
-  activeWorkerRequests: { [index: string]: CreepTaskRequest };
-  test: StructureContainer[];
-  pendingWorkerRequests: CreepTaskRequest[];
-  pendingStructureRequests: StructureTaskRequest[];
-  activeStructureRequests: { [index: string]: StructureTaskRequest };
-  containers: {[index:string]:SmartContainer}
-  links: {[index:string]:SmartLink}
-  activeResourcePileIDs: string[];
-  towers: { [id: string]: SmartStructure };
-  settingsMap: {[energyLevel:number]:RoomSettings};
-}
-export interface StructureMemory {
-  idle: boolean;
-  alive: boolean;
-  currentTask: string;
+//interface RoomMemory {
+//  harvestLocations: { [index: string]: SmartSource };
+//  activeWorkerRequests: { [index: string]: CreepTaskRequest };
+//  test: StructureContainer[];
+//  pendingWorkerRequests: CreepTaskRequest[];
+//  pendingStructureRequests: StructureTaskRequest[];
+//  activeStructureRequests: { [index: string]: StructureTaskRequest };
+//  containers: {[index:string]:SmartContainer}
+//  links: {[index:string]:SmartLink}
+//  //activeResourcePileIDs: string[];
+//  towers: { [id: string]: SmartStructure };
+//  settingsMap: { [energyLevel: number]: RoomSettings };
+//  //avoid: any;
+//}
 
-}
 export function initRoomMemory(roomName: string): void {
   let room = Game.rooms[roomName];
-  const rm: RoomMemory = m().rooms[room.name];
+  const rm: RoomMemory = Memory.rooms[room.name];
   rm.harvestLocations = {};
   rm.test = [];
   rm.activeWorkerRequests = {};
@@ -68,7 +86,12 @@ export function initRoomMemory(roomName: string): void {
   rm.containers = {};
   rm.links = {};
   rm.settingsMap = SetupRoomSettings(roomName);
-
+  rm.baseEntranceRamparts = [];
+  let start = Game.cpu.getUsed()
+  var s = new utils.Search2(roomName);
+  rm.baseEntranceRamparts = s.findEntrances("rampart");
+  rm.baseEntranceWalls = s.findEntrances("constructedWall");
+  console.log("CPU USAGE: " + (Game.cpu.getUsed() - start))
 }
 interface RoomSettingsMap {
   [energyLevel: number]: RoomSettings;
@@ -103,38 +126,28 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
 
   var level5Settings = new RoomSettings(roomName);
   level5Settings.minersPerSource = 1;
-  level5Settings.maxCarrierCount = 2;
+  level5Settings.maxCarrierCount = 1;
   level5Settings.maxUpgraderCount = 1;
   settingsMap[5] = level5Settings;
 
   return settingsMap;
 }
 
-export interface SmartStructure {
-  memory: StructureMemory;
-  id: string;
-}
 
-export interface CreepMemory {
-  spawnID: string;
-  alive: boolean | undefined;
-  currentTask: string;
-  idle: boolean;
-  role: CreepRole
-}
 export function cleanupCreeps(): void {
   for (const name in Memory.creeps) {
     if (!Game.creeps[name]) {
       console.log("Clearing dead creeps from memory.")
       for (const roomName in Game.rooms) {
-        let room = Game.rooms[roomName] as Room;
-        let roomMemory = room.memory as RoomMemory;
-        let sites = roomMemory.harvestLocations;
-        for (const sourceID in sites) {
-          let site = sites[sourceID];
-          if (_.includes(site.assignedTo, name)) {
-            console.log("unassiging harvest spot for " + name + " source: " + site.sourceID)
-            site.assignedTo = site.assignedTo.filter(s=>s!=name);
+        //let room = Game.rooms[roomName] as Room;
+        //let roomMemory = room.memory as RoomMemory;
+        //room.memory.
+        let harvestLocations = Game.rooms[roomName].memory.harvestLocations;
+        for (const sourceID in harvestLocations) {
+          let harvestSpot = harvestLocations[sourceID];
+          if (_.includes(harvestSpot.assignedTo, name)) {
+            console.log("unassiging harvest spot for " + name + " source: " + harvestSpot.sourceID)
+            harvestSpot.assignedTo = harvestSpot.assignedTo.filter(s=>s!=name);
             //console.log(JSON.stringify(site.assignedTo))
           }
         }
@@ -143,6 +156,10 @@ export function cleanupCreeps(): void {
     }
   }
 }
+
+
+
+
 export class SmartContainer {
   containerID: string;
   roomName: string;
@@ -165,14 +182,12 @@ export class SmartSource {
     this.roomName = roomName;
   }
 }
-export enum LinkMode {
-  SEND, MASTER_RECEIVE, SLAVE_RECEIVE
-}
+
 export class SmartLink {
   linkID: string;
   roomName: string;
   linkMode: LinkMode;
-  constructor(roomName: string, linkID: string, linkMode: LinkMode = LinkMode.SEND) {
+  constructor(roomName: string, linkID: string, linkMode: LinkMode = "SEND") {
     this.linkID = linkID;
     this.roomName = roomName;
     this.linkMode = linkMode;

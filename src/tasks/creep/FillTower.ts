@@ -1,15 +1,12 @@
 import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
-import { CreepRole } from "utils/utils";
-import { CreepMemory } from "utils/memory";
 import * as utils from "utils/utils"
-import { TaskStatus } from "tasks/Task";
 
 export class FillTowerRequest extends CreepTaskRequest {
   static RefillThreshold: number = .75
-  priority: number = 1.5
-  requiredRole: CreepRole[] = [CreepRole.ROLE_CARRIER];
+  priority: number = 1
+  requiredRole: CreepRole[] = ["ROLE_CARRIER"];
   name = "FillTower";
   maxConcurrent = 1;
   constructor(roomName: string, towerID: string) {
@@ -20,11 +17,11 @@ export class FillTowerRequest extends CreepTaskRequest {
 export class FillTower extends CreepTask {
   protected init(): void {
     super.init();
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
   }
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
 
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
@@ -32,21 +29,21 @@ export class FillTower extends CreepTask {
 
       
       if(this.collectFromTombstone(room.name)) return;
-      if (this.collectFromDroppedEnergy(room.name)) return;
-      if (this.collectFromMasterLink(room.name)) return;
-      if (this.collectFromStorage(room.name)) return;
-      if (this.collectFromContainer(room.name)) return;
+      else if (this.collectFromDroppedEnergy(room.name)) return;
+      else if (this.collectFromMasterLink(room.name)) return;
+      else if (this.collectFromStorage(room.name)) return;
+      else if (this.collectFromContainer(room.name)) return;
       //this.collectFromSource(room.name);
 
     }
-    else this.request.status = TaskStatus.IN_PROGRESS;
+    else this.request.status = "IN_PROGRESS";
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     const tower = Game.getObjectById(this.request.targetID) as StructureTower;
     if (tower.energy == tower.energyCapacity) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
       return;
     }
     let result = this.creep.transfer(tower, RESOURCE_ENERGY)
@@ -54,7 +51,7 @@ export class FillTower extends CreepTask {
       this.creep.moveTo(tower, { visualizePathStyle: { stroke: '#ffffff' } });
     }
     else if (result == OK) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
   }
 

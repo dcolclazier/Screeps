@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		main.ts = main.ts
 		RoomManager.ts = RoomManager.ts
 		TaskManager.ts = TaskManager.ts
+		Traveler.ts = Traveler.ts
 		types.d.ts = types.d.ts
 	EndProjectSection
 EndProject
@@ -30,13 +31,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tasks", "tasks", "{00DA8604
 		tasks\Task.ts = tasks\Task.ts
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contract", "contract", "{A8062669-B9FA-4D74-8054-26F01D92953D}"
-	ProjectSection(SolutionItems) = preProject
-		contract\ICreepTaskRequest.ts = contract\ICreepTaskRequest.ts
-		contract\ITask.ts = contract\ITask.ts
-		contract\ITaskRequest.ts = contract\ITaskRequest.ts
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF-A9BF-4891-84B1-621CFC509CC0}"
 	ProjectSection(SolutionItems) = preProject
 		tasks\creep\Build.ts = tasks\creep\Build.ts
@@ -47,6 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF
 		tasks\creep\PickupEnergy.ts = tasks\creep\PickupEnergy.ts
 		RemoteUpgrade.ts = RemoteUpgrade.ts
 		tasks\creep\Restock.ts = tasks\creep\Restock.ts
+		Scout.ts = Scout.ts
 		tasks\creep\Upgrade.ts = tasks\creep\Upgrade.ts
 	EndProjectSection
 EndProject
@@ -63,7 +58,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1050C986-E948-4A11-BE7F-ED6468FB6DEE} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
 		{00DA8604-12AC-49B4-A740-4FDFE9487059} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
-		{A8062669-B9FA-4D74-8054-26F01D92953D} = {92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}
 		{A198E0CF-A9BF-4891-84B1-621CFC509CC0} = {00DA8604-12AC-49B4-A740-4FDFE9487059}
 		{5FEAC8C0-D849-405A-AB63-4D36A50569D7} = {00DA8604-12AC-49B4-A740-4FDFE9487059}
 	EndGlobalSection

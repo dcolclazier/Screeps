@@ -1,5 +1,3 @@
-import { ITaskRequest } from "contract/ITaskRequest";
-import { TaskStatus } from "./Task";
 export abstract class StructureTaskRequest implements ITaskRequest
 {
 	status: TaskStatus;
@@ -14,6 +12,6 @@ export abstract class StructureTaskRequest implements ITaskRequest
 	{
 		this.roomName = roomName;
 		this.targetID = targetID;
-		this.status = TaskStatus.PENDING
+		this.status = "PENDING"
 	}
 }

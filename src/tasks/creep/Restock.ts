@@ -2,15 +2,14 @@ import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as utils from "utils/utils"
-import { CreepRole } from "utils/utils";
-import { CreepMemory, RoomMemory, LinkMode, SmartLink } from "utils/memory";
-import { TaskStatus, Task } from "../Task";
+import { SmartLink } from "utils/memory";
+import { Task } from "../Task";
 
 export class RestockRequest extends CreepTaskRequest {
   priority: number = 0;
   name = "Restock";
-  requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER, CreepRole.ROLE_WORKER];
-  maxConcurrent = 5;
+  requiredRole : CreepRole[]= ["ROLE_CARRIER","ROLE_REMOTE_UPGRADER"];
+  maxConcurrent = 2;
   constructor(roomName: string, restockID: string) {
     super(roomName, `🛒`, restockID);
   }
@@ -26,16 +25,16 @@ export class Restock extends CreepTask {
     var restock = this.request as RestockRequest;
 
     //console.log("status after init" + Task.getStatus(this.request.status))
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
   }
 
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     const restockInfo = this.request as RestockRequest;
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
-    var masterLink = _.find(roomMem.links, l => l.linkMode == LinkMode.MASTER_RECEIVE);
+    var masterLink = _.find(roomMem.links, l => l.linkMode == "MASTER_RECEIVE");
 
     //this.collectFromContainer(this.request.roomName, creep.id);
     let targets = this.creep.room.find(FIND_STRUCTURES, {
@@ -47,7 +46,7 @@ export class Restock extends CreepTask {
     //console.log("restock targets: " + targets.length);
     if (targets.length == 0) {
 
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
       return;
     }
     //temp code...
@@ -58,10 +57,10 @@ export class Restock extends CreepTask {
         if (this.collectFromDroppedEnergy(room.name)) return;
         //console.log("no dropped energy...")
         if (this.collectFromTombstone(room.name)) return;
-        if (this.collectFromContainer(room.name)) return;
-        if (this.collectFromMasterLink(room.name)) return;
-        if (this.collectFromStorage(room.name)) return;
-        if (this.collectFromSource(room.name)) return;
+        else if (this.collectFromContainer(room.name)) return;
+        else if (this.collectFromMasterLink(room.name)) return;
+        else if (this.collectFromStorage(room.name)) return;
+        else if (this.collectFromSource(room.name)) return;
         //this.collectFromDroppedEnergy(room.name);
         //this.collectFromTombstone(room.name);
         //this.collectFromSource(room.name);
@@ -80,12 +79,12 @@ export class Restock extends CreepTask {
 
     }
     else {
-      this.request.status = TaskStatus.IN_PROGRESS;
+      this.request.status = "IN_PROGRESS";
     }
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     const creep = Game.creeps[this.request.assignedTo];
 
     if (creep.room.name != this.request.roomName) {
@@ -106,7 +105,7 @@ export class Restock extends CreepTask {
     //console.log("restock targets: " + targets.length);
     if (targets.length == 0) {
 
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
       return;
     }
     else {
@@ -115,7 +114,7 @@ export class Restock extends CreepTask {
       if (result == ERR_NOT_IN_RANGE) {
         creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
       }
-      if (this.creep.carry.energy == 0) this.request.status = TaskStatus.FINISHED;
+      if (this.creep.carry.energy == 0) this.request.status = "FINISHED";
     }
   }
   constructor(taskInfo: CreepTaskRequest) {
@@ -129,7 +128,7 @@ export class Restock extends CreepTask {
       let restockable = restockables[targetID];
       let request = new RestockRequest(roomName, restockable.id);
       //if (energyLevel > 2) {
-      //  request.requiredRole = [CreepRole.ROLE_CARRIER, CreepRole.ROLE_REMOTE_UPGRADER]
+      //  request.requiredRole = ["ROLE_CARRIER","ROLE_REMOTE_UPGRADER"]
       //}
       let existingTaskCount = CreepTaskQueue.totalCount(roomName, request.name);
       let maxConcurrentCount = request.maxConcurrent;

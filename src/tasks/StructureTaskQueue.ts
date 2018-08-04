@@ -1,6 +1,4 @@
-import { RoomMemory } from "utils/memory";
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
-import { TaskStatus } from "./Task";
 
 export class StructureTaskQueue {
   static totalCount(roomName: string, taskName: string = "") {
@@ -86,7 +84,7 @@ export class StructureTaskQueue {
 
           //console.log(JSON.stringify(nextTask))
 
-          nextTask.status = TaskStatus.INIT;
+          nextTask.status = "INIT";
           break;
         }
         else {
@@ -99,7 +97,7 @@ export class StructureTaskQueue {
     //  console.log(JSON.stringify(nextTask))
     //  nextTask.assignedTo = buildingID;
     //  roomMem.activeStructureRequests[buildingID] = nextTask;
-    //  nextTask.status = TaskStatus.INIT;
+    //  nextTask.status = "INIT";
     //}
   }
   //static finish(creepName: string, roomName: string) {

@@ -1,14 +1,12 @@
 import { CreepTask } from "../CreepTask";
 import { CreepTaskRequest } from "../CreepTaskRequest";
-import { CreepRole } from "utils/utils";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as utils from "utils/utils"
-import { TaskStatus } from "tasks/Task";
 
 export class PickUpEnergyRequest extends CreepTaskRequest {
   priority: number = 0;
   name: string = "PickupEnergy";
-  requiredRole: CreepRole[] = [CreepRole.ROLE_WORKER];
+  requiredRole: CreepRole[] = ["ROLE_WORKER"];
   maxConcurrent: number = 2;
   resourceType: string;
   constructor(roomName: string, resourceID: string, resourceType: string) {
@@ -23,20 +21,20 @@ export class PickupEnergy extends CreepTask {
     super.init();
     //console.log("mine init assigned to " + this.request.assignedTo)
 
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
   }
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
 
-    this.request.status = TaskStatus.IN_PROGRESS;
+    this.request.status = "IN_PROGRESS";
   }
 
   protected continue() {
     const requestInfo = this.request as PickUpEnergyRequest;
     const resource = Game.getObjectById(this.request.targetID);
     if (resource == null) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
       return;
     }
     if (requestInfo.resourceType == "tombstone") {
@@ -44,14 +42,14 @@ export class PickupEnergy extends CreepTask {
       if (this.creep.withdraw(tombstone, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
         this.creep.moveTo(tombstone);
       }
-      else this.request.status = TaskStatus.FINISHED;
+      else this.request.status = "FINISHED";
     }
     else if (requestInfo.resourceType == "resource") {
       let droppedResource = resource as Resource;
       if (this.creep.pickup(droppedResource) == ERR_NOT_IN_RANGE) {
         this.creep.moveTo(droppedResource);
       }
-      else this.request.status = TaskStatus.FINISHED;
+      else this.request.status = "FINISHED";
     }
   }
 
@@ -60,7 +58,7 @@ export class PickupEnergy extends CreepTask {
     let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
     let tombstones = room.find(FIND_TOMBSTONES) as Tombstone[];
 
-    let workers = utils.creepNamesByRole(roomName, CreepRole.ROLE_WORKER).filter(name => {
+    let workers = utils.creepNamesByRole(roomName,"ROLE_WORKER").filter(name => {
       const worker = Game.creeps[name] as Creep;
       return worker.carry.energy < worker.carryCapacity;
     })

@@ -2,15 +2,12 @@ import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import * as utils from "utils/utils"
-import { CreepRole } from "utils/utils";
-import { CreepMemory, RoomMemory, LinkMode } from "utils/memory";
-import { TaskStatus, Task } from "tasks/Task";
 
 
 export class FillStorageRequest extends CreepTaskRequest {
   priority: number = 4;
   name = "FillStorage";
-  requiredRole = [6]
+  requiredRole : CreepRole[] = ["ROLE_CARRIER"]
   maxConcurrent = 1;
   constructor(roomName: string, restockID: string) {
     super(roomName, `💰`, restockID);
@@ -27,12 +24,12 @@ export class FillStorage extends CreepTask {
     var fillStorage = this.request as FillStorageRequest;
 
     //console.log("status after init" + Task.getStatus(this.request.status))
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
   }
 
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     const restockInfo = this.request as FillStorageRequest;
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
@@ -51,12 +48,12 @@ export class FillStorage extends CreepTask {
 
     }
     else {
-      this.request.status = TaskStatus.IN_PROGRESS;
+      this.request.status = "IN_PROGRESS";
     }
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     const creep = Game.creeps[this.request.assignedTo];
 
     let storages = creep.room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[]
@@ -64,7 +61,7 @@ export class FillStorage extends CreepTask {
     //console.log("sorted ranges: " + JSON.stringify(sortedByRange))
     
     if (sortedByRange.length == 0) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
     else {
       const result = creep.transfer(sortedByRange[0], _.findKey(creep.carry) as ResourceConstant)
@@ -73,13 +70,13 @@ export class FillStorage extends CreepTask {
         creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
       }
       if (_.findKey(creep.carry) == undefined) {
-        this.request.status = TaskStatus.FINISHED;
+        this.request.status = "FINISHED";
       }
       //else if (result == OK) {
-      //  this.request.status = TaskStatus.FINISHED;
+      //  this.request.status = "FINISHED";
       //}
       //else {
-      //  this.request.status = TaskStatus.FINISHED;
+      //  this.request.status = "FINISHED";
       //}
     }
   }
@@ -91,7 +88,7 @@ export class FillStorage extends CreepTask {
 
     const room = Game.rooms[roomName];
     let storages = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[];
-    //let workers = utils.creepNamesByRole(roomName, CreepRole.ROLE_WORKER).filter(name => {
+    //let workers = utils.creepNamesByRole(roomName,"ROLE_WORKER").filter(name => {
     //  const worker = Game.creeps[name] as Creep;
     //  return worker.carry.energy > 0;
     //})

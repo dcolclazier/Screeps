@@ -1,8 +1,9 @@
-import { RoomMemory, CreepMemory, StructureMemory, SmartStructure, SmartSource, SmartContainer, SmartLink, LinkMode } from "utils/memory";
+import { SmartSource, SmartContainer, SmartLink } from "utils/memory";
 import { CreepManager } from "CreepFactory";
 import * as utils from "utils/utils";
 import { TaskManager } from "taskManager";
-import { CreepRole } from "utils/utils";
+//import { name } from 'faker';
+//import * as Fake from 'faker';
 
 export let creeps: Creep[];
 export let creepCount: number = 0;
@@ -24,6 +25,7 @@ export class RoomManager {
   public Run(roomName: string): void {
 
     //this.test(roomName);
+    //console.log(`Faker Test: ${name.findName()}`)
     this.loadCreeps(roomName);
     var energyLevel = this.getRoomEnergyLevel(roomName);
     this.loadResources(roomName);
@@ -37,6 +39,7 @@ export class RoomManager {
     TaskManager.Run(roomName, energyLevel);
   }
   _defaultSpawn: string = "";
+
   private loadCreeps(roomName: string) {
     let room = Game.rooms[roomName];
     creeps = room.find(FIND_MY_CREEPS);
@@ -54,6 +57,8 @@ export class RoomManager {
           alive: true,
           role: utils.getRole(creep.name),
           currentTask: "",
+          _trav: 0,
+          _travel: 0
         };
         creep.memory = memory;
       }
@@ -101,10 +106,10 @@ export class RoomManager {
   //      var room = flag.room as Room;
   //      if (room != undefined) {
   //        console.log("found a future room flag! " + room.name);
-  //        var scoutCount = utils.creepCountAllRooms(CreepRole.ROLE_SCOUT);
+  //        var scoutCount = utils.creepCountAllRooms("ROLE_SCOUT");
   //        if (scoutCount > 0) return;
 
-  //        CreepManager.trySpawnCreep(_.first(utils.findSpawns(roomName)) as StructureSpawn, CreepRole.ROLE_SCOUT, this.getRoomEnergyLevel(roomName));
+  //        CreepManager.trySpawnCreep(_.first(utils.findSpawns(roomName)) as StructureSpawn,"ROLE_SCOUT", this.getRoomEnergyLevel(roomName));
   //      }
   //    }
   //  }
@@ -138,12 +143,12 @@ export class RoomManager {
       var sorted = _.sortBy(rangeToSources, s => s);
       if (_.first(sorted) == 1) {
         //miner depository
-        let smart = new SmartContainer(roomName, c.id, false, [CreepRole.ROLE_WORKER, CreepRole.ROLE_CARRIER, CreepRole.ROLE_UPGRADER])
+        let smart = new SmartContainer(roomName, c.id, false, ["ROLE_WORKER","ROLE_CARRIER","ROLE_UPGRADER"])
         roomMemory.containers[c.id] = smart;
       }
       else {
         //probably container withdraw point
-        let smart = new SmartContainer(roomName, c.id, true, [CreepRole.ROLE_UPGRADER])
+        let smart = new SmartContainer(roomName, c.id, true, ["ROLE_UPGRADER"])
         roomMemory.containers[c.id] = smart;
       }
 
@@ -171,12 +176,12 @@ export class RoomManager {
       var rangeToStorage = storage.pos.getRangeTo(c);
       var sorted = _.sortBy(rangeToSources, s => s);
       if (_.first(sorted) <= 2) {
-        let smart = new SmartLink(roomName, c.id, LinkMode.SEND)
+        let smart = new SmartLink(roomName, c.id, "SEND")
         roomMemory.links[c.id] = smart;
       }
       else if (rangeToStorage == 1) {
         //storage link
-        let smart = new SmartLink(roomName, c.id, LinkMode.MASTER_RECEIVE)
+        let smart = new SmartLink(roomName, c.id, "MASTER_RECEIVE")
         roomMemory.links[c.id] = smart;
 
       }
@@ -191,7 +196,7 @@ export class RoomManager {
         var closestRanges = _.sortBy(valids.map(container => container.pos.getRangeTo(c)), n => n)
         var closest = _.first(closestRanges);
         if (closest == 1) {
-          let smart = new SmartLink(roomName, c.id, LinkMode.SLAVE_RECEIVE)
+          let smart = new SmartLink(roomName, c.id, "SLAVE_RECEIVE")
           roomMemory.links[c.id] = smart;
         }
 

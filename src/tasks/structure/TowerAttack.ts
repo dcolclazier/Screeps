@@ -1,7 +1,6 @@
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import { StructureTask } from "tasks/StructureTask";
 import { StructureTaskQueue } from "../StructureTaskQueue";
-import { TaskStatus } from "../Task";
 
 export class TowerAttackRequest extends StructureTaskRequest {
   priority: number = 0
@@ -16,20 +15,20 @@ export class TowerAttack extends StructureTask {
 
   protected init(): void {
     super.init();
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
   }
   protected prepare(): void {
     super.prepare();
-    this.request.status = TaskStatus.IN_PROGRESS
+    this.request.status = "IN_PROGRESS"
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     let attackRequest = this.request as TowerAttackRequest;
     let hostile = Game.getObjectById(attackRequest.targetID) as Creep;
     let tower = Game.getObjectById(attackRequest.assignedTo) as StructureTower;
     if (hostile == undefined || hostile.hits == 0) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
       return;
     }
     tower.attack(hostile);

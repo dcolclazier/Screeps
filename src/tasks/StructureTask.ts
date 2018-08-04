@@ -1,7 +1,5 @@
-import { Task, TaskStatus } from "./Task";
-import { ITaskRequest } from "contract/ITaskRequest";
-import { StructureTaskRequest } from "./StructureTaskRequest";
-import { RoomMemory, SmartStructure, StructureMemory } from "utils/memory";
+import { Task } from "./Task";
+//import { StructureTaskRequest } from "./StructureTaskRequest";
 export abstract class StructureTask extends Task {
   public request: StructureTaskRequest;
   building: AnyOwnedStructure;
@@ -24,7 +22,7 @@ export abstract class StructureTask extends Task {
     const building = Game.getObjectById(this.request.assignedTo) as AnyOwnedStructure;
     if (building == undefined || building == null) {
       console.log("building was null in prepare")
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
     this.building = building;
   }
@@ -33,12 +31,12 @@ export abstract class StructureTask extends Task {
     const building = Game.getObjectById(this.request.assignedTo) as AnyOwnedStructure;
     if (building == undefined || building == null) {
       console.log("building was null in continue")
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
     this.building = building;
   }
   protected finish(): void {
-    console.log(`StructureTask Finish: ${this.request.roomName}: ${this.request.name}: ${this.request.assignedTo}`);
+   // console.log(`StructureTask Finish: ${this.request.roomName}: ${this.request.name}: ${this.request.assignedTo}`);
     const building = Game.getObjectById(this.request.assignedTo) as AnyOwnedStructure;
     if (building == undefined) {
       console.log("building was undefined.")
@@ -48,7 +46,7 @@ export abstract class StructureTask extends Task {
     var towers = mem.towers;
     var mine = towers[this.request.assignedTo] as SmartStructure;
     if(mine == undefined) console.log("not yet...")
-    console.log("Structure Task assigned to "  + this.request.assignedTo)
+   // console.log("Structure Task assigned to "  + this.request.assignedTo)
     if (mine != undefined) {
       var towerMem = mine.memory as StructureMemory;
       towerMem.idle = true;

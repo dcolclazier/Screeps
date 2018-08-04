@@ -1,6 +1,3 @@
-import { ITaskRequest } from "contract/ITaskRequest";
-import { CreepRole } from "utils/utils";
-import { TaskStatus } from "./Task";
 export abstract class CreepTaskRequest implements ITaskRequest
 {
 	status: TaskStatus;
@@ -18,6 +15,6 @@ export abstract class CreepTaskRequest implements ITaskRequest
 		this.targetID = targetID;
 		this.roomName = roomName;
 		this.wingDing = wingDing;
-		this.status = TaskStatus.PENDING
+		this.status = "PENDING"
 	}
 }

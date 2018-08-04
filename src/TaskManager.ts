@@ -1,23 +1,14 @@
-import { CreepMemory, StructureMemory, SmartStructure, SmartLink, LinkMode } from "utils/memory"
+//import { SmartLink } from "utils/memory"
 import * as utils from "utils/utils";
-//import { Upgrade } from "tasks/creep/Upgrade";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import { StructureTaskQueue } from "tasks/StructureTaskQueue";
-import { ITask } from "contract/ITask";
-//import { TowerRepair } from "tasks/structure/TowerRepair";
-//import { TowerAttack } from "tasks/structure/TowerAttack";
 import { Mine } from "tasks/creep/Mine";
-//import { TransferEnergy } from "tasks/creep/TransferEnergy";
-import { CreepRole } from "utils/utils";
 import { StructureTask } from "tasks/StructureTask";
-import { StructureTaskRequest } from "tasks/StructureTaskRequest";
-import { TaskStatus, Task } from "tasks/Task";
-import { RoomMemory } from "utils/memory"
+//import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { PickupEnergy } from "tasks/creep/PickupEnergy";
-import { ITaskRequest } from "contract/ITaskRequest";
 import { Restock } from "tasks/creep/Restock";
-import { Build, Scout } from "tasks/creep/Build";
+import { Build, Dismantle } from "tasks/creep/Build";
 import { Upgrade, Defend } from "tasks/creep/Upgrade";
 import { FillTower } from "tasks/creep/FillTower";
 import { TowerAttack } from "tasks/structure/TowerAttack";
@@ -25,6 +16,8 @@ import { TowerRepair } from "tasks/structure/TowerRepair";
 import { FillStorage } from "FillStorage";
 import { FillContainers } from "FillContainers";
 import { RemoteUpgrade } from "RemoteUpgrade";
+import { Scout } from "Scout";
+import { Task } from "tasks/Task";
 
 
 
@@ -38,20 +31,20 @@ export class TaskManager {
 
     var links = roomMem.links;
 
-    var master = _.find(links, l => l.linkMode == LinkMode.MASTER_RECEIVE) as SmartLink;
+    var master = _.find(links, l => l.linkMode == "MASTER_RECEIVE") as SmartLink;
     if (master == undefined) return;
 
     var masterLink = Game.getObjectById(master.linkID) as StructureLink;
 
     var slaves = _.filter(links, l => {
       var link = Game.getObjectById(l.linkID) as StructureLink;
-      l.linkMode == LinkMode.SLAVE_RECEIVE && link.energy < link.energyCapacity
+      l.linkMode == "SLAVE_RECEIVE" && link.energy < link.energyCapacity
     }) as SmartLink[];
 
     var senders = _.filter(links, l => {
       //console.log("link id: " + l.roomName + l.linkID)
       var link = Game.getObjectById(l.linkID) as StructureLink;
-      return l.linkMode == LinkMode.SEND && link.energy > 0;
+      return l.linkMode == "SEND" && link.energy > 0;
     }) as SmartLink[];
     //console.log("senders: " + senders.length);
     for (var i in senders) {
@@ -71,7 +64,7 @@ export class TaskManager {
         });
 
         let target = Game.getObjectById(_.first(sortedSlaves).linkID) as StructureLink;
-        if (target != undefined && target.energy < target.energyCapacity) {
+        if (target != undefined && target.energy < target.energyCapacity - 1) {
           var roomFor = target.energyCapacity - target.energy;
           link.transferEnergy(target, roomFor)
         }
@@ -86,7 +79,7 @@ export class TaskManager {
     
     task.run();
 
-    if (task.request.status == TaskStatus.FINISHED) {
+    if (task.request.status == "FINISHED") {
       if (task.request.isCreepTask) TaskManager.removeWorkerTasks(task.request);
       else {
         //console.log("removing structure task!")
@@ -114,7 +107,7 @@ export class TaskManager {
     _.each(activeWorkerTasks, request => {
 
       if (Game.creeps[request.assignedTo] === undefined) {
-        request.status == TaskStatus.FINISHED;
+        request.status == "FINISHED";
       }
            
       if (request.name == "Mine") TaskManager.runTask(new Mine(request));
@@ -128,6 +121,7 @@ export class TaskManager {
       else if (request.name == "Scout") TaskManager.runTask(new Scout(request))
       else if (request.name == "Defend") TaskManager.runTask(new Defend(request))
       else if (request.name == "RemoteUpgrade") TaskManager.runTask(new RemoteUpgrade(request))
+      else if (request.name == "Dismantle") TaskManager.runTask(new Dismantle(request))
       else { console.log("Request not found..." + request.name)}
 
     })
@@ -135,7 +129,7 @@ export class TaskManager {
     let activeStructureTasks = StructureTaskQueue.allActive(roomName);
     _.each(activeStructureTasks, request => {
       if (Game.getObjectById(request.assignedTo) as AnyOwnedStructure === undefined) {
-        request.status == TaskStatus.FINISHED;
+        request.status == "FINISHED";
       }
       
       if (request.name == "TowerRepair") TaskManager.runTask(new TowerRepair(request));
@@ -163,6 +157,7 @@ export class TaskManager {
     FillStorage.addRequests(roomName)
     FillContainers.addRequests(roomName)
     Scout.addRequests(roomName);
+    Dismantle.addRequests(roomName);
     //Defend.addRequests(roomName, 3);
     RemoteUpgrade.addRequests(roomName);
     //console.log("finished adding pending worker requests");
@@ -180,14 +175,27 @@ export class TaskManager {
 
   private static assignPendingRequests(roomName: string) {
     let idleCreeps = utils.findIdleCreeps(roomName);
-   
+    //console.log(`found ${idleCreeps.length} idle creeps for ${roomName}`)
+    //var flags = Game.flags;
+    //var found = false;
+    //for (var id in flags) {
+    //  var flag = flags[id] as Flag;
+    //  if (flag.name == roomName) {
+    //    var more = utils.findIdleCreeps(flag.pos.roomName){
+
+    //    }
+    //    idleCreeps.push(utils.findIdleCreeps(flag.pos.roomName))
+    //    break;
+    //  }
+    //}
+
+
     for (let id in idleCreeps) {
       let creep = idleCreeps[id] as Creep;
       if (creep != undefined) {
         let mem = creep.memory as CreepMemory;
-        //if (mem.role == CreepRole.ROLE_MINER) {
-        //  console.log("found a miner: " + creep.name);
-        //  console.log("idle: " + mem.idle);
+        //if (mem.role =="ROLE_SCOUT") {
+        //  console.log("found a scout: " + creep.name + " in room " + creep.pos.roomName);
         //}
 
         if (mem.idle) {

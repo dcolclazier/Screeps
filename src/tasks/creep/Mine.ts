@@ -1,14 +1,13 @@
 import { CreepTaskRequest } from "../CreepTaskRequest";
 import { CreepTask } from "../CreepTask";
-import { CreepMemory, RoomMemory, SmartSource } from "utils/memory"
+import { SmartSource } from "utils/memory"
 import * as utils from "utils/utils";
 import { CreepTaskQueue } from "../CreepTaskQueue";
-import { CreepRole } from "utils/utils";
-import { Task, TaskStatus } from "../Task";
+import { Task } from "../Task";
 
 export class MineRequest extends CreepTaskRequest {
   priority: number = 1;
-  requiredRole: CreepRole[] = [CreepRole.ROLE_MINER]
+  requiredRole: CreepRole[] = ["ROLE_MINER"]
   name: string = "Mine";
   maxConcurrent: number;
   id: number
@@ -24,7 +23,7 @@ export class MineRequest extends CreepTaskRequest {
 
     //console.log("after finding source: " + this.source.sourceID)
     this.id = _.random(0, 10);
-    var minerCount = utils.creepCount(roomName, CreepRole.ROLE_MINER);
+    var minerCount = utils.creepCount(roomName,"ROLE_MINER");
     this.maxConcurrent = minerCount;
     //console.log("max concurrent: " + this.maxConcurrent)
   }
@@ -38,19 +37,19 @@ export class Mine extends CreepTask {
     const request = this.request as MineRequest;
     source.assignedTo.push(request.assignedTo);
     console.log("mine init assigned to " + source.assignedTo)
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
     
   }
 
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
 
-    this.request.status = TaskStatus.IN_PROGRESS;
+    this.request.status = "IN_PROGRESS";
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
 
     if (this.creep.carryCapacity == 0) {
       this.harvest();
@@ -110,7 +109,7 @@ export class Mine extends CreepTask {
 
   }
   private deliver() {
-    const creep = Game.creeps[this.request.assignedTo];
+    const creep = Game.creeps[this.request.assignedTo] as Creep;
     const room = Game.rooms[this.request.roomName];
     const roomMemory = room.memory as RoomMemory;
 

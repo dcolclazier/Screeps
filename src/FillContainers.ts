@@ -1,15 +1,13 @@
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTask } from "tasks/CreepTask";
-import { CreepRole } from "utils/utils";
-import { TaskStatus } from "tasks/Task";
-import { LinkMode, RoomMemory } from "utils/memory";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
+import { Traveler } from "Traveler";
 
 export class FillContainersRequest extends CreepTaskRequest {
   name: string = "FillContainers";
   priority: number = 1;
-  requiredRole: CreepRole[] = [CreepRole.ROLE_CARRIER];
-  maxConcurrent: number = 2;
+  requiredRole: CreepRole[] = ["ROLE_CARRIER"];
+  maxConcurrent: number = 1;
   constructor(roomName: string, restockID: string) {
     super(roomName, `💰2`, restockID);
   }
@@ -24,46 +22,30 @@ export class FillContainers extends CreepTask {
     //var fillStorage = this.request as FillContainersRequest;
 
     //console.log("status after init" + Task.getStatus(this.request.status))
-    this.request.status = TaskStatus.PREPARE;
+    this.request.status = "PREPARE";
   }
 
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     //const restockInfo = this.request as FillStorageRequest;
     var room = Game.rooms[this.request.roomName];
-    var roomMem = room.memory as RoomMemory;
-    //this.collectFromContainer(this.request.roomName, creep.id);
-    var masterLink = _.find(roomMem.links, l => l.linkMode == LinkMode.MASTER_RECEIVE);
 
-    //temp code...
-    if (this.creep.carry.energy == 0) {
-      if (masterLink == undefined) {
-
-        if (this.collectFromStorage(room.name)) return;
-
-        if (this.collectFromContainer(room.name)) return;
-
-        if (this.collectFromDroppedEnergy(room.name)) return;
-        if (this.collectFromTombstone(room.name)) return;
-      }
-      else {
-        if (this.collectFromDroppedEnergy(room.name)) return;
-        if (this.collectFromTombstone(room.name)) return;
-        if (this.collectFromMasterLink(room.name)) return;
-        if (this.collectFromStorage(room.name)) return;
-        if (this.collectFromContainer(room.name)) return;
-      }
-      //this.collectFromSource(room.name);
-
+    if (this.creep.carry.energy == this.creep.carryCapacity) {
+      this.request.status = "IN_PROGRESS";
+      return;
     }
-    else {
-      this.request.status = TaskStatus.IN_PROGRESS;
-    }
+
+    if (this.collectFromTombstone(room.name)) return;
+    else if (this.collectFromDroppedEnergy(room.name)) return;
+    else if (this.collectFromMasterLink(room.name)) return;
+    else if (this.collectFromStorage(room.name)) return;
+    else if (this.collectFromContainer(room.name)) return;
+
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     //const creep = Game.creeps[this.request.assignedTo];
     var room = Game.rooms[this.request.roomName];
     var roomMem = room.memory as RoomMemory;
@@ -75,7 +57,7 @@ export class FillContainers extends CreepTask {
       return false;
     }) as StructureContainer[];
     if (storages.length == 0) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
       return;
     }
 
@@ -83,16 +65,17 @@ export class FillContainers extends CreepTask {
 
     const result = this.creep.transfer(closest, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(closest, { visualizePathStyle: { stroke: '#ffffff' } });
+      Traveler.travelTo(this.creep, closest);
+      //this.creep.moveTo(closest, { visualizePathStyle: { stroke: '#ffffff' } });
     }
     else {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
     //else if (result == OK) {
-    //  this.request.status = TaskStatus.FINISHED;
+    //  this.request.status = "FINISHED";
     //}
     //else {
-    //  this.request.status = TaskStatus.FINISHED;
+    //  this.request.status = "FINISHED";
     //}
   }
   constructor(taskInfo: CreepTaskRequest) {
@@ -112,7 +95,7 @@ export class FillContainers extends CreepTask {
       return false;
     }) as StructureContainer[];
     if (containers.length == 0) return;
-    //let workers = utils.creepNamesByRole(roomName, CreepRole.ROLE_WORKER).filter(name => {
+    //let workers = utils.creepNamesByRole(roomName,"ROLE_WORKER").filter(name => {
     //  const worker = Game.creeps[name] as Creep;
     //  return worker.carry.energy > 0;
     //})

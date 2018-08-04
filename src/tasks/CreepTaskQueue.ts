@@ -1,7 +1,5 @@
-import { RoomMemory, CreepMemory } from "utils/memory"
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import * as utils from "utils/utils"
-import { TaskStatus } from "./Task";
 
 export class CreepTaskQueue {
   
@@ -54,7 +52,7 @@ export class CreepTaskQueue {
 
           //console.log(JSON.stringify(nextTask))
 
-          nextTask.status = TaskStatus.INIT;
+          nextTask.status = "INIT";
           break;
         }
         else {
@@ -135,25 +133,23 @@ export class CreepTaskQueue {
     //return Object.keys(roomMem.activeWorkerRequests).length;
 
   }
-  static active(roomName: string, taskName: string = ""): string[] {
+  static active(roomName: string, taskName: string = "", targetID: string = ""): CreepTaskRequest[] {
 
-    //console.log("RoomName: " + roomName)
     let room = Game.rooms[roomName];
     if (room == undefined) return [];
 
     let roomMem = room.memory as RoomMemory;
-    var requests: string[] = [];
+    var requests: CreepTaskRequest[] = [];
     for (var i in roomMem.activeWorkerRequests) {
       var request = roomMem.activeWorkerRequests[i];
-      if (request.name == taskName || taskName == "")
-        requests.push(i);
-
+      if (taskName != "" && request.name != taskName) continue;
+      if (targetID != "" && request.targetID != targetID) continue;
+      requests.push(request);
     }
     return requests;
-    //return Object.keys(roomMem.activeWorkerRequests).length;
 
   }
-  static pending(roomName: string, taskName: string = ""): CreepTaskRequest[] {
+  static pending(roomName: string, taskName: string = "", targetID: string = ""): CreepTaskRequest[] {
 
     let room = Game.rooms[roomName];
     if (room == undefined) return [];
@@ -162,8 +158,9 @@ export class CreepTaskQueue {
     var requests: CreepTaskRequest[] = [];
     for (var i in roomMem.pendingWorkerRequests) {
       var request = roomMem.pendingWorkerRequests[i];
-      if (request.name == taskName || taskName == "")
-        requests.push(request);
+      if (taskName != "" && request.name != taskName) continue;
+      if (targetID != "" && request.targetID != targetID) continue;
+      requests.push(request);
     }
     return requests;
     //return Object.keys(roomMem.activeWorkerRequests).length;

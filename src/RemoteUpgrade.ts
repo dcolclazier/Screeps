@@ -1,12 +1,10 @@
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
-import { CreepRole } from "utils/utils";
 import { CreepTask } from "tasks/CreepTask";
-import { TaskStatus } from "tasks/Task";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 
 export class RemoteUpgradeRequest extends CreepTaskRequest {
   priority: number = 2;
-  requiredRole: CreepRole[] = [CreepRole.ROLE_REMOTE_UPGRADER];
+  requiredRole: CreepRole[] = ["ROLE_REMOTE_UPGRADER"];
   name = "RemoteUpgrade";
   maxConcurrent = 3;
   constructor(roomName: string, remoteControllerID: string) {
@@ -17,17 +15,17 @@ export class RemoteUpgrade extends CreepTask {
 
   protected init(): void {
     super.init();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
 
     var controller = Game.getObjectById(this.request.targetID) as StructureController;
     if (this.creep.room.name == controller.pos.roomName) {
-      this.request.status = TaskStatus.PREPARE;
+      this.request.status = "PREPARE";
     }
     else {
       if (this.creep.room.name == controller.pos.roomName) {
         console.log("prep time")
         this.creep.moveTo(controller);
-        this.request.status = TaskStatus.PREPARE;
+        this.request.status = "PREPARE";
       }
       else this.creep.moveTo(controller);
       if (this.creep.pos.roomName != controller.room.name || this.creep.room.name == controller.room.name && this.borderPosition(this.creep.pos)) {
@@ -45,7 +43,7 @@ export class RemoteUpgrade extends CreepTask {
 
   protected prepare(): void {
     super.prepare();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     var room = this.creep.room;
     var roomMem = this.creep.room.memory as RoomMemory;
     //if (room.energyAvailable < 1000) return;
@@ -61,18 +59,18 @@ export class RemoteUpgrade extends CreepTask {
       this.collectFromSource(room.name);
 
     }
-    else this.request.status = TaskStatus.IN_PROGRESS;
+    else this.request.status = "IN_PROGRESS";
 
   }
   protected continue(): void {
     super.continue();
-    if (this.request.status == TaskStatus.FINISHED) return;
+    if (this.request.status == "FINISHED") return;
     if (this.creep.room.name != this.request.roomName) {
       this.creep.moveTo(new RoomPosition(25, 25, this.request.roomName));
       return;
     }
     if (this.creep.carry.energy == 0) {
-      this.request.status = TaskStatus.PREPARE;
+      this.request.status = "PREPARE";
       return;
     }
     let controller = Game.getObjectById(this.request.targetID) as StructureController;

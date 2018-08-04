@@ -1,15 +1,3 @@
-import { ITask } from "contract/ITask";
-import { ITaskRequest } from "contract/ITaskRequest";
-
-export enum TaskStatus {
-  PENDING = 0,
-  INIT,
-  PREPARE,
-  PRE_RUN,
-  IN_PROGRESS,
-  POST_RUN,
-  FINISHED,
-}
 export abstract class Task implements ITask {
 
   request: ITaskRequest;
@@ -30,23 +18,23 @@ export abstract class Task implements ITask {
     var oldStatus = this.request.status;
     switch (this.request.status) {
       // case TaskState.PENDING: this.pending();
-      case TaskStatus.INIT: this.init(); break;
-      case TaskStatus.PREPARE: this.prepare(); break;
-      //case TaskStatus.PRE_RUN: this.p(); break;
-      case TaskStatus.IN_PROGRESS: this.continue(); break;
-      case TaskStatus.FINISHED: this.finish(); break;
+      case "INIT": this.init(); break;
+      case "PREPARE": this.prepare(); break;
+      //case "PRE_RUN": this.p(); break;
+      case "IN_PROGRESS": this.continue(); break;
+      case "FINISHED": this.finish(); break;
       // case TaskState.POST_RUN: this.preRun();
     }
     if (this.request != null && oldStatus != this.request.status) this.run()
   }
   static getStatus(state: TaskStatus) {
-    if (state == TaskStatus.PENDING) return "PENDING";
-    if (state == TaskStatus.INIT) return "INIT";
-    if (state == TaskStatus.PREPARE) return "PREPARE";
-    if (state == TaskStatus.PRE_RUN) return "PRE_RUN";
-    if (state == TaskStatus.IN_PROGRESS) return "IN_PROGRESS";
-    if (state == TaskStatus.POST_RUN) return "POST_RUN";
-    if (state == TaskStatus.FINISHED) return "FINISHED";
+    if (state == "PENDING") return "PENDING";
+    if (state == "INIT") return "INIT";
+    if (state == "PREPARE") return "PREPARE";
+    if (state == "PRE_RUN") return "PRE_RUN";
+    if (state == "IN_PROGRESS") return "IN_PROGRESS";
+    if (state == "POST_RUN") return "POST_RUN";
+    if (state == "FINISHED") return "FINISHED";
     return `${state} is unknown...`
   }
 }

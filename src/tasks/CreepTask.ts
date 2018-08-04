@@ -1,8 +1,9 @@
-import { Task, TaskStatus } from "./Task";
+import { Task } from "./Task";
 import { CreepTaskRequest } from "./CreepTaskRequest";
-import { CreepMemory, RoomMemory, SmartContainer, SmartSource, LinkMode, SmartLink } from "utils/memory"
+//import { SmartContainer, SmartSource,  SmartLink } from "utils/memory"
 import * as utils from "utils/utils";
-import { CreepRole } from "utils/utils";
+import { Traveler } from "Traveler";
+
 
 export abstract class CreepTask extends Task {
   public request: CreepTaskRequest;
@@ -15,7 +16,7 @@ export abstract class CreepTask extends Task {
     this.request = request as CreepTaskRequest;
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      this.request.status == TaskStatus.FINISHED;
+      this.request.status == "FINISHED";
       return;
     }
     this.creepMemory = this.creep.memory as CreepMemory;
@@ -25,7 +26,7 @@ export abstract class CreepTask extends Task {
 
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      this.request.status == TaskStatus.FINISHED;
+      this.request.status == "FINISHED";
       return;
     }
     else {
@@ -38,7 +39,7 @@ export abstract class CreepTask extends Task {
   protected prepare(): void {
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
     else {
       this.creepMemory = this.creep.memory as CreepMemory;
@@ -50,7 +51,7 @@ export abstract class CreepTask extends Task {
   protected continue(): void {
     this.creep = Game.creeps[this.request.assignedTo];
     if (this.creep == undefined || this.creep.memory == undefined) {
-      this.request.status = TaskStatus.FINISHED;
+      this.request.status = "FINISHED";
     }
     else {
       this.creepMemory = this.creep.memory as CreepMemory;
@@ -74,7 +75,7 @@ export abstract class CreepTask extends Task {
     const room = Game.rooms[roomName];
     const roomMem = room.memory as RoomMemory;
    
-    let masterLink = _.find(roomMem.links, l => l.linkMode == LinkMode.MASTER_RECEIVE) as SmartLink;
+    let masterLink = _.find(roomMem.links, l => l.linkMode == "MASTER_RECEIVE") as SmartLink;
     if (masterLink == undefined) return false
     
 
@@ -83,7 +84,8 @@ export abstract class CreepTask extends Task {
 
     var result = this.creep.withdraw(link, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(link);
+      Traveler.travelTo(this.creep, link);
+      //this.creep.moveTo(link);
     }
     return true;
   }
@@ -93,7 +95,7 @@ export abstract class CreepTask extends Task {
 
     const debugSources = roomMemory.activeResourcePileIDs
       .map(s => Game.getObjectById(s) as Resource)
-      .filter(ss => ss.amount > 100)
+      .filter(ss => ss.amount > 200)
     if (debugSources.length == 0) return false;
 
     const sortDebug = _.sortBy(debugSources, s => s.amount / this.creep.pos.getRangeTo(s.pos)).reverse();
@@ -101,7 +103,8 @@ export abstract class CreepTask extends Task {
     var range = this.creep.pos.getRangeTo(mine);
     var result = this.creep.pickup(mine)
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(mine);
+      Traveler.travelTo(this.creep, mine);
+      //this.creep.moveTo(mine);
     }
     return true;
    
@@ -131,10 +134,11 @@ export abstract class CreepTask extends Task {
       var c = Game.getObjectById(s.containerID) as StructureContainer;
       return c.store.energy / this.creep.pos.getRangeTo(c.pos)
     }).reverse();
-    var mine = Game.getObjectById(_.first(sortDebug).containerID) as StructureContainer;
-    var result = this.creep.withdraw(mine, RESOURCE_ENERGY)
+    var container = Game.getObjectById(_.first(sortDebug).containerID) as StructureContainer;
+    var result = this.creep.withdraw(container, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(mine);
+      Traveler.travelTo(this.creep, container);
+      //this.creep.moveTo(mine);
     }
     return true;
 
@@ -151,7 +155,8 @@ export abstract class CreepTask extends Task {
 
     var result = this.creep.withdraw(storage, RESOURCE_ENERGY);
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(storage);
+      Traveler.travelTo(this.creep, storage);
+      //this.creep.moveTo(storage);
       //return true;
     }
     return true;
@@ -173,7 +178,8 @@ export abstract class CreepTask extends Task {
     if (this.request.name == "FillStorage") {
       var result = this.creep.withdraw(tombstone, _.findKey(tombstone.store) as ResourceConstant);
       if (result == ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(tombstone);
+        Traveler.travelTo(this.creep, tombstone);
+        //this.creep.moveTo(tombstone);
         return true;
       }
       else if (result == OK) return true;
@@ -182,7 +188,9 @@ export abstract class CreepTask extends Task {
     else {
       var result = this.creep.withdraw(tombstone, RESOURCE_ENERGY);
       if (result == ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(tombstone);
+        Traveler.travelTo(this.creep, tombstone);
+        //this.creep.moveTo(tombstone);
+
       }
       else if (result == OK) return true;
       return false;
@@ -210,7 +218,8 @@ export abstract class CreepTask extends Task {
 
     var result = this.creep.harvest(source)
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(source);
+      Traveler.travelTo(this.creep, source);
+      //this.creep.moveTo(source);
       this.creep.harvest(source);
     }
     return true;

@@ -1,25 +1,25 @@
 import { ErrorMapper } from "utils/ErrorMapper";
-import * as Mem from "utils/memory";
 import { RoomManager } from "roomManager";
+import * as MemUtils from "utils/memory"
 
 const rm = new RoomManager();
 let initialized = false;
 function memoryInit() {
 
   console.log("Initializing Game");
-  //delete Memory.flags;
-  //delete Memory.spawns;
+  delete Memory.flags;
+  delete Memory.spawns;
   delete Memory.creeps;
   delete Memory.rooms;
 
-  const mem = Mem.m();
+  const mem = Memory;
   mem.creeps = {};
   mem.rooms = {};
   mem.spawns = {};
   mem.flags = {};
 
   mem.uuid = getTotalCreepCount();
-  mem.memVersion = Mem.MemoryVersion;
+  mem.memVersion = MemUtils.MemoryVersion;
 }
 function getTotalCreepCount(): number {
   let totalcreepCount = 0;
@@ -31,49 +31,39 @@ function getTotalCreepCount(): number {
   return totalcreepCount;
 }
 function InitializeGame() {
-  if (Mem.m().memVersion === undefined ||
-    Mem.m().memVersion !== Mem.MemoryVersion ||
-    (Mem.m().memVersion == 0 && !initialized)) {
+  if (Memory.memVersion === undefined ||
+    Memory.memVersion !== MemUtils.MemoryVersion ||
+    (Memory.memVersion == 0 && !initialized)) {
     initialized = true;
     memoryInit();
   }
-  if (!Mem.m().uuid || Mem.m().uuid > 1000) {
-    Mem.m().uuid = getTotalCreepCount();
+  if (!Memory.uuid || Memory.uuid > 10000) {
+    Memory.uuid = getTotalCreepCount();
   }
+  InitializeRoomMemory();
 }
-
-function mainLoop() {
-  InitializeGame();
-  //console.log("main loop.")
+function InitializeRoomMemory() {
   for (var i in Game.rooms) {
     const room: Room = Game.rooms[i];
-    let mem = Mem.m() as Mem.GameMemory;
-    let roomMemory = mem.rooms[room.name] as Mem.RoomMemory;
+    let roomMemory = Memory.rooms[room.name];
     if (roomMemory === undefined || roomMemory.pendingWorkerRequests == undefined) {
       console.log(`Init room memory for ${room.name}.`);
-      Memory.rooms[room.name] = {};
-      Mem.initRoomMemory(room.name);
-      roomMemory = mem.rooms[room.name] as Mem.RoomMemory;
+      Memory.rooms[room.name] = {} as RoomMemory;
+      MemUtils.initRoomMemory(room.name);
+      roomMemory = Memory.rooms[room.name];
     }
   }
+}
+function mainLoop() {
+  InitializeGame();
 
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
-    //let mem = Mem.m() as Mem.GameMemory;
-    //let roomMemory = mem.rooms[room.name] as Mem.RoomMemory;
-    //if (roomMemory === undefined || roomMemory.pendingWorkerRequests == undefined) {
-    //  console.log(`Init room memory for ${room.name}.`);
-    //  Memory.rooms[room.name] = {};
-    //  Mem.initRoomMemory(room.name);
-    //  roomMemory = mem.rooms[room.name] as Mem.RoomMemory;
-    //}
-
     rm.Run(room.name);
   }
 
-  Mem.cleanupCreeps();
+  MemUtils.cleanupCreeps();
 }
-
 
 export const loop = ErrorMapper.wrapLoop(mainLoop);
 
