@@ -64,7 +64,7 @@ export class TaskManager {
         });
 
         let target = Game.getObjectById(_.first(sortedSlaves).linkID) as StructureLink;
-        if (target != undefined && target.energy < target.energyCapacity - 1) {
+        if (target != undefined && target.energy < target.energyCapacity - 10) {
           var roomFor = target.energyCapacity - target.energy;
           link.transferEnergy(target, roomFor)
         }

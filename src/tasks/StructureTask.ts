@@ -3,19 +3,27 @@ import { Task } from "./Task";
 export abstract class StructureTask extends Task {
   public request: StructureTaskRequest;
   building: AnyOwnedStructure;
+  room: Room;
 
   constructor(taskInfo: ITaskRequest) {
     super(taskInfo);
 
     this.request = taskInfo as StructureTaskRequest;
     const building = Game.getObjectById(this.request.assignedTo) as AnyOwnedStructure;
-    if (building == undefined) throw "Building cannot be undefined."
-
     this.building = building;
+    this.room = Game.rooms[this.request.roomName];
+
+    if (building == undefined) {
+      this.request.status = "FINISHED";
+      return;
+    }
   }
   protected init(): void {
     const building = Game.getObjectById(this.request.assignedTo) as AnyOwnedStructure;
-    if (building == undefined) throw "Building cannot be undefined."
+    if (building == undefined) {
+      this.request.status = "FINISHED";
+      return;
+    }
     this.building = building;
   }
   protected prepare(): void {

@@ -4180,8 +4180,7 @@ var CreepTask = /** @class */ (function (_super) {
             return false;
         var result = this.creep.withdraw(link, RESOURCE_ENERGY);
         if (result == ERR_NOT_IN_RANGE) {
-            Traveler.travelTo(this.creep, link);
-            //this.creep.moveTo(link);
+            this.creep.travelTo(link);
         }
         return true;
     };
@@ -4191,7 +4190,7 @@ var CreepTask = /** @class */ (function (_super) {
         var roomMemory = room.memory;
         var debugSources = roomMemory.activeResourcePileIDs
             .map(function (s) { return Game.getObjectById(s); })
-            .filter(function (ss) { return ss.amount > 200; });
+            .filter(function (ss) { return ss.amount > 300; });
         if (debugSources.length == 0)
             return false;
         var sortDebug = _.sortBy(debugSources, function (s) { return s.amount / _this.creep.pos.getRangeTo(s.pos); }).reverse();
@@ -4686,7 +4685,7 @@ var BuildRequest = /** @class */ (function (_super) {
         _this.priority = 1;
         _this.requiredRole = ["ROLE_WORKER", "ROLE_REMOTE_UPGRADER"];
         _this.name = "Build";
-        _this.maxConcurrent = 2;
+        _this.maxConcurrent = 5;
         return _this;
     }
     return BuildRequest;
@@ -4699,6 +4698,8 @@ var DismantleRequest = /** @class */ (function (_super) {
         _this.requiredRole = ["ROLE_WORKER", "ROLE_DISMANTLER"];
         _this.name = "Dismantle";
         _this.maxConcurrent = 2;
+        var obj = Game.getObjectById(siteID);
+        _this.position = obj.pos;
         return _this;
     }
     return DismantleRequest;
@@ -4720,10 +4721,15 @@ var Dismantle = /** @class */ (function (_super) {
         _super.prototype.continue.call(this);
         if (this.request.status == "FINISHED")
             return;
+        var specificRequest = this.request;
         var creep = Game.creeps[this.request.assignedTo];
         var site = Game.getObjectById(this.request.targetID);
         if (site == null) {
             this.request.status = "FINISHED";
+            var flag = _.first(Game.rooms[this.request.roomName]
+                .lookForAt("flag", specificRequest.position.x, specificRequest.position.y)
+                .filter(function (f) { return f.color == COLOR_YELLOW && f.secondaryColor == COLOR_YELLOW; }));
+            flag.remove();
             return;
         }
         var result = creep.dismantle(site);
@@ -4743,7 +4749,7 @@ var Dismantle = /** @class */ (function (_super) {
             var flag = flags[i];
             var structureType = flag.name;
             var test = room.lookForAt("structure", flag.pos.x, flag.pos.y);
-            var dismantle = _.first(test.filter(function (t) { return t.structureType == "constructedWall"; }));
+            var dismantle = _.first(test.filter(function (t) { return t.structureType == structureType; }));
             if (dismantle == undefined)
                 return;
             var request = new DismantleRequest(roomName, dismantle.id);
@@ -5094,15 +5100,20 @@ var StructureTask = /** @class */ (function (_super) {
         var _this = _super.call(this, taskInfo) || this;
         _this.request = taskInfo;
         var building = Game.getObjectById(_this.request.assignedTo);
-        if (building == undefined)
-            throw "Building cannot be undefined.";
         _this.building = building;
+        _this.room = Game.rooms[_this.request.roomName];
+        if (building == undefined) {
+            _this.request.status = "FINISHED";
+            return _this;
+        }
         return _this;
     }
     StructureTask.prototype.init = function () {
         var building = Game.getObjectById(this.request.assignedTo);
-        if (building == undefined)
-            throw "Building cannot be undefined.";
+        if (building == undefined) {
+            this.request.status = "FINISHED";
+            return;
+        }
         this.building = building;
     };
     StructureTask.prototype.prepare = function () {
@@ -5179,7 +5190,23 @@ var TowerAttack = /** @class */ (function (_super) {
             this.request.status = "FINISHED";
             return;
         }
-        tower.attack(hostile);
+        var entrances = this.room.memory.baseEntranceRamparts.concat(this.room.memory.baseEntranceWalls);
+        _.forEach(entrances, function (entrance) {
+            var inRange = hostile.pos.inRangeTo(entrance.x, entrance.y, 3);
+            if (inRange)
+                tower.attack(hostile);
+        });
+        //for (var i in entrances) {
+        //  var e = entrances[i];
+        //  if (e == undefined) continue;
+        //  var range = e.getRangeTo(hostile);
+        //  if (range < shortest) {
+        //    shortest = range;
+        //  }
+        //}
+        //if (shortest > 5) return;
+        //console.log(shortest);
+        //tower.attack(hostile);
     };
     TowerAttack.addTask = function (roomName) {
         var room = Game.rooms[roomName];
@@ -5726,7 +5753,7 @@ var TaskManager = /** @class */ (function () {
                     return slaveLink.energy;
                 });
                 var target = Game.getObjectById(_.first(sortedSlaves).linkID);
-                if (target != undefined && target.energy < target.energyCapacity - 1) {
+                if (target != undefined && target.energy < target.energyCapacity - 10) {
                     var roomFor = target.energyCapacity - target.energy;
                     link.transferEnergy(target, roomFor);
                 }

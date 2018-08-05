@@ -39,7 +39,7 @@ export class FillStorage extends CreepTask {
 
 
     if (this.creep.carry.energy == 0) {
-     
+      
       if(this.collectFromDroppedEnergy(room.name)) return;
       if (this.collectFromTombstone(room.name)) return;
       if (this.collectFromMasterLink(room.name)) return;

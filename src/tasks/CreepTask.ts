@@ -77,15 +77,14 @@ export abstract class CreepTask extends Task {
    
     let masterLink = _.find(roomMem.links, l => l.linkMode == "MASTER_RECEIVE") as SmartLink;
     if (masterLink == undefined) return false
-    
 
     var link = Game.getObjectById(masterLink.linkID) as StructureLink;
+
     if (link.energy < link.energyCapacity / 2) return false;
 
     var result = this.creep.withdraw(link, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
-      Traveler.travelTo(this.creep, link);
-      //this.creep.moveTo(link);
+      this.creep.travelTo(link);
     }
     return true;
   }
@@ -95,7 +94,7 @@ export abstract class CreepTask extends Task {
 
     const debugSources = roomMemory.activeResourcePileIDs
       .map(s => Game.getObjectById(s) as Resource)
-      .filter(ss => ss.amount > 200)
+      .filter(ss => ss.amount > 300)
     if (debugSources.length == 0) return false;
 
     const sortDebug = _.sortBy(debugSources, s => s.amount / this.creep.pos.getRangeTo(s.pos)).reverse();

@@ -7,7 +7,7 @@ export class BuildRequest extends CreepTaskRequest {
   priority: number = 1;
   requiredRole: CreepRole[] = ["ROLE_WORKER","ROLE_REMOTE_UPGRADER"];
   name = "Build";
-  maxConcurrent = 2;
+  maxConcurrent = 5;
   constructor(roomName: string, siteID: string) {
     super(roomName, `🚧`, siteID);
   }
@@ -16,9 +16,12 @@ export class DismantleRequest extends CreepTaskRequest {
   priority: number = 1;
   requiredRole: CreepRole[] = ["ROLE_WORKER", "ROLE_DISMANTLER"];
   name = "Dismantle";
+  position: RoomPosition;
   maxConcurrent = 2;
   constructor(roomName: string, siteID: string) {
     super(roomName, `🚧2`, siteID);
+    let obj = Game.getObjectById(siteID) as AnyStructure;
+    this.position = obj.pos;
   }
 }
 
@@ -38,10 +41,15 @@ export class Dismantle extends CreepTask {
     super.continue();
     
     if (this.request.status == "FINISHED") return;
+    var specificRequest = this.request as DismantleRequest;
     const creep = Game.creeps[this.request.assignedTo];
     const site = Game.getObjectById<AnyStructure>(this.request.targetID);
     if (site == null) {
       this.request.status = "FINISHED";
+      var flag = _.first(Game.rooms[this.request.roomName]
+        .lookForAt("flag", specificRequest.position.x, specificRequest.position.y)
+        .filter(f => f.color == COLOR_YELLOW && f.secondaryColor == COLOR_YELLOW));
+      flag.remove();
       return;
     }
     const result = creep.dismantle(site);
@@ -64,7 +72,7 @@ export class Dismantle extends CreepTask {
       var flag = flags[i];
       var structureType = flag.name as StructureConstant;
       var test = room.lookForAt("structure", flag.pos.x, flag.pos.y);
-      var dismantle = _.first(test.filter(t => t.structureType == "constructedWall"));
+      var dismantle = _.first(test.filter(t => t.structureType == structureType));
       if (dismantle == undefined) return;
       var request = new DismantleRequest(roomName, dismantle.id)
       if (CreepTaskQueue.active(roomName, request.name, request.targetID).length < 2) {
