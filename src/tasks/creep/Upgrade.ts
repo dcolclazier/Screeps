@@ -45,7 +45,7 @@ export class Defend extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
 
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     var roomMem = room.memory as RoomMemory;
     this.request.status = "IN_PROGRESS";
     //if (room.energyAvailable < 1000) return;
@@ -66,7 +66,7 @@ export class Defend extends CreepTask {
   protected continue(): void {
     super.continue();
     if (this.request.status == "FINISHED") return;
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     var roomMem = room.memory as RoomMemory;
     var enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);
     var closestRampartToEn
@@ -116,7 +116,7 @@ export class Upgrade extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
 
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     if(room == undefined || room.controller === undefined) throw Error("Room or Controller was undefined in upgrade...")
 
     var roomName = room.name;
@@ -148,8 +148,8 @@ export class Upgrade extends CreepTask {
     super.continue();
     if (this.request.status == "FINISHED") return;
 
-    if (this.creep.room.name != this.request.roomName) {
-      this.creep.moveTo(new RoomPosition(25, 25, this.request.roomName));
+    if (this.creep.room.name != this.request.requestingRoomName) {
+      this.creep.moveTo(new RoomPosition(25, 25, this.request.requestingRoomName));
       return;
     }
     //const creep = Game.creeps[this.request.assignedTo];

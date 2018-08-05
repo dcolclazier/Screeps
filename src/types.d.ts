@@ -137,7 +137,8 @@ declare abstract class CreepTaskRequest implements ITaskRequest {
   isCreepTask: boolean;
   targetID: string;
   abstract name: string;
-  roomName: string;
+  requestingRoomName: string;
+  targetRoomName: string;
   assignedTo: string;
   abstract priority: number;
   abstract requiredRole: CreepRole[];
@@ -149,7 +150,8 @@ declare abstract class StructureTaskRequest implements ITaskRequest {
   abstract name: string;
   abstract priority: number;
   targetID: string;
-  roomName: string;
+  requestingRoomName: string;
+  targetRoomName: string;
   assignedTo: string;
   abstract maxConcurrent: number;
   isCreepTask: boolean;
@@ -169,7 +171,8 @@ interface ITaskRequest {
   name: string;
   priority: number;
   targetID: string;
-  roomName: string;
+  requestingRoomName: string;
+  targetRoomName: string;
   status: TaskStatus;
   assignedTo: string;
   maxConcurrent: number;

@@ -90,13 +90,13 @@ export class TaskManager {
   }
   private static removeWorkerTasks(request: ITaskRequest): void {
 
-    const roomMem = Game.rooms[request.roomName].memory as RoomMemory;
+    const roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
     delete roomMem.activeWorkerRequests[request.assignedTo];
   }
   private static removeStructureTasks(request: ITaskRequest): void {
 
     //console.log("removing structure task: " + request.name)
-    const roomMem = Game.rooms[request.roomName].memory as RoomMemory;
+    const roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
     delete roomMem.activeStructureRequests[request.assignedTo];
   }
   private static continueActiveRequests(roomName: string) {

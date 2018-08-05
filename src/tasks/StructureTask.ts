@@ -11,7 +11,7 @@ export abstract class StructureTask extends Task {
     this.request = taskInfo as StructureTaskRequest;
     const building = Game.getObjectById(this.request.assignedTo) as AnyOwnedStructure;
     this.building = building;
-    this.room = Game.rooms[this.request.roomName];
+    this.room = Game.rooms[this.request.requestingRoomName];
 
     if (building == undefined) {
       this.request.status = "FINISHED";

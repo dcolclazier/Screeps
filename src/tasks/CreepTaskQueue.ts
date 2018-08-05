@@ -7,9 +7,9 @@ export class CreepTaskQueue {
 
   static addPendingRequest(request: CreepTaskRequest): any {
 
-    var totalCurrent = CreepTaskQueue.totalCount(request.roomName, request.name);
+    var totalCurrent = CreepTaskQueue.totalCount(request.requestingRoomName, request.name);
     if (totalCurrent < request.maxConcurrent) {
-      let roomMem = Game.rooms[request.roomName].memory as RoomMemory;
+      let roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
       roomMem.pendingWorkerRequests.push(request);
     }
 

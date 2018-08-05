@@ -32,7 +32,7 @@ export class Restock extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
     const restockInfo = this.request as RestockRequest;
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     var roomMem = room.memory as RoomMemory;
     var masterLink = _.find(roomMem.links, l => l.linkMode == "MASTER_RECEIVE");
 
@@ -87,11 +87,11 @@ export class Restock extends CreepTask {
     if (this.request.status == "FINISHED") return;
     const creep = Game.creeps[this.request.assignedTo];
 
-    if (creep.room.name != this.request.roomName) {
-      this.creep.moveTo(new RoomPosition(25, 25, this.request.roomName));
+    if (creep.room.name != this.request.requestingRoomName) {
+      this.creep.moveTo(new RoomPosition(25, 25, this.request.requestingRoomName));
       return;
     }
-    const room = Game.rooms[this.request.roomName];
+    const room = Game.rooms[this.request.requestingRoomName];
     const roomMem = room.memory as RoomMemory;
     //var /*storage*/ = _.find(room.find(FIND_STRUCTURES), s => s.structureType == "storage") as StructureStorage;
     //if (storage == undefined) return;

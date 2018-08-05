@@ -51,12 +51,12 @@ export class StructureTaskQueue {
   }
   static addPendingRequest(request: StructureTaskRequest): void {
     //console.log("addpending")
-    let roomMem = Game.rooms[request.roomName].memory as RoomMemory;
-    var totalCurrent = StructureTaskQueue.totalCount(request.roomName, request.name);
+    let roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
+    var totalCurrent = StructureTaskQueue.totalCount(request.requestingRoomName, request.name);
     //console.log("total current pending tasks: "+ request.name + " "+ totalCurrent)
     //console.log("when adding: "+ request.targetID)
     if (totalCurrent < request.maxConcurrent) {
-      let roomMem = Game.rooms[request.roomName].memory as RoomMemory;
+      let roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
       roomMem.pendingStructureRequests.push(request);
     }
 

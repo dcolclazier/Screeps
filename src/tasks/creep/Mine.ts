@@ -12,8 +12,8 @@ export class MineRequest extends CreepTaskRequest {
   maxConcurrent: number;
   id: number
   //source: SmartSource;
-  constructor(roomName: string, sourceID: string) {
-    super(roomName, `💲`, sourceID);
+  constructor(roomName: string, sourceID: string, targetRoomName: string = "" ) {
+    super(roomName, `💲`, sourceID, targetRoomName);
 
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
     //console.log("source id in mine req ctor: " + sourceID)
@@ -23,7 +23,7 @@ export class MineRequest extends CreepTaskRequest {
 
     //console.log("after finding source: " + this.source.sourceID)
     this.id = _.random(0, 10);
-    var minerCount = utils.creepCount(roomName,"ROLE_MINER");
+    var minerCount = utils.creepCount(roomName, "ROLE_MINER");
     this.maxConcurrent = minerCount;
     //console.log("max concurrent: " + this.maxConcurrent)
   }
@@ -32,13 +32,13 @@ export class MineRequest extends CreepTaskRequest {
 export class Mine extends CreepTask {
   protected init(): void {
     super.init();
-    const roomMem = Game.rooms[this.request.roomName].memory as RoomMemory;
+    const roomMem = Game.rooms[this.request.requestingRoomName].memory as RoomMemory;
     const source = roomMem.harvestLocations[this.request.targetID] as SmartSource;
     const request = this.request as MineRequest;
     source.assignedTo.push(request.assignedTo);
     console.log("mine init assigned to " + source.assignedTo)
     this.request.status = "PREPARE";
-    
+
   }
 
   protected prepare(): void {
@@ -58,10 +58,10 @@ export class Mine extends CreepTask {
     else {
       if (this.creep.carry.energy >= this.creep.carryCapacity - 10) this.deliver();
       else this.harvest();
-    
+
     }
     //else(this.creep.drop(RESOURCE_ENERGY))
-    
+
   }
   protected finish(): void {
     super.finish();
@@ -87,7 +87,7 @@ export class Mine extends CreepTask {
       for (var i = 0; i < needed; i++) {
         
         var request = new MineRequest(roomName, smartSource.sourceID);
-        var totalCurrent = CreepTaskQueue.totalCount(request.roomName, request.name);
+        var totalCurrent = CreepTaskQueue.totalCount(request.requestingRoomName, request.name);
         //console.log("total current:" + totalCurrent)
         if (totalCurrent < request.maxConcurrent) {
           //console.log("about to add source for this id: " + smartSource.sourceID)
@@ -110,7 +110,7 @@ export class Mine extends CreepTask {
   }
   private deliver() {
     const creep = Game.creeps[this.request.assignedTo] as Creep;
-    const room = Game.rooms[this.request.roomName];
+    const room = Game.rooms[this.request.requestingRoomName];
     const roomMemory = room.memory as RoomMemory;
 
     var smartSource = roomMemory.harvestLocations[this.request.targetID];
@@ -118,7 +118,7 @@ export class Mine extends CreepTask {
     //  console.log("smartsource id:" + smartSource.linkID)
     //}
     if (smartSource.linkID != "") {
-      
+
       var link = Game.getObjectById(smartSource.linkID) as StructureLink;
       if (creep.transfer(link, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
         creep.moveTo(link, { visualizePathStyle: { stroke: '#ffffff' } });
@@ -126,7 +126,7 @@ export class Mine extends CreepTask {
 
     }
     else {
-      const container = utils.findClosestContainer(this.request.roomName, creep.id, true, true) as StructureContainer;
+      const container = utils.findClosestContainer(this.request.requestingRoomName, creep.id, true, true) as StructureContainer;
       if (container == undefined) {
         creep.drop(RESOURCE_ENERGY);
         return;
@@ -140,7 +140,7 @@ export class Mine extends CreepTask {
 
     }
 
-    
+
   }
 
   constructor(taskInfo: CreepTaskRequest) {

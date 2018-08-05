@@ -46,7 +46,7 @@ export class Dismantle extends CreepTask {
     const site = Game.getObjectById<AnyStructure>(this.request.targetID);
     if (site == null) {
       this.request.status = "FINISHED";
-      var flag = _.first(Game.rooms[this.request.roomName]
+      var flag = _.first(Game.rooms[this.request.requestingRoomName]
         .lookForAt("flag", specificRequest.position.x, specificRequest.position.y)
         .filter(f => f.color == COLOR_YELLOW && f.secondaryColor == COLOR_YELLOW));
       flag.remove();
@@ -113,7 +113,7 @@ export class Build extends CreepTask {
     var progressLeft = site.progressTotal - site.progress
     if (this.creep.carry.energy < progressLeft) {
 
-      var roomName = this.request.roomName;
+      var roomName = this.request.requestingRoomName;
       if (this.collectFromTombstone(roomName)) return;
       if (this.collectFromDroppedEnergy(roomName)) return;
       if (this.collectFromStorage(roomName)) return;

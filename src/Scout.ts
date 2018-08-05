@@ -9,9 +9,11 @@ export class ScoutRequest extends CreepTaskRequest {
   maxConcurrent = 3;
   maxPerRoom = 1;
   claiming: boolean = false;
-  constructor(sourceRoomName: string, flagID: string, claiming: boolean = false) {
-    super(sourceRoomName, `👀`, flagID);
-    this.claiming = claiming
+  reserving: boolean = false;
+  constructor(sourceRoomName: string, targetRoomName: string, claiming: boolean = false, reserving: boolean = false) {
+    super(sourceRoomName, `👀`, targetRoomName, targetRoomName);
+    this.claiming = claiming;
+    this.reserving = reserving;
   }
 }
 
@@ -27,18 +29,18 @@ export class Scout extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
 
-    var scoutFlagID = this.request.targetID;
-    var flags = Game.flags;
-    var ourFlag = flags[scoutFlagID] as Flag;
-    if (ourFlag == undefined) {
-      throw Error("Flag was undefined?")
+    //var scoutFlagID = this.request.targetID;
+    //var flags = Game.flags;
+    //var ourFlag = flags[scoutFlagID] as Flag;
+    //if (ourFlag == undefined) {
+    //  throw Error("Flag was undefined?")
+    //}
+
+    //var targetPos = ;
+    if (this.creep.room.name != this.request.targetRoomName) {
+      this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
     }
-
-    var targetPos = new RoomPosition(25, 25, ourFlag.pos.roomName);
-
-    this.creep.moveTo(targetPos);
-
-    if (this.creep.room.name == ourFlag.pos.roomName) {
+    else {
       this.request.status = "IN_PROGRESS";
     }
 
@@ -52,7 +54,9 @@ export class Scout extends CreepTask {
     var controller = creep.room.controller as StructureController;
     if (controller == undefined) throw new Error("Can't put a claim flag in a room w/o a controller... derp");
 
-    var result = req.claiming ? creep.claimController(controller) : creep.reserveController(controller);
+    var result = req.claiming ? creep.claimController(controller)
+      : req.reserving ? creep.reserveController(controller)
+      : OK;
     if (result == ERR_NOT_IN_RANGE) {
       creep.moveTo(controller)
     }
@@ -82,7 +86,7 @@ export class Scout extends CreepTask {
         //  continue;
         //}
 
-        var request = new ScoutRequest(sourceRoomName, id)
+        var request = new ScoutRequest(sourceRoomName, targetRoomName)
         var currentActive = CreepTaskQueue.active(roomName, request.name);
         var currentPending = CreepTaskQueue.pending(roomName, request.name);
 
@@ -104,6 +108,7 @@ export class Scout extends CreepTask {
           CreepTaskQueue.addPendingRequest(request);
         }
         else if (flag.secondaryColor == COLOR_WHITE) {
+          request.reserving = true;
           CreepTaskQueue.addPendingRequest(request);
         }
       }

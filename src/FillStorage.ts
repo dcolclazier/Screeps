@@ -31,7 +31,7 @@ export class FillStorage extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
     const restockInfo = this.request as FillStorageRequest;
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     var roomMem = room.memory as RoomMemory;
     //this.collectFromContainer(this.request.roomName, creep.id);
 

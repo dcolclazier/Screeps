@@ -23,7 +23,7 @@ export class FillTower extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
 
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     var roomMem = room.memory as RoomMemory;
     if (this.creep.carry.energy == 0) {
 

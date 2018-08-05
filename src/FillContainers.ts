@@ -29,7 +29,7 @@ export class FillContainers extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
     //const restockInfo = this.request as FillStorageRequest;
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
 
     if (this.creep.carry.energy == this.creep.carryCapacity) {
       this.request.status = "IN_PROGRESS";
@@ -47,7 +47,7 @@ export class FillContainers extends CreepTask {
     super.continue();
     if (this.request.status == "FINISHED") return;
     //const creep = Game.creeps[this.request.assignedTo];
-    var room = Game.rooms[this.request.roomName];
+    var room = Game.rooms[this.request.requestingRoomName];
     var roomMem = room.memory as RoomMemory;
     let storages = room.find(FIND_STRUCTURES).filter(s => {
       if (s.structureType == "container" && s.store.energy < s.storeCapacity) {

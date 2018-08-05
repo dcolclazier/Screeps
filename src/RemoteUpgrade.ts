@@ -65,8 +65,8 @@ export class RemoteUpgrade extends CreepTask {
   protected continue(): void {
     super.continue();
     if (this.request.status == "FINISHED") return;
-    if (this.creep.room.name != this.request.roomName) {
-      this.creep.moveTo(new RoomPosition(25, 25, this.request.roomName));
+    if (this.creep.room.name != this.request.requestingRoomName) {
+      this.creep.moveTo(new RoomPosition(25, 25, this.request.requestingRoomName));
       return;
     }
     if (this.creep.carry.energy == 0) {
