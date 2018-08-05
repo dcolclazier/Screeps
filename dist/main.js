@@ -2354,90 +2354,116 @@ function findSpawns(roomName, onlyNonSpawning) {
     });
 }
 var Search2 = /** @class */ (function () {
-    function Search2(roomName) {
+    function Search2() {
         this.toFind = "rampart";
-        this.floodArray = new PathFinder.CostMatrix();
-        this.outerRamparts = {};
-        this.outerWalls = {};
-        this._roomName = roomName;
+        this.roomMatrix = new PathFinder.CostMatrix();
+        this.outerRampartsAndWalls = {};
     }
-    Search2.prototype.getRoomPosition = function (friendly) {
+    //private outerWalls: { [friendlyCoords: string]: string } = {};
+    Search2.prototype.getRoomPosition = function (roomName, friendly) {
         var test = friendly.split(",");
-        return new RoomPosition(Number(test[0]), Number(test[1]), this._roomName);
+        return new RoomPosition(Number(test[0]), Number(test[1]), roomName);
     };
-    Search2.prototype.findEntrances = function (toFind) {
-        this.toFind = toFind;
-        var room = Game.rooms[this._roomName];
+    //public findBaseArea(roomName: string): RoomPosition[] {
+    //  var room = Game.rooms[roomName];
+    //  if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
+    //  this.initialize(roomName);
+    //}
+    Search2.prototype.initialize = function (roomName) {
+        var room = Game.rooms[roomName];
         if (room == undefined)
             throw Error("Cant get neighbors on a non-visible room...");
+        this.roomMatrix = new PathFinder.CostMatrix();
         var ramparts = room.find(FIND_STRUCTURES).filter(function (s) { return s != undefined && s.structureType == "rampart"; });
         var walls = room.find(FIND_STRUCTURES).filter(function (s) { return s != undefined && s.structureType == "constructedWall"; });
-        for (var i_1 = 0; i_1 < 50; i_1++) {
+        for (var i = 0; i < 50; i++) {
             for (var j = 0; j < 50; j++) {
-                this.floodArray.set(i_1, j, Game.map.getTerrainAt(i_1, j, this._roomName) == "wall" ? 1 : 0);
+                this.roomMatrix.set(i, j, Game.map.getTerrainAt(i, j, roomName) == "wall" ? 1 : 0);
             }
         }
         for (var id in walls) {
             var w = walls[id];
-            this.floodArray.set(w.pos.x, w.pos.y, 2);
+            this.roomMatrix.set(w.pos.x, w.pos.y, 2);
         }
         for (var id in ramparts) {
             var r = ramparts[id];
-            this.floodArray.set(r.pos.x, r.pos.y, 3);
+            this.roomMatrix.set(r.pos.x, r.pos.y, 3);
         }
+    };
+    Search2.prototype.findEntrances = function (roomName, toFind) {
+        this.toFind = toFind;
+        var room = Game.rooms[roomName];
+        if (room == undefined)
+            throw Error("Cant get neighbors on a non-visible room...");
+        var rampartsAndWalls = room.find(FIND_STRUCTURES).filter(function (s) { return s != undefined && (s.structureType == "rampart" || s.structureType == "constructedWall"); });
+        //var walls = room.find(FIND_STRUCTURES).filter(s => s != undefined && s.structureType == "constructedWall");
+        for (var i_1 = 0; i_1 < 50; i_1++) {
+            for (var j = 0; j < 50; j++) {
+                this.roomMatrix.set(i_1, j, Game.map.getTerrainAt(i_1, j, roomName) == "wall" ? 1 : 0);
+            }
+        }
+        //for (let id in walls) {
+        //  let w = walls[id];
+        //  this.roomMatrix.set(w.pos.x, w.pos.y, 2);
+        //}
+        for (var id in rampartsAndWalls) {
+            var r = rampartsAndWalls[id];
+            this.roomMatrix.set(r.pos.x, r.pos.y, r.structureType == "constructedWall" ? 2 : 3);
+        }
+        //flood from every entry point until no unvisited nodes
         for (var i_2 = 0; i_2 < 50; i_2++) {
-            if (this.floodArray.get(0, i_2) == 0) {
+            if (this.roomMatrix.get(0, i_2) == 0) {
                 this.floodFill(0, i_2);
             }
-            if (this.floodArray.get(49, i_2) == 0) {
+            if (this.roomMatrix.get(49, i_2) == 0) {
                 this.floodFill(49, i_2);
             }
-            if (this.floodArray.get(i_2, 0) == 0) {
+            if (this.roomMatrix.get(i_2, 0) == 0) {
                 this.floodFill(i_2, 0);
             }
-            if (this.floodArray.get(i_2, 49) == 0) {
+            if (this.roomMatrix.get(i_2, 49) == 0) {
                 this.floodFill(i_2, 49);
             }
         }
-        if (toFind == "rampart") {
-            var ramparts_1 = [];
-            for (var i in this.outerRamparts) {
-                ramparts_1.push(this.getRoomPosition(i));
-            }
-            return ramparts_1;
+        var foundEdges = [];
+        for (var i in this.outerRampartsAndWalls) {
+            var thing = this.outerRampartsAndWalls[i];
+            if (thing == toFind)
+                foundEdges.push(this.getRoomPosition(roomName, i));
         }
-        if (toFind == "constructedWall") {
-            var walls_1 = [];
-            for (var i in this.outerWalls) {
-                walls_1.push(this.getRoomPosition(i));
-            }
-            return walls_1;
-        }
-        else
-            throw Error("Nope.");
+        return foundEdges;
+        //if (toFind == "constructedWall") {
+        //  let walls: RoomPosition[] = [];
+        //  for (var i in this.outerWalls) {
+        //    walls.push(this.getRoomPosition(i));
+        //  }
+        //  return walls;
+        //}
     };
     Search2.prototype.floodFill = function (i, j) {
-        if (this.floodArray.get(i, j) == 0) {
-            this.floodArray.set(i, j, 1);
+        if (this.roomMatrix.get(i, j) == 0) {
+            this.roomMatrix.set(i, j, 1);
             for (var x = -1; x <= 1; x++) {
                 if (i + x < 0 || i + x >= 50)
                     continue;
                 for (var y = -1; y <= 1; y++) {
                     if (j + y < 0 || j + y >= 50)
                         continue;
+                    if (x == 0 && y == 0)
+                        continue;
                     this.floodFill(i + x, j + y);
                 }
             }
         }
-        else if (this.floodArray.get(i, j) == 2) {
-            this.floodArray.set(i, j, 4);
+        else if (this.roomMatrix.get(i, j) == 2) {
+            this.roomMatrix.set(i, j, 4);
             //console.log("found wall");
-            this.outerWalls[i + "," + j] = "constructedWall";
+            this.outerRampartsAndWalls[i + "," + j] = "constructedWall";
         }
-        else if (this.floodArray.get(i, j) == 3) {
-            this.floodArray.set(i, j, 4);
+        else if (this.roomMatrix.get(i, j) == 3) {
+            this.roomMatrix.set(i, j, 4);
             //console.log("found rampart");
-            this.outerRamparts[i + "," + j] = "rampart";
+            this.outerRampartsAndWalls[i + "," + j] = "rampart";
         }
     };
     return Search2;
@@ -2707,9 +2733,9 @@ function initRoomMemory(roomName) {
     rm.settingsMap = SetupRoomSettings(roomName);
     rm.baseEntranceRamparts = [];
     var start = Game.cpu.getUsed();
-    var s = new Search2(roomName);
-    rm.baseEntranceRamparts = s.findEntrances("rampart");
-    rm.baseEntranceWalls = s.findEntrances("constructedWall");
+    var s = new Search2();
+    rm.baseEntranceRamparts = s.findEntrances(roomName, "rampart");
+    rm.baseEntranceWalls = s.findEntrances(roomName, "constructedWall");
     console.log("CPU USAGE: " + (Game.cpu.getUsed() - start));
 }
 function SetupRoomSettings(roomName) {

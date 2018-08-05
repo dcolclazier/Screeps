@@ -24,254 +24,103 @@ export function findFlags(roomName: string) {
 
 export class Search2 {
 
-  constructor(roomName: string) { this._roomName = roomName; }
+  constructor() { }
   private toFind: BaseEdge = "rampart";
-  private _roomName: string;
-  private floodArray = new PathFinder.CostMatrix();
-  private outerRamparts: { [friendlyCoords: string]: string } = {};
-  private outerWalls: { [friendlyCoords: string]: string } = {};
+  
+  private roomMatrix = new PathFinder.CostMatrix();
+  private outerRampartsAndWalls: { [friendlyCoords: string]: string } = {};
 
-  private getRoomPosition(friendly: string): RoomPosition {
-    var test = friendly.split(",");
-    return new RoomPosition(Number(test[0]), Number(test[1]), this._roomName);
+  private getRoomPosition(roomName: string, friendly: string): RoomPosition {
+    var split = friendly.split(",");
+    return new RoomPosition(Number(split[0]), Number(split[1]), roomName);
   }
-  public findEntrances(toFind: BaseEdge): RoomPosition[] {
 
-    this.toFind = toFind;
-    var room = Game.rooms[this._roomName];
+  //public findBaseArea(roomName: string): RoomPosition[] {
+  //  var room = Game.rooms[roomName];
+  //  if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
+
+  //  this.initialize(roomName);
+
+
+  //}
+  private initialize(roomName: string) {
+
+    var room = Game.rooms[roomName];
     if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
-
-    var ramparts = room.find(FIND_STRUCTURES).filter(s => s != undefined && s.structureType == "rampart");
-    var walls = room.find(FIND_STRUCTURES).filter(s => s != undefined && s.structureType == "constructedWall");
+    this.roomMatrix = new PathFinder.CostMatrix();
 
     for (let i = 0; i < 50; i++) {
       for (let j = 0; j < 50; j++) {
-        this.floodArray.set(i, j, Game.map.getTerrainAt(i, j, this._roomName) == "wall" ? 1 : 0);
+        this.roomMatrix.set(i, j, Game.map.getTerrainAt(i, j, roomName) == "wall" ? 1 : 0);
       }
     }
-    for (let id in walls) {
-      let w = walls[id];
-      this.floodArray.set(w.pos.x, w.pos.y, 2);
+
+  }
+  public findEntrances(roomName: string, toFind: BaseEdge): RoomPosition[] {
+
+    this.toFind = toFind;
+    var room = Game.rooms[roomName];
+    if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
+
+    this.initialize(roomName);
+
+    var rampartsAndWalls = room.find(FIND_STRUCTURES).filter(s => s != undefined && (s.structureType == "rampart" || s.structureType == "constructedWall"));
+    for (let id in rampartsAndWalls) {
+      let r = rampartsAndWalls[id] as AnyStructure;
+      this.roomMatrix.set(r.pos.x, r.pos.y, r.structureType == "constructedWall" ? 2 : 3);
     }
-    for (let id in ramparts) {
-      let r = ramparts[id];
-      this.floodArray.set(r.pos.x, r.pos.y, 3);
-    }
+
+    //flood from every entry point in room until no unvisited nodes
     for (let i = 0; i < 50; i++) {
 
-      if (this.floodArray.get(0,i) == 0) {
+      if (this.roomMatrix.get(0,i) == 0) {
         this.floodFill(0, i);
       }
-      if (this.floodArray.get(49,i) == 0) {
+      if (this.roomMatrix.get(49,i) == 0) {
         this.floodFill(49, i);
       }
-      if (this.floodArray.get(i,0) == 0) {
+      if (this.roomMatrix.get(i,0) == 0) {
         this.floodFill(i, 0);
       }
-      if (this.floodArray.get(i,49) == 0) {
+      if (this.roomMatrix.get(i,49) == 0) {
         this.floodFill(i, 49);
       }
 
     }
-    if (toFind == "rampart") {
-      let ramparts: RoomPosition[] = [];
-      for (var i in this.outerRamparts) {
-        ramparts.push(this.getRoomPosition(i));
-      }
-      return ramparts;
 
+    let foundEdges: RoomPosition[] = [];
+    for (var i in this.outerRampartsAndWalls) {
+      var thing = this.outerRampartsAndWalls[i] as BaseEdge;
+      if (thing == toFind)
+        foundEdges.push(this.getRoomPosition(roomName, i));
     }
-    if (toFind == "constructedWall") {
-      let walls: RoomPosition[] = [];
-      for (var i in this.outerWalls) {
-        walls.push(this.getRoomPosition(i));
-      }
-      return walls;
-
-    }
-    else throw Error("Nope.")
+    return foundEdges;
   }
 
   private floodFill(i: number, j: number) {
 
-
-    if (this.floodArray.get(i, j) == 0) {
-      this.floodArray.set(i, j, 1);
+    if (this.roomMatrix.get(i, j) == 0) {
+      this.roomMatrix.set(i, j, 1);
       for (let x = -1; x <= 1; x++) {
         if (i + x < 0 || i + x >= 50) continue;
         for (let y = -1; y <= 1; y++) {
           if (j + y < 0 || j + y >= 50) continue;
+          if (x == 0 && y == 0) continue;
           this.floodFill(i + x, j + y);
         }
       }
     }
-    else if (this.floodArray.get(i, j) == 2) {
-      this.floodArray.set(i, j, 4);
+    else if (this.roomMatrix.get(i, j) == 2) {
+      this.roomMatrix.set(i, j, 4);
       //console.log("found wall");
-      this.outerWalls[`${i},${j}`] = "constructedWall";
+      this.outerRampartsAndWalls[`${i},${j}`] = "constructedWall";
     }
-    else if (this.floodArray.get(i, j) == 3) {
-      this.floodArray.set(i, j, 4);
+    else if (this.roomMatrix.get(i, j) == 3) {
+      this.roomMatrix.set(i, j, 4);
       //console.log("found rampart");
-      this.outerRamparts[`${i},${j}`] = "rampart";
+      this.outerRampartsAndWalls[`${i},${j}`] = "rampart";
     }
 
-  }
-}
-
-export class Search {
-
-  constructor(roomName: string) { this._roomName = roomName; }
-  private _roomName: string;
-  private visited: { [index: string]: boolean } = {};
-
-  //visited = 2
-  //rampart = 1
-
-
-  private newVisited: CostMatrix = new PathFinder.CostMatrix();
-
-  private test() {
-
-    var room = Game.rooms[this._roomName];
-    if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
-
-    const visited = new PathFinder.CostMatrix();
-    const unchecked :any[] = [];
-
-    room.find(FIND_EXIT).forEach(e => {
-      unchecked.push(this.friendlyName(e));
-      visited.set(e.x, e.y, 4);
-    })
-
-    //while (unchecked.length != 0) {
-    //  const next = unchecked.pop();
-
-    //  for (let x = next.x - 1; x <= next.x + 1; x++) {
-    //    for (let y = next.y - 1; y <= next.y + 1; y++) {
-    //      if (x < 0 || x > 49 || y < 0 || y > 49) continue;
-    //      if (x === next.x && y === next.y) continue;
-    //      if(visited.get(x,y))
-    //    }
-    //  }
-    //}
-
-  }
-
-
-  private getNeighbors(source: RoomPosition, includeRamparts: boolean) : RoomPosition[] {
-    var room = Game.rooms[source.roomName];
-    if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
-
-    var found: RoomPosition[] = [];
-
-    var top = new RoomPosition(source.x, source.y - 1, source.roomName)
-    var bottom = new RoomPosition(source.x, source.y + 1, source.roomName)
-    var left = new RoomPosition(source.x - 1, source.y, source.roomName)
-    var right = new RoomPosition(source.x + 1, source.y, source.roomName)
-    var topLeft = new RoomPosition(source.x - 1, source.y - 1, source.roomName)
-    var bottomLeft = new RoomPosition(source.x - 1, source.y + 1, source.roomName)
-    var topRight = new RoomPosition(source.x + 1, source.y - 1, source.roomName)
-    var bottomRight = new RoomPosition(source.x + 1, source.y + 1, source.roomName)
-
-    if (this.walkable(top, includeRamparts)) found.push(top);
-    if (this.walkable(bottom, includeRamparts)) found.push(bottom);
-    if (this.walkable(left, includeRamparts)) found.push(left);
-    if (this.walkable(right, includeRamparts)) found.push(right);
-    if (this.walkable(topLeft, includeRamparts)) found.push(topLeft);
-    if (this.walkable(bottomLeft, includeRamparts)) found.push(bottomLeft);
-    if (this.walkable(bottomRight, includeRamparts)) found.push(bottomRight);
-    if (this.walkable(topRight, includeRamparts)) found.push(topRight);
-
-    return found;
-
-
-  }
-
-  private walkable(position: RoomPosition, includeRamparts: boolean): boolean {
-    if (position.x < 0 || position.y < 0) return false;
-    if (position.x > 49 || position.y > 49) return false;
-    if (this.visited[this.friendlyName(position)]) return false;
-    
-    const lookItems = position.look();
-    for (var i in lookItems) {
-      var lookItem = lookItems[i];
-      var walkStatus: BFSSearchType = "blocked";
-      
-      if (lookItem.type == LOOK_TERRAIN) {
-        let terrain = lookItem[LOOK_TERRAIN];
-        if (terrain == "plain" || terrain == "swamp") {
-          walkStatus = "walkable";
-        }
-      }
-
-      const structures = position.lookFor(LOOK_STRUCTURES);
-      if (_.find(structures, s => s.structureType == STRUCTURE_RAMPART)) {
-        walkStatus = "rampart";
-      }
-      else if (_.find(structures, s => s.structureType == STRUCTURE_ROAD)) {
-        walkStatus = "walkable"
-      }
-
-      position.bfsType = walkStatus;
-      return position.bfsType != "blocked";
-    }
-    throw Error("should never get here");
-  }
-
-
-  private friendlyName(roomPosition: RoomPosition) {
-    return `${roomPosition.x}:${roomPosition.y}`;
-  }
-
-
-  public findBaseEntrancesBFS(roomName: string): RoomPosition[] {
-
-    //constraining to 1 room for debugging
-    if (roomName != "W4S43") return [];
-
-    var room = Game.rooms[roomName];
-    if (room == undefined) throw Error("Can't BFS a non-visible room...");
-
-    //var entrances: { [friendlyName: string]: RoomPosition } = {};
-    var entrances: RoomPosition[] = [];
-
-    var queue = new Queue<RoomPosition>();
-
-    var count: number = 0;
-    var exits = room.find(FIND_EXIT);
-    for (const i in exits) {
-      const start = exits[i];
-      this.visited[this.friendlyName(start)] = true
-      count++;
-      //room.visual.circle(start.x, start.y);
-      queue.push(start);
-    }
-
-    while (queue.length() > 0) {
-      const next = queue.pop();
-      if (next == undefined) throw Error("queue.length > 0, next undefined");
-
-      var neighbors = this.getNeighbors(next, true);
-      for (var i in neighbors) {
-        let neighbor = neighbors[i];
-        if (this.visited[this.friendlyName(neighbor)]) continue;
-
-        if (neighbor.bfsType == STRUCTURE_RAMPART) {
-          if (!_.find(entrances, t => t.x == neighbor.x && t.y == neighbor.y)) {
-            entrances.push(neighbor);
-          }
-        }
-        else {
-          this.visited[this.friendlyName(neighbor)] = true;
-          count++;
-          //room.visual.circle(neighbor.x, neighbor.y);
-          queue.push(neighbor);
-        }
-      }
-    }
-    console.log("COUNT!!!!!!!!!! : " + count)
-    return entrances;
   }
 }
 

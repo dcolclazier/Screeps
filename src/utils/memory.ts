@@ -88,9 +88,9 @@ export function initRoomMemory(roomName: string): void {
   rm.settingsMap = SetupRoomSettings(roomName);
   rm.baseEntranceRamparts = [];
   let start = Game.cpu.getUsed()
-  var s = new utils.Search2(roomName);
-  rm.baseEntranceRamparts = s.findEntrances("rampart");
-  rm.baseEntranceWalls = s.findEntrances("constructedWall");
+  var s = new utils.Search2();
+  rm.baseEntranceRamparts = s.findEntrances(roomName, "rampart");
+  rm.baseEntranceWalls = s.findEntrances(roomName, "constructedWall");
   console.log("CPU USAGE: " + (Game.cpu.getUsed() - start))
 }
 interface RoomSettingsMap {
