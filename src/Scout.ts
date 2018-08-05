@@ -14,6 +14,7 @@ export class ScoutRequest extends CreepTaskRequest {
     super(sourceRoomName, `👀`, targetRoomName, targetRoomName);
     this.claiming = claiming;
     this.reserving = reserving;
+    this.targetID = targetRoomName;
   }
 }
 
@@ -76,32 +77,12 @@ export class Scout extends CreepTask {
 
         if (sourceRoomName != roomName) continue;
 
-        //var room = Game.rooms[targetRoomName];
-        //if (room != undefined
-        //  && room.controller != undefined
-        //  && room.controller.reservation != undefined
-        //  && room.controller.reservation.username == "KeyserSoze"
-        //  && room.controller.reservation.ticksToEnd > 2000) {
-        //  console.log("not adding scout request for " + roomName)
-        //  continue;
-        //}
-
         var request = new ScoutRequest(sourceRoomName, targetRoomName)
-        var currentActive = CreepTaskQueue.active(roomName, request.name);
-        var currentPending = CreepTaskQueue.pending(roomName, request.name);
-
-        var count = 0;
-        for (var i in currentActive) {
-          var current = currentActive[i] as CreepTaskRequest;
-          if (current.targetID == id) count++;
-        }
-        for (var i in currentPending) {
-          var current = currentPending[i] as CreepTaskRequest;
-          if (current.targetID == id) count++;
-        }
+        var currentActive = CreepTaskQueue.active(roomName, request.name, targetRoomName).length;
+        var currentPending = CreepTaskQueue.pending(roomName, request.name, targetRoomName).length;
 
         //console.log("Current Scout task count for " + roomName + ": " + count)
-        if (count > 0) return;
+        if (currentActive + currentPending > 0) return;
 
         if (flag.secondaryColor == COLOR_BLUE) {
           request.claiming = true;

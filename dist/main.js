@@ -3143,9 +3143,9 @@ var CreepManager = /** @class */ (function () {
             var flag = flags[id];
             if (flag.name != roomName)
                 continue;
-            var currentActive = CreepTaskQueue.active(roomName, "Scout", flag.name);
+            var currentActive = CreepTaskQueue.active(roomName, "Scout", flag.pos.roomName);
             //console.log(`Active Scout Tasks for ${roomName} to ${flag.pos.roomName}: ${currentActive.length}`);
-            var currentPending = CreepTaskQueue.pending(roomName, "Scout", flag.name);
+            var currentPending = CreepTaskQueue.pending(roomName, "Scout", flag.pos.roomName);
             //console.log(`Pending Scout Tasks for ${roomName} to ${flag.pos.roomName}: ${currentPending.length}`);
             var room = Game.rooms[flag.pos.roomName];
             if (room != undefined
@@ -3159,7 +3159,6 @@ var CreepManager = /** @class */ (function () {
             var spawns = findSpawns(roomName, false);
             var currentScoutCountInSourceRoom = creepCount(roomName, "ROLE_SCOUT");
             var currentScoutCountInTargetRoom = creepCount(flag.pos.roomName, "ROLE_SCOUT");
-            //console.log(`found ${currentScoutCountInSourceRoom} scouts in source, and ${currentScoutCountInTargetRoom} in target room`)
             var currentlySpawning = _.filter(spawns, function (s) {
                 var spawn = s;
                 return spawn.spawning != null && getRole(spawn.spawning.name) == "ROLE_SCOUT";
@@ -3167,13 +3166,11 @@ var CreepManager = /** @class */ (function () {
             var totalTasks = currentActive.length + currentPending.length;
             var totalScouts = currentScoutCountInSourceRoom + currentScoutCountInTargetRoom;
             var scoutsNeeded = totalTasks - (totalScouts + currentlySpawning);
+            //console.log(`totalScouts: ${totalScouts}, totalTasks: ${totalTasks}, scoutsSpawning ${currentlySpawning} in target room`)
+            //console.log(`found ${currentScoutCountInSourceRoom} scouts in source, and ${currentScoutCountInTargetRoom} in target room`)
+            //console.log(`Need to spawn ${scoutsNeeded} scouts for ${roomName} to ${flag.pos.roomName}`)
             if (scoutsNeeded < 1)
                 return;
-            console.log("Need to spawn " + scoutsNeeded + " scouts for " + roomName + " to " + flag.pos.roomName);
-            var currentlySpawning = _.filter(spawns, function (s) {
-                var spawn = s;
-                return spawn.spawning != null && getRole(spawn.spawning.name) == "ROLE_SCOUT";
-            }).length;
             var availableSpawns = findSpawns(roomName, true);
             //var taskName = new ScoutRequest("test", "temp", false).name;
             var scoutsSpawned = 0;
@@ -5623,6 +5620,7 @@ var ScoutRequest = /** @class */ (function (_super) {
         _this.reserving = false;
         _this.claiming = claiming;
         _this.reserving = reserving;
+        _this.targetID = targetRoomName;
         return _this;
     }
     return ScoutRequest;
@@ -5682,31 +5680,11 @@ var Scout = /** @class */ (function (_super) {
                 var sourceRoomName = flag.name;
                 if (sourceRoomName != roomName)
                     continue;
-                //var room = Game.rooms[targetRoomName];
-                //if (room != undefined
-                //  && room.controller != undefined
-                //  && room.controller.reservation != undefined
-                //  && room.controller.reservation.username == "KeyserSoze"
-                //  && room.controller.reservation.ticksToEnd > 2000) {
-                //  console.log("not adding scout request for " + roomName)
-                //  continue;
-                //}
                 var request = new ScoutRequest(sourceRoomName, targetRoomName);
-                var currentActive = CreepTaskQueue.active(roomName, request.name);
-                var currentPending = CreepTaskQueue.pending(roomName, request.name);
-                var count = 0;
-                for (var i in currentActive) {
-                    var current = currentActive[i];
-                    if (current.targetID == id)
-                        count++;
-                }
-                for (var i in currentPending) {
-                    var current = currentPending[i];
-                    if (current.targetID == id)
-                        count++;
-                }
+                var currentActive = CreepTaskQueue.active(roomName, request.name, targetRoomName).length;
+                var currentPending = CreepTaskQueue.pending(roomName, request.name, targetRoomName).length;
                 //console.log("Current Scout task count for " + roomName + ": " + count)
-                if (count > 0)
+                if (currentActive + currentPending > 0)
                     return;
                 if (flag.secondaryColor == COLOR_BLUE) {
                     request.claiming = true;

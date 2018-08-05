@@ -207,10 +207,10 @@ export class CreepManager {
       var flag = flags[id] as Flag;
       if (flag.name != roomName) continue;
 
-      var currentActive = CreepTaskQueue.active(roomName, "Scout", flag.name);
+      var currentActive = CreepTaskQueue.active(roomName, "Scout", flag.pos.roomName);
       //console.log(`Active Scout Tasks for ${roomName} to ${flag.pos.roomName}: ${currentActive.length}`);
 
-      var currentPending = CreepTaskQueue.pending(roomName, "Scout", flag.name);
+      var currentPending = CreepTaskQueue.pending(roomName, "Scout", flag.pos.roomName);
       //console.log(`Pending Scout Tasks for ${roomName} to ${flag.pos.roomName}: ${currentPending.length}`);
 
       var room = Game.rooms[flag.pos.roomName];
@@ -225,7 +225,7 @@ export class CreepManager {
       const spawns = utils.findSpawns(roomName, false);
       const currentScoutCountInSourceRoom = utils.creepCount(roomName,"ROLE_SCOUT");
       const currentScoutCountInTargetRoom = utils.creepCount(flag.pos.roomName,"ROLE_SCOUT");
-      //console.log(`found ${currentScoutCountInSourceRoom} scouts in source, and ${currentScoutCountInTargetRoom} in target room`)
+      
       var currentlySpawning = _.filter(spawns, s => {
         var spawn = s as StructureSpawn;
         return spawn.spawning != null && utils.getRole(spawn.spawning.name) =="ROLE_SCOUT";
@@ -234,14 +234,14 @@ export class CreepManager {
       var totalScouts = currentScoutCountInSourceRoom + currentScoutCountInTargetRoom;
 
       var scoutsNeeded = totalTasks - (totalScouts + currentlySpawning);
+
+
+      //console.log(`totalScouts: ${totalScouts}, totalTasks: ${totalTasks}, scoutsSpawning ${currentlySpawning} in target room`)
+      //console.log(`found ${currentScoutCountInSourceRoom} scouts in source, and ${currentScoutCountInTargetRoom} in target room`)
+
+      //console.log(`Need to spawn ${scoutsNeeded} scouts for ${roomName} to ${flag.pos.roomName}`)
+
       if (scoutsNeeded < 1) return;
-
-      console.log(`Need to spawn ${scoutsNeeded} scouts for ${roomName} to ${flag.pos.roomName}`)
-      var currentlySpawning = _.filter(spawns, s => {
-        var spawn = s as StructureSpawn;
-        return spawn.spawning != null && utils.getRole(spawn.spawning.name) =="ROLE_SCOUT";
-      }).length;
-
       var availableSpawns = utils.findSpawns(roomName, true);
 
       //var taskName = new ScoutRequest("test", "temp", false).name;
