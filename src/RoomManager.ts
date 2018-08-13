@@ -5,6 +5,9 @@ import {getRole} from "utils/utils"
 
 export class RoomManager {
 
+  constructor() {
+    console.log("Global reset!!")
+  }
   //creeps: Array<Creep> = [];
   _defaultSpawn: string = "";
   creeps2: { [roomName: string]: Creep[] } = {}
@@ -20,8 +23,8 @@ export class RoomManager {
       console.log("ERROR_getSources2 - undefined room in memory? how? " + roomName);
       return [];
     }
-    var sources = this._sources2[roomName];
-    if (sources == undefined) {
+    if (this._sources2[roomName] == undefined) {
+      
       this._sources2[roomName] = this.loadSources2(roomName);
       this.initializeSources(roomName)
     }
@@ -33,12 +36,12 @@ export class RoomManager {
       console.log("ERROR_getContainers2 - undefined room in memory? how? " + roomName);
       return [];
     }
-    var containers = this._containers2[roomName];
-    if (containers == undefined) {
+    if (this._containers2[roomName] == undefined) {
       this._containers2[roomName] = this.loadContainers2(roomName);
       this.initializeContainers(roomName);
+      
     }
-    //console.log(JSON.stringify(this._containers2[roomName]));
+    
     return this._containers2[roomName];
   }
   getLinks2(roomName: string): LinkMemory[] {
@@ -70,7 +73,8 @@ export class RoomManager {
   public Run(roomName: string): void {
     this.loadCreeps(roomName);
     this.loadResources(roomName);
-
+    this.getTowers2(roomName);
+    this.getContainers2(roomName);
     
   }
 
@@ -80,12 +84,11 @@ export class RoomManager {
     //var test = this.getContainers2(roomName);
     _.forEach(this._containers2[roomName], c => {
       if (c.shouldRefill == undefined || c.allowedWithdrawRoles == undefined) {
-
         var rangeToSources = _.map(this.getSources2(roomName), s => c.pos.getRangeTo(s));
         var closestRange = _.min(rangeToSources, s => s);
-        if (closestRange == 1) {
+        if (closestRange <= 2) {
           //miner depository
-          c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER", "ROLE_UPGRADER"];
+          c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER"];
         }
         else {
           //probably container withdraw point
@@ -100,9 +103,10 @@ export class RoomManager {
 
   }
   private initializeSources(roomName: string) {
-
+    
     _.forEach(this._sources2[roomName], source => {
-      if (source.assignedTo == undefined) {
+      if (source.linkID == "" && source.containerID == "") {
+       
         if (source.linkID == "") {
           const closestLinks = _.filter(this.getLinks2(roomName), l => source.pos.getRangeTo(l) <= 2);
           if (closestLinks.length > 0) {
@@ -110,7 +114,8 @@ export class RoomManager {
           }
         }
         if (source.containerID == "") {
-          const closestContainers = _.filter(this.getContainers2(roomName), c => source.pos.getRangeTo(c) <= 2);
+          var test = this.getContainers2(roomName);
+          const closestContainers = _.filter(test, c => source.pos.getRangeTo(c.pos) <= 2);
           if (closestContainers.length > 0) {
             source.containerID = closestContainers[0].id;
           }
@@ -158,7 +163,7 @@ export class RoomManager {
     const containers = room.find(FIND_STRUCTURES).filter(s => s.structureType == "container");
     const containerMems: ContainerMemory[] = [];
     _.forEach(containers, container => {
-      containerMems.push(<ContainerMemory>{
+      const mem = <ContainerMemory>{
         type: container.structureType,
         roomName: roomName,
         currentTask: "",
@@ -166,7 +171,9 @@ export class RoomManager {
         id: container.id,
         shouldRefill: false,
         allowedWithdrawRoles: undefined,
-      });
+      };
+      if (roomMem.structures[container.id] == undefined) roomMem.structures[container.id] = mem;
+      containerMems.push(mem);
     });
     return containerMems;
   }

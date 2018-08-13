@@ -49,21 +49,39 @@ export class FillContainers extends CreepTask {
     //const creep = Game.creeps[this.request.assignedTo];
     var room = Game.rooms[this.request.targetRoomName];
 
-    let containersToFill = room.find(FIND_STRUCTURES)
-      .filter(s => (s.structureType == "container"
-        && s.store.energy < s.storeCapacity
-        && s.shouldRefill));
-
-    if (containersToFill.length == 0) {
+    var cMem = _.find(roomManager.getContainers2(this.request.targetRoomName), c => {
+      var container = <StructureContainer>Game.getObjectById(c.id);
+      return container.store.energy < container.storeCapacity
+        && c.shouldRefill;
+    });
+    if (cMem == undefined) {
       this.request.status = "FINISHED";
       return;
     }
-
-    const closest = _.first(_.sortBy(containersToFill, s => this.creep.pos.getRangeTo(s)))
-
-    const result = this.creep.transfer(closest, RESOURCE_ENERGY)
-    if (result == ERR_NOT_IN_RANGE) this.creep.travelTo(closest);
+    var container = <StructureContainer>Game.getObjectById(cMem.id);
+    
+    const result = this.creep.transfer(container, RESOURCE_ENERGY)
+    if (result == ERR_NOT_IN_RANGE) this.creep.travelTo(container);
     else this.request.status = "FINISHED";
+
+    //var container = Game.getObjectById(cMem.id);
+    
+
+    //let containersToFill = room.find(FIND_STRUCTURES)
+    //  .filter(s => (s.structureType == "container"
+    //    && s.store.energy < s.storeCapacity
+    //    && s.shouldRefill));
+
+    //if (containersToFill.length == 0) {
+    //  this.request.status = "FINISHED";
+    //  return;
+    //}
+
+    //const closest = _.first(_.sortBy(containersToFill, s => this.creep.pos.getRangeTo(s)))
+
+    //const result = this.creep.transfer(closest, RESOURCE_ENERGY)
+    //if (result == ERR_NOT_IN_RANGE) this.creep.travelTo(closest);
+    //else this.request.status = "FINISHED";
   }
   constructor(taskInfo: CreepTaskRequest) {
     super(taskInfo);
@@ -73,12 +91,20 @@ export class FillContainers extends CreepTask {
     const room = Game.rooms[roomName];
     const roomMem = room.memory as RoomMemory;
     //let storages = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[];
-    let containersToFill = <StructureContainer[]>room.find(FIND_STRUCTURES)
-      .filter(s => (s.structureType == "container"
-        && s.store.energy < s.storeCapacity
-        && s.shouldRefill));
+    const containers = roomManager.getContainers2(roomName).filter(cm => {
+      var cont = <StructureContainer>Game.getObjectById(cm.id);
+      return cont.store.energy < cont.storeCapacity
+        && cm.shouldRefill;
+    });
 
-    if (containersToFill.length == 0) return;
+
+
+    //let containersToFill = con
+    //  .filter(s => (s.structureType == "container"
+    //    && s.store.energy < s.storeCapacity
+    //    && s.shouldRefill));
+
+    if (containers.length == 0) return;
     //let workers = utils.creepNamesByRole(roomName,"ROLE_WORKER").filter(name => {
     //  const worker = Game.creeps[name] as Creep;
     //  return worker.carry.energy > 0;
@@ -93,11 +119,17 @@ export class FillContainers extends CreepTask {
     //    i++;
     //  });
     //}
-    for (const targetID in containersToFill) {
-      let request = new FillContainersRequest(roomName, roomName, targetID);
+    _.forEach(containers, c => {
+      let request = new FillContainersRequest(roomName, roomName, c.id);
       if (existingTaskCount < maxConcurrentCount) {
         CreepTaskQueue.addPendingRequest(request)
       }
-    }
+    })
+    //for (const targetID in containers) {
+    //  let request = new FillContainersRequest(roomName, roomName, targetID);
+    //  if (existingTaskCount < maxConcurrentCount) {
+    //    CreepTaskQueue.addPendingRequest(request)
+    //  }
+    //}
   }
 }

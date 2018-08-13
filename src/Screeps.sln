@@ -5,10 +5,9 @@ VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{92A876FA-0C3F-4DB5-AE8F-3DA0C0D6FE44}"
 	ProjectSection(SolutionItems) = preProject
-		creepFactory.ts = creepFactory.ts
+		CreepManager.ts = CreepManager.ts
 		main.ts = main.ts
 		RoomManager.ts = RoomManager.ts
-		TaskManager.ts = TaskManager.ts
 		Traveler.ts = Traveler.ts
 		types.d.ts = types.d.ts
 	EndProjectSection
@@ -22,18 +21,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{1050C986
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tasks", "tasks", "{00DA8604-12AC-49B4-A740-4FDFE9487059}"
 	ProjectSection(SolutionItems) = preProject
-		tasks\CreepTask.ts = tasks\CreepTask.ts
-		tasks\CreepTaskQueue.ts = tasks\CreepTaskQueue.ts
-		tasks\CreepTaskRequest.ts = tasks\CreepTaskRequest.ts
-		tasks\StructureTask.ts = tasks\StructureTask.ts
-		tasks\StructureTaskQueue.ts = tasks\StructureTaskQueue.ts
-		tasks\StructureTaskRequest.ts = tasks\StructureTaskRequest.ts
 		tasks\Task.ts = tasks\Task.ts
+		TaskManager.ts = TaskManager.ts
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF-A9BF-4891-84B1-621CFC509CC0}"
 	ProjectSection(SolutionItems) = preProject
 		tasks\creep\Build.ts = tasks\creep\Build.ts
+		tasks\CreepTask.ts = tasks\CreepTask.ts
+		tasks\CreepTaskQueue.ts = tasks\CreepTaskQueue.ts
+		tasks\CreepTaskRequest.ts = tasks\CreepTaskRequest.ts
 		tasks\creep\Defend.ts = tasks\creep\Defend.ts
 		tasks\creep\Dismantle.ts = tasks\creep\Dismantle.ts
 		tasks\creep\FillContainers.ts = tasks\creep\FillContainers.ts
@@ -48,6 +45,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "structure", "structure", "{5FEAC8C0-D849-405A-AB63-4D36A50569D7}"
 	ProjectSection(SolutionItems) = preProject
+		tasks\StructureTask.ts = tasks\StructureTask.ts
+		tasks\StructureTaskQueue.ts = tasks\StructureTaskQueue.ts
+		tasks\StructureTaskRequest.ts = tasks\StructureTaskRequest.ts
 		tasks\structure\TowerAttack.ts = tasks\structure\TowerAttack.ts
 		tasks\structure\TowerRepair.ts = tasks\structure\TowerRepair.ts
 	EndProjectSection

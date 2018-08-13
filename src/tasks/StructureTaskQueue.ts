@@ -2,15 +2,11 @@ import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 
 
 export class StructureTaskQueue {
-  static removeFinished(): void {
-    const finished = _.filter(Memory.structureTasks, req => req.status == "FINISHED");
-    for (var id in finished) {
-      this.removeTask(id)
-    }
-  }
+  
   static removeTask(id: string): void {
     delete Memory.structureTasks[id];
   }
+
   static addPendingRequest(request: StructureTaskRequest): void {
 
     
@@ -24,9 +20,11 @@ export class StructureTaskQueue {
     }
     Memory.structureTasks[request.id] = request;
   }
+
   static count(roomName: string, taskName: string = "", status: TaskStatus = "ANY", structureType: StructureConstant | undefined = undefined): number {
     return StructureTaskQueue.getTasks(roomName, taskName, status, structureType).length;
   }
+
   static getTasks(roomName: string, taskName: string = "", status: TaskStatus = "ANY", structureType: StructureConstant | "source" | undefined = undefined): string[] {
 
     var matchingRequests = _.filter(Memory.structureTasks, req =>
@@ -45,7 +43,6 @@ export class StructureTaskQueue {
       task.name == taskName || taskName == "" &&
       targetID == task.targetID || targetID == "");
   }
-
   
   static getTask(id: string): StructureTaskRequest | undefined {
 
@@ -55,6 +52,7 @@ export class StructureTaskQueue {
     }
     return request;
   }
+
   static assignRequest(structureID: string, originatingRoomName: string): void {
 
     const room = Memory.rooms[originatingRoomName];
@@ -80,6 +78,7 @@ export class StructureTaskQueue {
 
     //console.log(`Next task ${nextTask.name} assigned to ${structure.structureType} - ${structure.id}`);
   }
+
   private static getNextTaskID(structureID: string, originatingRoomName: string): string {
 
     //const structure = <OwnedStructure>Game.getObjectById(structureID);

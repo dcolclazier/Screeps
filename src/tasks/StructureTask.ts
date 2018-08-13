@@ -11,17 +11,10 @@ export abstract class StructureTask extends Task {
     super(request);
 
     this.request = request;
-    //const building = Game.getObjectById(this.request.assignedToID) as AnyOwnedStructure;
-    //this.building = building;
     this.structureID = this.request.assignedToID;
     this.room = Game.rooms[this.request.originatingRoomName];
-    //console.log("ID: " + this.request.assignedToID);
-    //console.log("constructor for task...")
-    //if (building == undefined) {
-    //  this.request.status = "FINISHED";
-    //  return;
-    //}
   }
+
   protected init(): void {
     const building = Game.getObjectById(this.request.assignedToID) as AnyOwnedStructure;
     if (building == undefined) {
@@ -47,21 +40,12 @@ export abstract class StructureTask extends Task {
     }
     //this.building = building;
   }
+  protected windDown(): void {
+
+  }
   protected finish(): void {
-    // console.log(`StructureTask Finish: ${this.request.roomName}: ${this.request.name}: ${this.request.assignedTo}`);
+
     this.request.status = "FINISHED";
-    //const building = Game.getObjectById(this.request.assignedToID) as AnyOwnedStructure;
-    //if (building == undefined) {
-    //  console.log("building was undefined.")
-    //}
-    ////var room = building.room as Room;
-    ////var mem = room.memory as RoomMemory;
-    ////var towers = mem.towers2;
-    //var tower = <StructureTower>Game.getObjectById(this.request.assignedToID);
-    //if (tower == undefined) {
-     
-    //  return;
-    //}
 
   }
 }

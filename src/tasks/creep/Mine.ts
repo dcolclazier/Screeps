@@ -46,9 +46,11 @@ export class Mine extends CreepTask {
     super.prepare();
     if (this.request.status != "PREPARE") return;
     if (this.creep.room.name != this.request.targetRoomName) return;
-
-    const source = <SourceMemory>Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
-    source.assignedTo.push(this.request.assignedToID);
+    const sources = roomManager.getSources2(this.request.targetRoomName);
+    const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
+    const source2 = <SourceMemory>Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
+    source.assignedTo.push(this.creep.name);
+    source2.assignedTo.push(this.creep.name);
     console.log("mine init assigned to " + source.assignedTo)
 
     this.request.status = "IN_PROGRESS";
@@ -92,11 +94,11 @@ export class Mine extends CreepTask {
       originatingRoomName = roomName;
     }
     targetRoomName = roomName;
-    const sources = roomManager.getSources2(roomName);
     //const sources = utils.findStructures<SourceMemory>(roomName, "source");
-    _.forEach(sources, source => {
-
-      //console.log("sourceid: " + smartSource.sourceID)
+    _.forEach(roomManager.getSources2(roomName), source => {
+      //console.log(JSON.stringify(source))
+      //console.log(`AssignedTo: ${source.assignedTo.length}, minersPer: ${minersPerSource}`);
+      
       if (source.assignedTo.length != minersPerSource) {
         var needed = minersPerSource - source.assignedTo.length;
         //console.log("Needed: " + needed);
@@ -114,29 +116,6 @@ export class Mine extends CreepTask {
       
     })
 
-    //for (const id in sources) {
-
-    //  const source = room.memory.sources[id]
-    //  //const source = sources[id] as Source;
-    //  if (source.assignedTo == undefined) {
-    //    source.assignedTo = [];
-    //  }
-    //  //console.log("sourceid: " + smartSource.sourceID)
-    //  if (source.assignedTo.length == minersPerSource) continue;
-    //  var needed = minersPerSource - source.assignedTo.length;
-    //  //console.log("Needed: " + needed);
-    //  for (var i = 0; i < needed; i++) {
-
-    //    var request = new MineRequest(originatingRoomName, targetRoomName, source.id);
-    //    var totalCurrent = CreepTaskQueue.count(request.targetRoomName, request.name);
-    //    //console.log("total current:" + totalCurrent)
-    //    if (totalCurrent < request.maxConcurrent) {
-    //      //console.log("about to add source for this id: " + smartSource.sourceID)
-    //      CreepTaskQueue.addPendingRequest(request);
-    //    }
-    //  }
-      
-    //}
   }
 
   private harvest() {
@@ -153,7 +132,13 @@ export class Mine extends CreepTask {
     const room = Game.rooms[this.request.targetRoomName];
     //const source = Game.getObjectById(this.request.targetID) as Source;
 
-    const source = <SourceMemory>room.memory.structures[this.request.targetID];
+    const sources = roomManager.getSources2(this.request.targetRoomName);
+    const source = _.find(sources, s => s.id == this.request.targetID);
+    if (source == undefined) {
+      console.log("ERROR:Mine::deliver -> source was undefined...")
+      return;
+    }
+    //const source = <SourceMemory>room.memory.structures[this.request.targetID];
     //var smartSource = roomMemory.sources[this.request.targetID];
     //if (room.name == "W5S43") {
     //  console.log("smartsource id:" + smartSource.linkID)
@@ -165,18 +150,26 @@ export class Mine extends CreepTask {
       }
 
     }
-    else {
-      const container = utils.findClosestContainer(this.request.targetRoomName, this.creep.id, true, true) as StructureContainer;
-      if (container == undefined || container.store.energy == container.storeCapacity
-        || !this.creep.pos.inRangeTo(container.pos, 3)) {
-        this.creep.drop(RESOURCE_ENERGY);
+    else if (source.containerID != "") {
+      const containers = roomManager.getContainers2(this.request.targetRoomName);
+      const container = _.find(containers, c => c.id == source.containerID);
+      if (container == undefined) {
+        console.log("ERROR:Mine::deliver -> container was undefined...")
         return;
       }
-      if (this.creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+      const c = <StructureContainer>Game.getObjectById(container.id);
+      var result = this.creep.transfer(c, RESOURCE_ENERGY)
+      if (result == ERR_NOT_IN_RANGE) {
         this.creep.travelTo(container);
       }
-
+      else if (result == ERR_FULL) {
+        this.creep.drop(RESOURCE_ENERGY)
+      }
     }
+    else {
+      this.creep.drop(RESOURCE_ENERGY);
+    }
+    
 
 
   }

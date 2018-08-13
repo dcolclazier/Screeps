@@ -59,17 +59,17 @@ export class TaskManager {
       throw new Error(`Task \'${request.name}\' is not registered!!`)
     }
     var task = <ITask2>new TaskStore[request.name](request);
+
     var req = task.request;
-    var category = req.category;
-    var id = req.id;
     if (req.assignedToID == undefined || req.assignedToID == "") {
       //console.log("CANNOT RUN A TASK WITHOUT A FULL REQUEST.")
       return;
     }
-
+    
+    var id = req.id;
     task.run();
     if (req.status == "FINISHED") {
-      switch (category) {
+      switch (req.category) {
         case "CREEP": CreepTaskQueue.removeTask(id); break;
         case "STRUCTURE": StructureTaskQueue.removeTask(id); break;
       }

@@ -16,16 +16,12 @@ export class TowerAttackRequest extends StructureTaskRequest {
 export class TowerAttack extends StructureTask {
   static taskName: string = "TowerAttack";
  
-  protected windDown(): void {
-    throw new Error("Method not implemented.");
-  }
-
   protected init(): void {
     super.init();
     var room = Game.rooms[this.request.originatingRoomName] as Room;
     const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
     tower.currentTask = TowerAttack.taskName + this.request.id;
-
+    tower.towerMode = "ATTACK";
     this.request.status = "PREPARE";
   }
   protected prepare(): void {
@@ -54,25 +50,15 @@ export class TowerAttack extends StructureTask {
       var inRange = hostile.pos.inRangeTo(tower, 30);
       if (inRange) tower.attack(hostile);
     }
-   
 
-    //for (var i in entrances) {
-    //  var e = entrances[i];
-    //  if (e == undefined) continue;
-    //  var range = e.getRangeTo(hostile);
-    //  if (range < shortest) {
-    //    shortest = range;
-    //  }
-    //}
-    //if (shortest > 5) return;
-    //console.log(shortest);
-    //tower.attack(hostile);
   }
   protected finish() {
     super.finish();
-    //var room = Game.rooms[this.request.originatingRoomName] as Room;
-    //const tower = room.memory.towers[this.request.assignedToID];
-    //tower.currentTask = "";
+
+    const tower = <TowerMemory>Game.rooms[this.request.originatingRoomName].memory.structures[this.request.assignedToID];
+    tower.currentTask = "";
+    tower.towerMode = "IDLE";
+    
   }
   constructor(request: StructureTaskRequest) {
     super(request);

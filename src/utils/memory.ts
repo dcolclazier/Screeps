@@ -2,6 +2,7 @@
 //import { CreepTaskRequest2 } from "tasks/CreepTaskRequest";
 //import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import * as utils from "utils/utils";
+import { roomManager } from "RoomManager";
 export const MemoryVersion = 0;
 export const OwnerName = "KeyserSoze"
 let initialized = false;
@@ -101,7 +102,7 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
 
   var level4Settings = new RoomSettings(roomName);
   level4Settings.minersPerSource = 1;
-  level4Settings.maxCarrierCount = 1;
+  level4Settings.maxCarrierCount = 2;
   level4Settings.maxUpgraderCount = 1;
   settingsMap[4] = level4Settings;
 
@@ -121,10 +122,11 @@ export function cleanupCreeps(): void {
     if (!Game.creeps[creepName]) {
       console.log("Clearing dead creeps from memory.")
       for (const roomName in Game.rooms) {
-        let sources = <SourceMemory[]>_.filter(Game.rooms[roomName].memory.structures, s => {
-          s.type == "source"
-        });
-        _.forEach(sources, source => {
+        //let sources = <SourceMemory[]>_.filter(Game.rooms[roomName].memory.structures, s => {
+        //  s.type == "source"
+        //});
+        _.forEach(roomManager.getSources2(roomName), source => {
+          console.log(source.assignedTo)
           if (_.includes(source.assignedTo, creepName)) {
             console.log("unassiging harvest spot for " + creepName + " source: " + source)
             source.assignedTo = source.assignedTo.filter(s => s != creepName);

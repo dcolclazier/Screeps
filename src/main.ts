@@ -3,7 +3,7 @@ import { roomManager } from "roomManager";
 import * as MemUtils from "utils/memory"
 import * as utils from "utils/utils"
 import { taskManager } from "taskManager";
-import { CreepManager } from "CreepFactory";
+import { CreepManager } from "CreepManager";
 
 
 

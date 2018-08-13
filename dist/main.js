@@ -2943,160 +2943,7 @@ var RoomManager = /** @class */ (function () {
         this._links2 = {};
         this._containers2 = {};
         this._towers2 = {};
-        /* End Loading methods*/
-        //export function findIdleCreeps(homeRoomName: string, role: CreepRole = "ROLE_ALL"): Creep[] {
-        //  var creeps = Game.creeps;
-        //  var idle: Creep[] = []
-        //  for (var i in creeps) {
-        //    var creep = creeps[i] as Creep;
-        //    if (creep.memory.homeRoom != homeRoomName) continue;
-        //    if (!creep.memory.idle) continue;
-        //    if (creep.memory.role != role && role != "ROLE_ALL") continue;
-        //    idle.push(creep);
-        //  }
-        //  return idle;
-        //}
-        //export function findIdleStructures(roomName: string, type?: StructureConstant | undefined): string[] {
-        //  const room = Game.rooms[roomName];
-        //  if (room == undefined) return [];
-        //  var test = _.filter(room.memory.structures, s => s.currentTask == "" && (type == undefined || s.type == type));
-        //  return _.map(test, s => s.id);
-        //}
-        //export function idleCreepCount(roomName: string, role: CreepRole = "ROLE_ALL") {
-        //  return findIdleCreeps(roomName, role).length;
-        //}
-        //export function findClosestContainer(roomName: string, targetID: string, fullOK: boolean, emptyOK: boolean): StructureContainer | undefined {
-        //  let target = Game.getObjectById(targetID);
-        //  if (target == null) {
-        //    //console.log("container target was null.")
-        //    return;
-        //  }
-        //  let roomContainers = findAllContainers(roomName)
-        //    .sort((a, b) => a.pos.getRangeTo(target as any) - b.pos.getRangeTo(target as any));
-        //  for (const id in roomContainers) {
-        //    let container = <StructureContainer>Game.getObjectById(id);
-        //    if (container == null) continue;
-        //    if (!fullOK && container.store.energy == container.storeCapacity) continue; //has room
-        //    if (!emptyOK && container.store.energy == 0) continue; //can't be empty
-        //    return container;
-        //  }
-        //  return undefined;
-        //}
-        //export function creepIDsByRole(roomName: string, role: CreepRole): string[] {
-        //  let room = Game.rooms[roomName];
-        //  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //  let found: string[] = [];
-        //  for (const key in creeps) {
-        //    if (creeps.hasOwnProperty(key)) {
-        //      const creep = creeps[key];
-        //      const mem = creep.memory as CreepMemory;
-        //      if (mem.role == role || role == undefined) found.push(creep.id);
-        //    }
-        //  }
-        //  return found;
-        //}
-        //export function creepNamesByRole(roomName: string, role: CreepRole): string[] {
-        //  let room = Game.rooms[roomName];
-        //  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //  let found: string[] = [];
-        //  for (const key in creeps) {
-        //    if (creeps.hasOwnProperty(key)) {
-        //      const creep = creeps[key];
-        //      const mem = creep.memory as CreepMemory;
-        //      if (mem.role == role || role == undefined) found.push(creep.name);
-        //    }
-        //  }
-        //  return found;
-        //}
-        //export function creepCount(roomName: string, role: CreepRole | undefined): number {
-        //  let room = Game.rooms[roomName];
-        //  if (room == undefined) return 0;
-        //  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //  if (role == undefined) return creeps.length;
-        //  else {
-        //    return creepIDsByRole(roomName, role).length
-        //  }
-        //}
-        //export function creepCountAllRooms(role: CreepRole): number {
-        //  var count = 0;
-        //  let rooms = Game.rooms;
-        //  for (var id in rooms) {
-        //    var room = rooms[id];
-        //    let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //    count += creepIDsByRole(room.name, role).length;
-        //  }
-        //  return count;
-        //}
-        //export function roomSources(roomName: string): Source[] {
-        //  return Game.rooms[roomName].find(FIND_SOURCES) as Source[];
-        //}
-        //export function sourceCount(roomName: string) {
-        //  return roomSources(roomName).length;
-        //}
-        //export function findAllContainers(roomName: string): ContainerMemory[] {
-        //  return roomManager.getContainers2(roomName);
-        //  //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
-        //  //  return i.structureType == STRUCTURE_CONTAINER;
-        //  //}) as StructureContainer[];
-        //}
-        //export function findClosestContainerID(roomName: string, creepRole: CreepRole, energyAmount: number, targetID: string): string | undefined {
-        //  var containerIDs = findContainers(roomName, creepRole, energyAmount, targetID);
-        //  if (containerIDs.length == 0) return undefined;
-        //  else return containerIDs[0];
-        //}
-        //export function getRoomEnergyLevel(roomName: string): number {
-        //  //var roomCreeps = _.filter(Game.creeps, c => c.memory.homeRoom = roomName)
-        //  var room = Game.rooms[roomName];
-        //  var creeps = room.find(FIND_MY_CREEPS);
-        //  if (creeps.length < 3 && room.energyAvailable < 800) return 1;
-        //  let cap = room.energyCapacityAvailable;
-        //  if (cap < 550) return 1;
-        //  else if (cap <= 950) return 2;
-        //  else if (cap <= 1500) return 3;
-        //  else if (cap <= 3500) return 4;
-        //  else return 5;
-        //}
-        //export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0): string | undefined {
-        //  var sources = roomManager.getSources2(roomName);
-        //  var withEnergy2: Source[] = [];
-        //  _.forEach(sources, sourceMem => {
-        //    var source = <Source>Game.getObjectById(sourceMem.id);
-        //    if (source.energy > energyAmount) withEnergy2.push(source);
-        //  })
-        //  return _.min(withEnergy2, source => targetPos.getRangeTo(source)).id
-        //}
-        //export function getRoomType(roomName: string): RoomType {
-        //  if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
-        //  const room = Game.rooms[roomName];
-        //  if (room == undefined) return "UNKNOWN";
-        //  if (room.controller != undefined) {
-        //    if (room.controller.my) {
-        //      if (room.find(FIND_SOURCES).length > 0) return "OWNED";
-        //      else return "REMOTE_HARVEST"; //todo - handle expansion case
-        //    }
-        //    else return "HOSTILE"; //todo - add in friendly folks
-        //  }
-        //  else {
-        //    if (room.find(FIND_HOSTILE_SPAWNS).length > 0) return "SOURCE_KEEPER";
-        //    else return "EMPTY"
-        //  }
-        //  //todo - refactor this?
-        //}
-        //export function findContainers(roomName: string, creepRole: CreepRole, energyAmount: number, sortByRangeToID: string = ""): string[] {
-        //  var room = Game.rooms[roomName];
-        //  if (room == undefined) return [];
-        //  var containers = findAllContainers(roomName);
-        //  var filtered = _.filter(containers, c =>
-        //    _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)
-        //    && (<StructureContainer>Game.getObjectById(c.id)).store.energy > energyAmount);
-        //  if (sortByRangeToID != "") {
-        //    var rangeToTarget = <RangeTarget>Game.getObjectById(sortByRangeToID);
-        //    if (rangeToTarget == undefined) throw new Error("findContainers:rangeToTarget cannot be undefined");
-        //    var sorted = _.sortBy(filtered, c => c.pos.getRangeTo(rangeToTarget))
-        //    return _.map(sorted, s => s.id);
-        //  }
-        //  else return _.map(filtered, f => f.id);
-        //}
+        console.log("Global reset!!");
     }
     RoomManager.prototype.getSources2 = function (roomName) {
         var room = Memory.rooms[roomName];
@@ -3104,8 +2951,7 @@ var RoomManager = /** @class */ (function () {
             console.log("ERROR_getSources2 - undefined room in memory? how? " + roomName);
             return [];
         }
-        var sources = this._sources2[roomName];
-        if (sources == undefined) {
+        if (this._sources2[roomName] == undefined) {
             this._sources2[roomName] = this.loadSources2(roomName);
             this.initializeSources(roomName);
         }
@@ -3117,12 +2963,10 @@ var RoomManager = /** @class */ (function () {
             console.log("ERROR_getContainers2 - undefined room in memory? how? " + roomName);
             return [];
         }
-        var containers = this._containers2[roomName];
-        if (containers == undefined) {
+        if (this._containers2[roomName] == undefined) {
             this._containers2[roomName] = this.loadContainers2(roomName);
             this.initializeContainers(roomName);
         }
-        //console.log(JSON.stringify(this._containers2[roomName]));
         return this._containers2[roomName];
     };
     RoomManager.prototype.getLinks2 = function (roomName) {
@@ -3152,6 +2996,8 @@ var RoomManager = /** @class */ (function () {
     RoomManager.prototype.Run = function (roomName) {
         this.loadCreeps(roomName);
         this.loadResources(roomName);
+        this.getTowers2(roomName);
+        this.getContainers2(roomName);
     };
     /* Initialization methods - runs after loaded*/
     RoomManager.prototype.initializeContainers = function (roomName) {
@@ -3161,9 +3007,9 @@ var RoomManager = /** @class */ (function () {
             if (c.shouldRefill == undefined || c.allowedWithdrawRoles == undefined) {
                 var rangeToSources = _.map(_this.getSources2(roomName), function (s) { return c.pos.getRangeTo(s); });
                 var closestRange = _.min(rangeToSources, function (s) { return s; });
-                if (closestRange == 1) {
+                if (closestRange <= 2) {
                     //miner depository
-                    c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER", "ROLE_UPGRADER"];
+                    c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER"];
                 }
                 else {
                     //probably container withdraw point
@@ -3178,7 +3024,7 @@ var RoomManager = /** @class */ (function () {
     RoomManager.prototype.initializeSources = function (roomName) {
         var _this = this;
         _.forEach(this._sources2[roomName], function (source) {
-            if (source.assignedTo == undefined) {
+            if (source.linkID == "" && source.containerID == "") {
                 if (source.linkID == "") {
                     var closestLinks = _.filter(_this.getLinks2(roomName), function (l) { return source.pos.getRangeTo(l) <= 2; });
                     if (closestLinks.length > 0) {
@@ -3186,7 +3032,8 @@ var RoomManager = /** @class */ (function () {
                     }
                 }
                 if (source.containerID == "") {
-                    var closestContainers = _.filter(_this.getContainers2(roomName), function (c) { return source.pos.getRangeTo(c) <= 2; });
+                    var test = _this.getContainers2(roomName);
+                    var closestContainers = _.filter(test, function (c) { return source.pos.getRangeTo(c.pos) <= 2; });
                     if (closestContainers.length > 0) {
                         source.containerID = closestContainers[0].id;
                     }
@@ -3232,7 +3079,7 @@ var RoomManager = /** @class */ (function () {
         var containers = room.find(FIND_STRUCTURES).filter(function (s) { return s.structureType == "container"; });
         var containerMems = [];
         _.forEach(containers, function (container) {
-            containerMems.push({
+            var mem = {
                 type: container.structureType,
                 roomName: roomName,
                 currentTask: "",
@@ -3240,7 +3087,10 @@ var RoomManager = /** @class */ (function () {
                 id: container.id,
                 shouldRefill: false,
                 allowedWithdrawRoles: undefined,
-            });
+            };
+            if (roomMem.structures[container.id] == undefined)
+                roomMem.structures[container.id] = mem;
+            containerMems.push(mem);
         });
         return containerMems;
     };
@@ -3569,26 +3419,6 @@ function findIdleStructures(roomName, type) {
     var test = _.filter(room.memory.structures, function (s) { return s.currentTask == "" && (type == undefined || s.type == type); });
     return _.map(test, function (s) { return s.id; });
 }
-function findClosestContainer(roomName, targetID, fullOK, emptyOK) {
-    var target = Game.getObjectById(targetID);
-    if (target == null) {
-        //console.log("container target was null.")
-        return;
-    }
-    var roomContainers = findAllContainers(roomName)
-        .sort(function (a, b) { return a.pos.getRangeTo(target) - b.pos.getRangeTo(target); });
-    for (var id in roomContainers) {
-        var container = Game.getObjectById(id);
-        if (container == null)
-            continue;
-        if (!fullOK && container.store.energy == container.storeCapacity)
-            continue; //has room
-        if (!emptyOK && container.store.energy == 0)
-            continue; //can't be empty
-        return container;
-    }
-    return undefined;
-}
 function creepIDsByRole(roomName, role) {
     var room = Game.rooms[roomName];
     var creeps = room.find(FIND_MY_CREEPS);
@@ -3637,12 +3467,6 @@ function creepCountAllRooms(role) {
         count += creepIDsByRole(room.name, role).length;
     }
     return count;
-}
-function findAllContainers(roomName) {
-    return roomManager.getContainers2(roomName);
-    //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
-    //  return i.structureType == STRUCTURE_CONTAINER;
-    //}) as StructureContainer[];
 }
 function getRoomEnergyLevel(roomName) {
     //var roomCreeps = _.filter(Game.creeps, c => c.memory.homeRoom = roomName)
@@ -3747,160 +3571,7 @@ var RoomManager$1 = /** @class */ (function () {
         this._links2 = {};
         this._containers2 = {};
         this._towers2 = {};
-        /* End Loading methods*/
-        //export function findIdleCreeps(homeRoomName: string, role: CreepRole = "ROLE_ALL"): Creep[] {
-        //  var creeps = Game.creeps;
-        //  var idle: Creep[] = []
-        //  for (var i in creeps) {
-        //    var creep = creeps[i] as Creep;
-        //    if (creep.memory.homeRoom != homeRoomName) continue;
-        //    if (!creep.memory.idle) continue;
-        //    if (creep.memory.role != role && role != "ROLE_ALL") continue;
-        //    idle.push(creep);
-        //  }
-        //  return idle;
-        //}
-        //export function findIdleStructures(roomName: string, type?: StructureConstant | undefined): string[] {
-        //  const room = Game.rooms[roomName];
-        //  if (room == undefined) return [];
-        //  var test = _.filter(room.memory.structures, s => s.currentTask == "" && (type == undefined || s.type == type));
-        //  return _.map(test, s => s.id);
-        //}
-        //export function idleCreepCount(roomName: string, role: CreepRole = "ROLE_ALL") {
-        //  return findIdleCreeps(roomName, role).length;
-        //}
-        //export function findClosestContainer(roomName: string, targetID: string, fullOK: boolean, emptyOK: boolean): StructureContainer | undefined {
-        //  let target = Game.getObjectById(targetID);
-        //  if (target == null) {
-        //    //console.log("container target was null.")
-        //    return;
-        //  }
-        //  let roomContainers = findAllContainers(roomName)
-        //    .sort((a, b) => a.pos.getRangeTo(target as any) - b.pos.getRangeTo(target as any));
-        //  for (const id in roomContainers) {
-        //    let container = <StructureContainer>Game.getObjectById(id);
-        //    if (container == null) continue;
-        //    if (!fullOK && container.store.energy == container.storeCapacity) continue; //has room
-        //    if (!emptyOK && container.store.energy == 0) continue; //can't be empty
-        //    return container;
-        //  }
-        //  return undefined;
-        //}
-        //export function creepIDsByRole(roomName: string, role: CreepRole): string[] {
-        //  let room = Game.rooms[roomName];
-        //  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //  let found: string[] = [];
-        //  for (const key in creeps) {
-        //    if (creeps.hasOwnProperty(key)) {
-        //      const creep = creeps[key];
-        //      const mem = creep.memory as CreepMemory;
-        //      if (mem.role == role || role == undefined) found.push(creep.id);
-        //    }
-        //  }
-        //  return found;
-        //}
-        //export function creepNamesByRole(roomName: string, role: CreepRole): string[] {
-        //  let room = Game.rooms[roomName];
-        //  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //  let found: string[] = [];
-        //  for (const key in creeps) {
-        //    if (creeps.hasOwnProperty(key)) {
-        //      const creep = creeps[key];
-        //      const mem = creep.memory as CreepMemory;
-        //      if (mem.role == role || role == undefined) found.push(creep.name);
-        //    }
-        //  }
-        //  return found;
-        //}
-        //export function creepCount(roomName: string, role: CreepRole | undefined): number {
-        //  let room = Game.rooms[roomName];
-        //  if (room == undefined) return 0;
-        //  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //  if (role == undefined) return creeps.length;
-        //  else {
-        //    return creepIDsByRole(roomName, role).length
-        //  }
-        //}
-        //export function creepCountAllRooms(role: CreepRole): number {
-        //  var count = 0;
-        //  let rooms = Game.rooms;
-        //  for (var id in rooms) {
-        //    var room = rooms[id];
-        //    let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-        //    count += creepIDsByRole(room.name, role).length;
-        //  }
-        //  return count;
-        //}
-        //export function roomSources(roomName: string): Source[] {
-        //  return Game.rooms[roomName].find(FIND_SOURCES) as Source[];
-        //}
-        //export function sourceCount(roomName: string) {
-        //  return roomSources(roomName).length;
-        //}
-        //export function findAllContainers(roomName: string): ContainerMemory[] {
-        //  return roomManager.getContainers2(roomName);
-        //  //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
-        //  //  return i.structureType == STRUCTURE_CONTAINER;
-        //  //}) as StructureContainer[];
-        //}
-        //export function findClosestContainerID(roomName: string, creepRole: CreepRole, energyAmount: number, targetID: string): string | undefined {
-        //  var containerIDs = findContainers(roomName, creepRole, energyAmount, targetID);
-        //  if (containerIDs.length == 0) return undefined;
-        //  else return containerIDs[0];
-        //}
-        //export function getRoomEnergyLevel(roomName: string): number {
-        //  //var roomCreeps = _.filter(Game.creeps, c => c.memory.homeRoom = roomName)
-        //  var room = Game.rooms[roomName];
-        //  var creeps = room.find(FIND_MY_CREEPS);
-        //  if (creeps.length < 3 && room.energyAvailable < 800) return 1;
-        //  let cap = room.energyCapacityAvailable;
-        //  if (cap < 550) return 1;
-        //  else if (cap <= 950) return 2;
-        //  else if (cap <= 1500) return 3;
-        //  else if (cap <= 3500) return 4;
-        //  else return 5;
-        //}
-        //export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0): string | undefined {
-        //  var sources = roomManager.getSources2(roomName);
-        //  var withEnergy2: Source[] = [];
-        //  _.forEach(sources, sourceMem => {
-        //    var source = <Source>Game.getObjectById(sourceMem.id);
-        //    if (source.energy > energyAmount) withEnergy2.push(source);
-        //  })
-        //  return _.min(withEnergy2, source => targetPos.getRangeTo(source)).id
-        //}
-        //export function getRoomType(roomName: string): RoomType {
-        //  if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
-        //  const room = Game.rooms[roomName];
-        //  if (room == undefined) return "UNKNOWN";
-        //  if (room.controller != undefined) {
-        //    if (room.controller.my) {
-        //      if (room.find(FIND_SOURCES).length > 0) return "OWNED";
-        //      else return "REMOTE_HARVEST"; //todo - handle expansion case
-        //    }
-        //    else return "HOSTILE"; //todo - add in friendly folks
-        //  }
-        //  else {
-        //    if (room.find(FIND_HOSTILE_SPAWNS).length > 0) return "SOURCE_KEEPER";
-        //    else return "EMPTY"
-        //  }
-        //  //todo - refactor this?
-        //}
-        //export function findContainers(roomName: string, creepRole: CreepRole, energyAmount: number, sortByRangeToID: string = ""): string[] {
-        //  var room = Game.rooms[roomName];
-        //  if (room == undefined) return [];
-        //  var containers = findAllContainers(roomName);
-        //  var filtered = _.filter(containers, c =>
-        //    _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)
-        //    && (<StructureContainer>Game.getObjectById(c.id)).store.energy > energyAmount);
-        //  if (sortByRangeToID != "") {
-        //    var rangeToTarget = <RangeTarget>Game.getObjectById(sortByRangeToID);
-        //    if (rangeToTarget == undefined) throw new Error("findContainers:rangeToTarget cannot be undefined");
-        //    var sorted = _.sortBy(filtered, c => c.pos.getRangeTo(rangeToTarget))
-        //    return _.map(sorted, s => s.id);
-        //  }
-        //  else return _.map(filtered, f => f.id);
-        //}
+        console.log("Global reset!!");
     }
     RoomManager.prototype.getSources2 = function (roomName) {
         var room = Memory.rooms[roomName];
@@ -3908,8 +3579,7 @@ var RoomManager$1 = /** @class */ (function () {
             console.log("ERROR_getSources2 - undefined room in memory? how? " + roomName);
             return [];
         }
-        var sources = this._sources2[roomName];
-        if (sources == undefined) {
+        if (this._sources2[roomName] == undefined) {
             this._sources2[roomName] = this.loadSources2(roomName);
             this.initializeSources(roomName);
         }
@@ -3921,12 +3591,10 @@ var RoomManager$1 = /** @class */ (function () {
             console.log("ERROR_getContainers2 - undefined room in memory? how? " + roomName);
             return [];
         }
-        var containers = this._containers2[roomName];
-        if (containers == undefined) {
+        if (this._containers2[roomName] == undefined) {
             this._containers2[roomName] = this.loadContainers2(roomName);
             this.initializeContainers(roomName);
         }
-        //console.log(JSON.stringify(this._containers2[roomName]));
         return this._containers2[roomName];
     };
     RoomManager.prototype.getLinks2 = function (roomName) {
@@ -3956,6 +3624,8 @@ var RoomManager$1 = /** @class */ (function () {
     RoomManager.prototype.Run = function (roomName) {
         this.loadCreeps(roomName);
         this.loadResources(roomName);
+        this.getTowers2(roomName);
+        this.getContainers2(roomName);
     };
     /* Initialization methods - runs after loaded*/
     RoomManager.prototype.initializeContainers = function (roomName) {
@@ -3965,9 +3635,9 @@ var RoomManager$1 = /** @class */ (function () {
             if (c.shouldRefill == undefined || c.allowedWithdrawRoles == undefined) {
                 var rangeToSources = _.map(_this.getSources2(roomName), function (s) { return c.pos.getRangeTo(s); });
                 var closestRange = _.min(rangeToSources, function (s) { return s; });
-                if (closestRange == 1) {
+                if (closestRange <= 2) {
                     //miner depository
-                    c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER", "ROLE_UPGRADER"];
+                    c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER"];
                 }
                 else {
                     //probably container withdraw point
@@ -3982,7 +3652,7 @@ var RoomManager$1 = /** @class */ (function () {
     RoomManager.prototype.initializeSources = function (roomName) {
         var _this = this;
         _.forEach(this._sources2[roomName], function (source) {
-            if (source.assignedTo == undefined) {
+            if (source.linkID == "" && source.containerID == "") {
                 if (source.linkID == "") {
                     var closestLinks = _.filter(_this.getLinks2(roomName), function (l) { return source.pos.getRangeTo(l) <= 2; });
                     if (closestLinks.length > 0) {
@@ -3990,7 +3660,8 @@ var RoomManager$1 = /** @class */ (function () {
                     }
                 }
                 if (source.containerID == "") {
-                    var closestContainers = _.filter(_this.getContainers2(roomName), function (c) { return source.pos.getRangeTo(c) <= 2; });
+                    var test = _this.getContainers2(roomName);
+                    var closestContainers = _.filter(test, function (c) { return source.pos.getRangeTo(c.pos) <= 2; });
                     if (closestContainers.length > 0) {
                         source.containerID = closestContainers[0].id;
                     }
@@ -4036,7 +3707,7 @@ var RoomManager$1 = /** @class */ (function () {
         var containers = room.find(FIND_STRUCTURES).filter(function (s) { return s.structureType == "container"; });
         var containerMems = [];
         _.forEach(containers, function (container) {
-            containerMems.push({
+            var mem = {
                 type: container.structureType,
                 roomName: roomName,
                 currentTask: "",
@@ -4044,7 +3715,10 @@ var RoomManager$1 = /** @class */ (function () {
                 id: container.id,
                 shouldRefill: false,
                 allowedWithdrawRoles: undefined,
-            });
+            };
+            if (roomMem.structures[container.id] == undefined)
+                roomMem.structures[container.id] = mem;
+            containerMems.push(mem);
         });
         return containerMems;
     };
@@ -4308,7 +3982,7 @@ function SetupRoomSettings(roomName) {
     settingsMap[3] = level3Settings;
     var level4Settings = new RoomSettings(roomName);
     level4Settings.minersPerSource = 1;
-    level4Settings.maxCarrierCount = 1;
+    level4Settings.maxCarrierCount = 2;
     level4Settings.maxUpgraderCount = 1;
     settingsMap[4] = level4Settings;
     var level5Settings = new RoomSettings(roomName);
@@ -4323,10 +3997,11 @@ function cleanupCreeps() {
         if (!Game.creeps[creepName]) {
             console.log("Clearing dead creeps from memory.");
             for (var roomName in Game.rooms) {
-                var sources = _.filter(Game.rooms[roomName].memory.structures, function (s) {
-                    s.type == "source";
-                });
-                _.forEach(sources, function (source) {
+                //let sources = <SourceMemory[]>_.filter(Game.rooms[roomName].memory.structures, s => {
+                //  s.type == "source"
+                //});
+                _.forEach(roomManager.getSources2(roomName), function (source) {
+                    console.log(source.assignedTo);
                     if (_.includes(source.assignedTo, creepName)) {
                         console.log("unassiging harvest spot for " + creepName + " source: " + source);
                         source.assignedTo = source.assignedTo.filter(function (s) { return s != creepName; });
@@ -4608,12 +4283,6 @@ var CreepTaskQueue = /** @class */ (function () {
 var StructureTaskQueue = /** @class */ (function () {
     function StructureTaskQueue() {
     }
-    StructureTaskQueue.removeFinished = function () {
-        var finished = _.filter(Memory.structureTasks, function (req) { return req.status == "FINISHED"; });
-        for (var id in finished) {
-            this.removeTask(id);
-        }
-    };
     StructureTaskQueue.removeTask = function (id) {
         delete Memory.structureTasks[id];
     };
@@ -4732,7 +4401,6 @@ var Task = /** @class */ (function () {
     function Task(taskInfo) {
         this.request = taskInfo;
     }
-    //abstract name: string;
     Task.prototype.run = function () {
         var oldStatus = this.request.status;
         switch (this.request.status) {
@@ -4757,43 +4425,6 @@ var Task = /** @class */ (function () {
     };
     return Task;
 }());
-//export abstract class Task implements ITask {
-//  request: ITaskRequest;
-//  constructor(taskInfo: ITaskRequest) {
-//    this.request = taskInfo;
-//  }
-//  //protected abstract prerun(): void;
-//  protected abstract init(): void;
-//  protected abstract prepare(): void;
-//  protected abstract work(): void;
-//  //protected abstract postrun(): void;
-//  protected abstract finish(): void;
-//  public run(): void {
-//    //console.log(`RUN: ${this.request.name} + ${this.request.assignedTo} + ${Task.getStatus(this.request.status)} `)
-//    //if (Game.creeps[this.request.assignedTo] == undefined) console.log("creep was null during run - should handle.")
-//    var oldStatus = this.request.status;
-//    switch (this.request.status) {
-//      // case TaskState.PENDING: this.pending();
-//      case "INIT": this.init(); break;
-//      case "PREPARE": this.prepare(); break;
-//      //case "PRE_RUN": this.p(); break;
-//      case "IN_PROGRESS": this.work(); break;
-//      case "FINISHED": this.finish(); break;
-//      // case TaskState.POST_RUN: this.preRun();
-//    }
-//    if (this.request != null && oldStatus != this.request.status) this.run()
-//  }
-//  static getStatus(state: TaskStatus) {
-//    if (state == "PENDING") return "PENDING";
-//    if (state == "INIT") return "INIT";
-//    if (state == "PREPARE") return "PREPARE";
-//    if (state == "PRE_RUN") return "PRE_RUN";
-//    if (state == "IN_PROGRESS") return "IN_PROGRESS";
-//    if (state == "WIND_DOWN") return "POST_RUN";
-//    if (state == "FINISHED") return "FINISHED";
-//    return `${state} is unknown...`
-//  }
-//}
 
 var CreepTask = /** @class */ (function (_super) {
     __extends(CreepTask, _super);
@@ -4803,9 +4434,6 @@ var CreepTask = /** @class */ (function (_super) {
         _this.request = request;
         _this.creep = Game.getObjectById(_this.request.assignedToID);
         return _this;
-        //if (this.creep == undefined || this.creep.memory == undefined) {
-        //  throw new Error("Cannot create a task without a creep!");
-        //}
     }
     CreepTask.prototype.init = function () {
         if (this.creep == undefined || this.creep.memory == undefined || this.creep == null) {
@@ -5112,13 +4740,17 @@ var Mine = /** @class */ (function (_super) {
         this.request.status = "PREPARE";
     };
     Mine.prototype.prepare = function () {
+        var _this = this;
         _super.prototype.prepare.call(this);
         if (this.request.status != "PREPARE")
             return;
         if (this.creep.room.name != this.request.targetRoomName)
             return;
-        var source = Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
-        source.assignedTo.push(this.request.assignedToID);
+        var sources = roomManager.getSources2(this.request.targetRoomName);
+        var source = _.find(sources, function (s) { return s.id == _this.request.targetID; });
+        var source2 = Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
+        source.assignedTo.push(this.creep.name);
+        source2.assignedTo.push(this.creep.name);
         console.log("mine init assigned to " + source.assignedTo);
         this.request.status = "IN_PROGRESS";
     };
@@ -5160,10 +4792,10 @@ var Mine = /** @class */ (function (_super) {
             originatingRoomName = roomName;
         }
         targetRoomName = roomName;
-        var sources = roomManager.getSources2(roomName);
         //const sources = utils.findStructures<SourceMemory>(roomName, "source");
-        _.forEach(sources, function (source) {
-            //console.log("sourceid: " + smartSource.sourceID)
+        _.forEach(roomManager.getSources2(roomName), function (source) {
+            //console.log(JSON.stringify(source))
+            //console.log(`AssignedTo: ${source.assignedTo.length}, minersPer: ${minersPerSource}`);
             if (source.assignedTo.length != minersPerSource) {
                 var needed = minersPerSource - source.assignedTo.length;
                 //console.log("Needed: " + needed);
@@ -5178,26 +4810,6 @@ var Mine = /** @class */ (function (_super) {
                 }
             }
         });
-        //for (const id in sources) {
-        //  const source = room.memory.sources[id]
-        //  //const source = sources[id] as Source;
-        //  if (source.assignedTo == undefined) {
-        //    source.assignedTo = [];
-        //  }
-        //  //console.log("sourceid: " + smartSource.sourceID)
-        //  if (source.assignedTo.length == minersPerSource) continue;
-        //  var needed = minersPerSource - source.assignedTo.length;
-        //  //console.log("Needed: " + needed);
-        //  for (var i = 0; i < needed; i++) {
-        //    var request = new MineRequest(originatingRoomName, targetRoomName, source.id);
-        //    var totalCurrent = CreepTaskQueue.count(request.targetRoomName, request.name);
-        //    //console.log("total current:" + totalCurrent)
-        //    if (totalCurrent < request.maxConcurrent) {
-        //      //console.log("about to add source for this id: " + smartSource.sourceID)
-        //      CreepTaskQueue.addPendingRequest(request);
-        //    }
-        //  }
-        //}
     };
     Mine.prototype.harvest = function () {
         var source = Game.getObjectById(this.request.targetID);
@@ -5207,9 +4819,16 @@ var Mine = /** @class */ (function (_super) {
         }
     };
     Mine.prototype.deliver = function () {
+        var _this = this;
         var room = Game.rooms[this.request.targetRoomName];
         //const source = Game.getObjectById(this.request.targetID) as Source;
-        var source = room.memory.structures[this.request.targetID];
+        var sources = roomManager.getSources2(this.request.targetRoomName);
+        var source = _.find(sources, function (s) { return s.id == _this.request.targetID; });
+        if (source == undefined) {
+            console.log("ERROR:Mine::deliver -> source was undefined...");
+            return;
+        }
+        //const source = <SourceMemory>room.memory.structures[this.request.targetID];
         //var smartSource = roomMemory.sources[this.request.targetID];
         //if (room.name == "W5S43") {
         //  console.log("smartsource id:" + smartSource.linkID)
@@ -5220,16 +4839,24 @@ var Mine = /** @class */ (function (_super) {
                 this.creep.travelTo(link);
             }
         }
-        else {
-            var container = findClosestContainer(this.request.targetRoomName, this.creep.id, true, true);
-            if (container == undefined || container.store.energy == container.storeCapacity
-                || !this.creep.pos.inRangeTo(container.pos, 3)) {
-                this.creep.drop(RESOURCE_ENERGY);
+        else if (source.containerID != "") {
+            var containers = roomManager.getContainers2(this.request.targetRoomName);
+            var container = _.find(containers, function (c) { return c.id == source.containerID; });
+            if (container == undefined) {
+                console.log("ERROR:Mine::deliver -> container was undefined...");
                 return;
             }
-            if (this.creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            var c = Game.getObjectById(container.id);
+            var result = this.creep.transfer(c, RESOURCE_ENERGY);
+            if (result == ERR_NOT_IN_RANGE) {
                 this.creep.travelTo(container);
             }
+            else if (result == ERR_FULL) {
+                this.creep.drop(RESOURCE_ENERGY);
+            }
+        }
+        else {
+            this.creep.drop(RESOURCE_ENERGY);
         }
     };
     Mine.taskName = "Dismantle";
@@ -5661,36 +5288,54 @@ var FillContainers = /** @class */ (function (_super) {
             return;
     };
     FillContainers.prototype.work = function () {
-        var _this = this;
         _super.prototype.work.call(this);
         if (this.request.status != "IN_PROGRESS")
             return;
         //const creep = Game.creeps[this.request.assignedTo];
         var room = Game.rooms[this.request.targetRoomName];
-        var containersToFill = room.find(FIND_STRUCTURES)
-            .filter(function (s) { return (s.structureType == "container"
-            && s.store.energy < s.storeCapacity
-            && s.shouldRefill); });
-        if (containersToFill.length == 0) {
+        var cMem = _.find(roomManager.getContainers2(this.request.targetRoomName), function (c) {
+            var container = Game.getObjectById(c.id);
+            return container.store.energy < container.storeCapacity
+                && c.shouldRefill;
+        });
+        if (cMem == undefined) {
             this.request.status = "FINISHED";
             return;
         }
-        var closest = _.first(_.sortBy(containersToFill, function (s) { return _this.creep.pos.getRangeTo(s); }));
-        var result = this.creep.transfer(closest, RESOURCE_ENERGY);
+        var container = Game.getObjectById(cMem.id);
+        var result = this.creep.transfer(container, RESOURCE_ENERGY);
         if (result == ERR_NOT_IN_RANGE)
-            this.creep.travelTo(closest);
+            this.creep.travelTo(container);
         else
             this.request.status = "FINISHED";
+        //var container = Game.getObjectById(cMem.id);
+        //let containersToFill = room.find(FIND_STRUCTURES)
+        //  .filter(s => (s.structureType == "container"
+        //    && s.store.energy < s.storeCapacity
+        //    && s.shouldRefill));
+        //if (containersToFill.length == 0) {
+        //  this.request.status = "FINISHED";
+        //  return;
+        //}
+        //const closest = _.first(_.sortBy(containersToFill, s => this.creep.pos.getRangeTo(s)))
+        //const result = this.creep.transfer(closest, RESOURCE_ENERGY)
+        //if (result == ERR_NOT_IN_RANGE) this.creep.travelTo(closest);
+        //else this.request.status = "FINISHED";
     };
     FillContainers.addRequests = function (roomName) {
         var room = Game.rooms[roomName];
         var roomMem = room.memory;
         //let storages = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[];
-        var containersToFill = room.find(FIND_STRUCTURES)
-            .filter(function (s) { return (s.structureType == "container"
-            && s.store.energy < s.storeCapacity
-            && s.shouldRefill); });
-        if (containersToFill.length == 0)
+        var containers = roomManager.getContainers2(roomName).filter(function (cm) {
+            var cont = Game.getObjectById(cm.id);
+            return cont.store.energy < cont.storeCapacity
+                && cm.shouldRefill;
+        });
+        //let containersToFill = con
+        //  .filter(s => (s.structureType == "container"
+        //    && s.store.energy < s.storeCapacity
+        //    && s.shouldRefill));
+        if (containers.length == 0)
             return;
         //let workers = utils.creepNamesByRole(roomName,"ROLE_WORKER").filter(name => {
         //  const worker = Game.creeps[name] as Creep;
@@ -5705,12 +5350,18 @@ var FillContainers = /** @class */ (function (_super) {
         //    i++;
         //  });
         //}
-        for (var targetID in containersToFill) {
-            var request = new FillContainersRequest(roomName, roomName, targetID);
+        _.forEach(containers, function (c) {
+            var request = new FillContainersRequest(roomName, roomName, c.id);
             if (existingTaskCount < maxConcurrentCount) {
                 CreepTaskQueue.addPendingRequest(request);
             }
-        }
+        });
+        //for (const targetID in containers) {
+        //  let request = new FillContainersRequest(roomName, roomName, targetID);
+        //  if (existingTaskCount < maxConcurrentCount) {
+        //    CreepTaskQueue.addPendingRequest(request)
+        //  }
+        //}
     };
     FillContainers.taskName = "FillContainers";
     return FillContainers;
@@ -6146,17 +5797,9 @@ var StructureTask = /** @class */ (function (_super) {
     function StructureTask(request) {
         var _this = _super.call(this, request) || this;
         _this.request = request;
-        //const building = Game.getObjectById(this.request.assignedToID) as AnyOwnedStructure;
-        //this.building = building;
         _this.structureID = _this.request.assignedToID;
         _this.room = Game.rooms[_this.request.originatingRoomName];
         return _this;
-        //console.log("ID: " + this.request.assignedToID);
-        //console.log("constructor for task...")
-        //if (building == undefined) {
-        //  this.request.status = "FINISHED";
-        //  return;
-        //}
     }
     StructureTask.prototype.init = function () {
         var building = Game.getObjectById(this.request.assignedToID);
@@ -6182,20 +5825,10 @@ var StructureTask = /** @class */ (function (_super) {
         }
         //this.building = building;
     };
+    StructureTask.prototype.windDown = function () {
+    };
     StructureTask.prototype.finish = function () {
-        // console.log(`StructureTask Finish: ${this.request.roomName}: ${this.request.name}: ${this.request.assignedTo}`);
         this.request.status = "FINISHED";
-        //const building = Game.getObjectById(this.request.assignedToID) as AnyOwnedStructure;
-        //if (building == undefined) {
-        //  console.log("building was undefined.")
-        //}
-        ////var room = building.room as Room;
-        ////var mem = room.memory as RoomMemory;
-        ////var towers = mem.towers2;
-        //var tower = <StructureTower>Game.getObjectById(this.request.assignedToID);
-        //if (tower == undefined) {
-        //  return;
-        //}
     };
     return StructureTask;
 }(Task));
@@ -6217,14 +5850,12 @@ var TowerAttack = /** @class */ (function (_super) {
     function TowerAttack(request) {
         return _super.call(this, request) || this;
     }
-    TowerAttack.prototype.windDown = function () {
-        throw new Error("Method not implemented.");
-    };
     TowerAttack.prototype.init = function () {
         _super.prototype.init.call(this);
         var room = Game.rooms[this.request.originatingRoomName];
         var tower = room.memory.structures[this.request.assignedToID];
         tower.currentTask = TowerAttack.taskName + this.request.id;
+        tower.towerMode = "ATTACK";
         this.request.status = "PREPARE";
     };
     TowerAttack.prototype.prepare = function () {
@@ -6255,23 +5886,12 @@ var TowerAttack = /** @class */ (function (_super) {
             if (inRange)
                 tower.attack(hostile);
         }
-        //for (var i in entrances) {
-        //  var e = entrances[i];
-        //  if (e == undefined) continue;
-        //  var range = e.getRangeTo(hostile);
-        //  if (range < shortest) {
-        //    shortest = range;
-        //  }
-        //}
-        //if (shortest > 5) return;
-        //console.log(shortest);
-        //tower.attack(hostile);
     };
     TowerAttack.prototype.finish = function () {
         _super.prototype.finish.call(this);
-        //var room = Game.rooms[this.request.originatingRoomName] as Room;
-        //const tower = room.memory.towers[this.request.assignedToID];
-        //tower.currentTask = "";
+        var tower = Game.rooms[this.request.originatingRoomName].memory.structures[this.request.assignedToID];
+        tower.currentTask = "";
+        tower.towerMode = "IDLE";
     };
     TowerAttack.addRequests = function (roomName) {
         var room = Game.rooms[roomName];
@@ -6302,7 +5922,7 @@ var TowerRepairRequest = /** @class */ (function (_super) {
         _this.maxConcurrent = 3;
         return _this;
     }
-    TowerRepairRequest.maxHitPoints = 1200000;
+    TowerRepairRequest.maxHitPoints = 120000;
     return TowerRepairRequest;
 }(StructureTaskRequest));
 var TowerRepair = /** @class */ (function (_super) {
@@ -6310,9 +5930,6 @@ var TowerRepair = /** @class */ (function (_super) {
     function TowerRepair(taskInfo) {
         return _super.call(this, taskInfo) || this;
     }
-    TowerRepair.prototype.windDown = function () {
-        throw new Error("Method not implemented.");
-    };
     TowerRepair.prototype.init = function () {
         _super.prototype.init.call(this);
         if (this.request.status != "INIT")
@@ -6427,15 +6044,14 @@ var TaskManager = /** @class */ (function () {
         }
         var task = new TaskStore[request.name](request);
         var req = task.request;
-        var category = req.category;
-        var id = req.id;
         if (req.assignedToID == undefined || req.assignedToID == "") {
             //console.log("CANNOT RUN A TASK WITHOUT A FULL REQUEST.")
             return;
         }
+        var id = req.id;
         task.run();
         if (req.status == "FINISHED") {
-            switch (category) {
+            switch (req.category) {
                 case "CREEP":
                     CreepTaskQueue.removeTask(id);
                     break;

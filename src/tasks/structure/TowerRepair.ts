@@ -10,7 +10,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
   priority: number = 2;
   name: string = "TowerRepair";
   maxConcurrent: number = 3;
-  static maxHitPoints: number = 1200000;
+  static maxHitPoints: number = 120000;
   constructor(roomName: string, siteID: string) {
     super(roomName, roomName, siteID)
   }
@@ -18,10 +18,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
 }
 export class TowerRepair extends StructureTask {
   static taskName: string = "TowerRepair";
-  protected windDown(): void {
-    throw new Error("Method not implemented.");
-  }
-
+ 
   protected init(): void {
     super.init();
     if (this.request.status != "INIT") return;
