@@ -3164,9 +3164,10 @@ var RoomManager = /** @class */ (function () {
             return [];
         }
         var links = room.find(FIND_MY_STRUCTURES).filter(function (s) { return s.structureType == "link"; });
-        var sourceMems = [];
+        //const sources = this.getSources2(roomName);
+        var linkMems = [];
         _.forEach(links, function (link) {
-            var linkMode = "SLAVE_RECEIVE";
+            var linkMode = "SEND";
             if (room.storage != undefined) {
                 var rangeToStorage = room.storage.pos.getRangeTo(link);
                 if (rangeToStorage == 1)
@@ -3187,9 +3188,9 @@ var RoomManager = /** @class */ (function () {
             };
             if (roomMem.structures[link.id] == undefined)
                 roomMem.structures[link.id] = mem;
-            sourceMems.push(mem);
+            linkMems.push(mem);
         });
-        return sourceMems;
+        return linkMems;
     };
     RoomManager.prototype.loadResources = function (roomName) {
         var room = Game.rooms[roomName];
@@ -3792,9 +3793,10 @@ var RoomManager$1 = /** @class */ (function () {
             return [];
         }
         var links = room.find(FIND_MY_STRUCTURES).filter(function (s) { return s.structureType == "link"; });
-        var sourceMems = [];
+        //const sources = this.getSources2(roomName);
+        var linkMems = [];
         _.forEach(links, function (link) {
-            var linkMode = "SLAVE_RECEIVE";
+            var linkMode = "SEND";
             if (room.storage != undefined) {
                 var rangeToStorage = room.storage.pos.getRangeTo(link);
                 if (rangeToStorage == 1)
@@ -3815,9 +3817,9 @@ var RoomManager$1 = /** @class */ (function () {
             };
             if (roomMem.structures[link.id] == undefined)
                 roomMem.structures[link.id] = mem;
-            sourceMems.push(mem);
+            linkMems.push(mem);
         });
-        return sourceMems;
+        return linkMems;
     };
     RoomManager.prototype.loadResources = function (roomName) {
         var room = Game.rooms[roomName];
@@ -3983,7 +3985,7 @@ function SetupRoomSettings(roomName) {
     var level4Settings = new RoomSettings(roomName);
     level4Settings.minersPerSource = 1;
     level4Settings.maxCarrierCount = 2;
-    level4Settings.maxUpgraderCount = 1;
+    level4Settings.maxUpgraderCount = 3;
     settingsMap[4] = level4Settings;
     var level5Settings = new RoomSettings(roomName);
     level5Settings.minersPerSource = 1;
@@ -6024,6 +6026,33 @@ var TaskManager = /** @class */ (function () {
         TowerRepair.addRequests(roomName);
         //Scout.addRequests(roomName);
     };
+    TaskManager.prototype.runLinks = function (roomName) {
+        var room = Memory.rooms[roomName];
+        var links = roomManager.getLinks2(roomName);
+        var masterLinkMem = _.find(links, function (l) { return l.linkMode == "MASTER_RECEIVE"; });
+        var masterLink = Game.getObjectById(masterLinkMem.id);
+        var slaves = _.filter(links, function (l) { return l.linkMode == "SLAVE_RECEIVE"; });
+        var senders = _.filter(links, function (l) { return l.linkMode == "SEND"; });
+        _.forEach(senders, function (sender) {
+            var link = Game.getObjectById(sender.id);
+            if (masterLink.energy < masterLink.energyCapacity - 10) {
+                var roomFor = masterLink.energyCapacity - masterLink.energy;
+                if (roomFor > link.energy)
+                    roomFor = link.energy;
+                link.transferEnergy(masterLink, roomFor);
+            }
+            else {
+                var slaveLinks = _.sortBy(_.map(slaves, function (s) { return Game.getObjectById(s.id); }), function (s) { return s.energy; });
+                var lowest = _.first(slaveLinks);
+                if (lowest != undefined && lowest.energy < lowest.energyCapacity - 10) {
+                    var roomFor = masterLink.energyCapacity - masterLink.energy;
+                    if (roomFor > link.energy)
+                        roomFor = link.energy;
+                    link.transferEnergy(lowest, roomFor);
+                }
+            }
+        });
+    };
     TaskManager.prototype.assignTasks = function (roomName) {
         var idleCreeps = findIdleCreeps(roomName);
         _.forEach(idleCreeps, function (creep) { return CreepTaskQueue.assignRequest(creep.name, roomName); });
@@ -6065,6 +6094,7 @@ var TaskManager = /** @class */ (function () {
         this.addTaskRequests(roomName);
         this.assignTasks(roomName);
         this.continueTasks(roomName);
+        this.runLinks(roomName);
     };
     return TaskManager;
 }());

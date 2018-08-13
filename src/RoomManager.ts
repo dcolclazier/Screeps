@@ -177,6 +177,7 @@ export class RoomManager {
     });
     return containerMems;
   }
+
   private loadTowers2(roomName: string): TowerMemory[] {
     const roomMem = Memory.rooms[roomName];
     if (roomMem == undefined) {
@@ -248,9 +249,10 @@ export class RoomManager {
     }
 
     const links = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "link");
-    const sourceMems: LinkMemory[] = [];
+    //const sources = this.getSources2(roomName);
+    const linkMems: LinkMemory[] = [];
     _.forEach(links, link => {
-      let linkMode: LinkMode = "SLAVE_RECEIVE";
+      let linkMode: LinkMode = "SEND";
       if (room.storage != undefined) {
         var rangeToStorage = room.storage.pos.getRangeTo(link);
         if (rangeToStorage == 1) linkMode = "MASTER_RECEIVE"
@@ -259,6 +261,10 @@ export class RoomManager {
         var rangeToController = room.controller.pos.getRangeTo(link);
         if (rangeToController <= 2) linkMode = "SEND";
       }
+      else {
+        //linkMode = "SLAVE_RECEIVE";
+      }
+
       const mem = <LinkMemory>{
         pos: link.pos,
         linkMode: linkMode,
@@ -268,9 +274,9 @@ export class RoomManager {
         roomName: link.room.name,
       }
       if (roomMem.structures[link.id] == undefined) roomMem.structures[link.id] = mem;
-      sourceMems.push(mem);
+      linkMems.push(mem);
     });
-    return sourceMems;
+    return linkMems;
   }
   private loadResources(roomName: string): void {
     const room = Game.rooms[roomName];
