@@ -1,27 +1,53 @@
+import { Traveler } from "Traveler";
+import { roomManager } from "RoomManager";
 
-export function findSpawns(roomName: string, onlyNonSpawning: boolean = true) {
-  let room = Game.rooms[roomName];
-  return room.find(FIND_MY_STRUCTURES, {
-    filter: (structure: Structure) => {
-      if (structure.structureType == STRUCTURE_SPAWN) {
-        let spawner = structure as StructureSpawn;
-        Memory.spawns[spawner.id] = spawner
-        return onlyNonSpawning ? spawner.spawning === null : true;
-      }
-      return false;
-    }
-  });
-}
-export function findFlags(roomName: string) {
+export function initializeFlags(roomName: string) {
   let room = Game.rooms[roomName];
   var flags = room.find(FIND_FLAGS);
   console.log("found " + flags.length + " flags.")
   for (var id in flags) {
     Memory.flags[id] = flags[id];
   }
+  
   //m().flags = room.find(FIND_FLAGS);
 }
 
+export function closestOwnedRoom(targetRoomName: string): string {
+
+  const ownedRooms = _.filter(Memory.rooms, room => room.roomType === "OWNED");
+  let min = 99;
+  let winner = "";
+  for (var roomName in ownedRooms) {
+    var distance = Traveler.findRoute(roomName, targetRoomName);
+    if (distance != undefined && Object.keys(distance).length < min) {
+      min = Object.keys(distance).length;
+      winner = roomName;
+    }
+  }
+  return winner;
+}
+
+export function findFlags(roomName: string | undefined, primaryColor: ColorConstant | undefined = undefined, flagName: string | undefined = undefined): Flag[] {
+
+  const found: Flag[] = [];
+  const flags = Game.flags;
+  for (const id in flags) {
+    const flag = flags[id];
+    if ((flag.pos.roomName == roomName || roomName == undefined)
+      && (flag.color == primaryColor || primaryColor == undefined)
+      && (flag.name == flagName || flagName == undefined))
+
+      found.push(flag);
+  }
+  return found;
+}
+
+export function uniqueID () {
+  // Math.random should be unique because of its seeding algorithm.
+  // Convert it to base 36 (numbers + letters), and grab the first 9 characters
+  // after the decimal.
+  return '_' + Math.random().toString(36).substr(2, 9);
+};
 export class Search2 {
 
   constructor() { }
@@ -141,22 +167,22 @@ export function findIdleCreeps(homeRoomName: string, role: CreepRole ="ROLE_ALL"
   var idle : Creep[] = []
   for (var i in creeps) {
     var creep = creeps[i] as Creep;
-    var mem = creep.memory as CreepMemory;
-    if (getHomeRoom(creep.name) != homeRoomName) continue;
-    if (!mem.idle) continue;
-    if (mem.role != role && role !="ROLE_ALL") continue;
+    if (creep.memory.homeRoom != homeRoomName) continue;
+    if (!creep.memory.idle) continue;
+    if (creep.memory.role != role && role !="ROLE_ALL") continue;
     idle.push(creep);
   }
   return idle;
 
-  //return Game.rooms[homeRoomName].find(FIND_MY_CREEPS, {
-  //  filter: (creep: Creep) => {
-  //    let memory = (creep.memory as CreepMemory);
-  //    return memory.idle && (memory.role == role || role =="ROLE_ALL");
-  //  }
-  //});
 }
-export function ildeCreepCount(roomName: string, role: CreepRole ="ROLE_ALL") {
+export function findIdleStructures(roomName: string, type?: StructureConstant|undefined): string[] {
+
+  const room = Game.rooms[roomName];
+  if (room == undefined) return [];
+  var test = _.filter(room.memory.structures, s => s.currentTask == "" && (type == undefined || s.type == type));
+  return _.map(test, s => s.id);
+}
+export function idleCreepCount(roomName: string, role: CreepRole ="ROLE_ALL") {
   return findIdleCreeps(roomName, role).length;
 }
 export function findClosestContainer(roomName: string, targetID: string, fullOK: boolean, emptyOK: boolean): StructureContainer | undefined {
@@ -169,7 +195,7 @@ export function findClosestContainer(roomName: string, targetID: string, fullOK:
     .sort((a, b) => a.pos.getRangeTo(target as any) - b.pos.getRangeTo(target as any));
 
   for (const id in roomContainers) {
-    let container = roomContainers[id] as StructureContainer;
+    let container = <StructureContainer>Game.getObjectById(id);
     if (container == null) continue;
     if (!fullOK && container.store.energy == container.storeCapacity) continue; //has room
     if (!emptyOK && container.store.energy == 0) continue; //can't be empty
@@ -228,30 +254,111 @@ export function roomSources(roomName: string): Source[] {
 export function sourceCount(roomName: string) {
   return roomSources(roomName).length;
 }
-export function findAllContainers(roomName: string): Array<StructureContainer> {
-  return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
-    return i.structureType == STRUCTURE_CONTAINER;
-  }) as StructureContainer[];
+export function findAllContainers(roomName: string): ContainerMemory[] {
+
+  return roomManager.getContainers2(roomName);
+  //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
+  //  return i.structureType == STRUCTURE_CONTAINER;
+  //}) as StructureContainer[];
 
 }
-export function findIdleSmartStructures(roomName: string): Array<SmartStructure> {
+export function findClosestContainerID(roomName: string, creepRole: CreepRole, energyAmount: number, targetID: string) : string | undefined {
 
-  let roomMem = Game.rooms[roomName].memory as RoomMemory;
-  let structs = roomMem.towers;
-  //console.log("Tower memory count: " + Object.keys(structs).length);
-  var t: SmartStructure[] = [];
-  for (var s in structs) {
-    var smart = structs[s] as SmartStructure;
-    var mem = smart.memory as StructureMemory;
-    t.push(smart);
+  var containerIDs = findContainers(roomName, creepRole, energyAmount, targetID);
+  if (containerIDs.length == 0) return undefined;
+  else return containerIDs[0];
+
+}
+export function getRoomEnergyLevel(roomName: string): number {
+
+  //var roomCreeps = _.filter(Game.creeps, c => c.memory.homeRoom = roomName)
+  var room = Game.rooms[roomName];
+  var creeps = room.find(FIND_MY_CREEPS);
+
+  if (creeps.length < 3 && room.energyAvailable < 800) return 1;
+
+  let cap = room.energyCapacityAvailable;
+
+  if (cap < 550) return 1;
+  else if (cap <= 950) return 2;
+  else if (cap <= 1500) return 3;
+  else if (cap <= 3500) return 4;
+  else return 5;
+}
+export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0) : string | undefined{
+
+  var sources = roomManager.getSources2(roomName);
+  var withEnergy2: Source[] = [];
+
+  _.forEach(sources, sourceMem => {
+    var source = <Source>Game.getObjectById(sourceMem.id);
+    if (source.energy > energyAmount) withEnergy2.push(source);
+  })
+  return _.min(withEnergy2, source => targetPos.getRangeTo(source)).id
+}
+export function getRoomType(roomName: string): RoomType {
+  if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
+
+  const room = Game.rooms[roomName];
+  if (room == undefined) return "UNKNOWN";
+
+  if (room.controller != undefined) {
+    if (room.controller.my) {
+      if (room.find(FIND_SOURCES).length > 0) return "OWNED";
+      else return "REMOTE_HARVEST"; //todo - handle expansion case
+    }
+    else return "HOSTILE"; //todo - add in friendly folks
   }
-  //console.log("Smart Structure Count: " + t.length);
-  return t;
-  //return structs.filter(struc => {
-  //  let mem = struc.memory as StructureMemory;
-  //  return mem.idle;
-  //})
+  else {
+    if (room.find(FIND_HOSTILE_SPAWNS).length > 0) return "SOURCE_KEEPER";
+    else return "EMPTY"
+  }
 
+  //todo - refactor this?
+}
+export function findContainers(roomName: string, creepRole:CreepRole, energyAmount:number, sortByRangeToID: string = "") : string[] {
+
+
+  var room = Game.rooms[roomName];
+  if (room == undefined) return [];
+  var containers = findAllContainers(roomName);
+  
+  var filtered = _.filter(containers, c =>
+    _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)
+    && (<StructureContainer>Game.getObjectById(c.id)).store.energy > energyAmount);
+
+  if (sortByRangeToID != "") {
+    var rangeToTarget = <RangeTarget>Game.getObjectById(sortByRangeToID);
+    if (rangeToTarget == undefined) throw new Error("findContainers:rangeToTarget cannot be undefined");
+
+    var sorted = _.sortBy(filtered, c => c.pos.getRangeTo(rangeToTarget))
+    return _.map(sorted, s=>s.id);
+  }
+  else return _.map(filtered, f=>f.id);
+
+}
+
+export function findSpawns(roomName: string, onlyNonSpawning: boolean = true) {
+  let room = Game.rooms[roomName];
+  return room.find(FIND_MY_STRUCTURES, {
+    filter: (structure: Structure) => {
+      if (structure.structureType == STRUCTURE_SPAWN) {
+        let spawner = structure as StructureSpawn;
+        Memory.spawns[spawner.id] = spawner.memory
+        return onlyNonSpawning ? spawner.spawning === null : true;
+      }
+      return false;
+    }
+  });
+}
+export function getTotalCreepCount(): number {
+  let totalcreepCount = 0;
+  for (const i in Game.rooms) {
+    const room: Room = Game.rooms[i];
+    let creeps = room.find(FIND_MY_CREEPS);
+    totalcreepCount += creeps.length;
+  }
+  return totalcreepCount;
 }
 export function getRestockables(roomName: string): Array<AnyStructure> {
   let room = Game.rooms[roomName];
@@ -281,23 +388,6 @@ export function getHomeRoom(creepName: string): string {
 
   return creepName.split("-")[0];
 }
-//export function getRoleString(job: CreepRole): string {
-//  switch (job) {
-//    case"ROLE_MINER": return "ROLE_MINER";
-//    case"ROLE_CARRIER": return "ROLE_CARRIER";
-//    case"ROLE_UPGRADER": return "ROLE_UPGRADER";
-//    case"ROLE_WORKER": return "ROLE_WORKER";
-//    case"ROLE_SCOUT": return "ROLE_SCOUT";
-//    case"ROLE_REMOTE_UPGRADER": return "ROLE_REMOTE_UPGRADER";
-//    case"ROLE_UNASSIGNED": return "ROLE_UNASSIGNED";
-//    case"ROLE_DEFENDER": return "ROLE_DEFENDER";
-//    case"ROLE_ALL": return "ROLE_ALL";
-//    default: {
-//      console.log("unknown role: " + job)
-//      return "unknown role";
-//    }
-//  }
-//}
 export enum CantBuildReasons {
   NotTheOwner = -1,
   NameAlreadyExists = -3,
@@ -307,14 +397,7 @@ export enum CantBuildReasons {
   RCLNotHighEnough = -14
 
 }
-// export function hasEnergy(creepName: string) : boolean {
-// 	let creep = Game.creeps[creepName];
-// 	return creep.carry.energy > 0;
-// }
-// export function hasRoom(creepName: string) : boolean{
-// 	let creep = Game.creeps[creepName];
-// 	return creep.carry.energy < creep.carryCapacity;
-// }
+
 export function errorToString(job: CantBuildReasons): string {
   switch (job) {
     case CantBuildReasons.NotTheOwner: return "You don't own this building...?";
@@ -329,14 +412,3 @@ export function errorToString(job: CantBuildReasons): string {
 
 
 
-// export function sendCreepsHome(roomName: string, creeps: Creep[]): void
-// {
-// 	let spawn = findStructureSpawns(roomName)[0];
-
-// 	console.log(`There are ${creeps.length} idle creeps.`)
-// 	for (const creep of creeps)
-// 	{
-// 		let mem = creep.memory as CreepMemory;
-// 		if (mem.idle) creep.moveTo(spawn);
-// 	}
-// }

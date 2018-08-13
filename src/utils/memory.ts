@@ -1,97 +1,79 @@
 //import { StructureTaskRequest } from "tasks/StructureTaskRequest";
-import { CreepTaskRequest } from "tasks/CreepTaskRequest";
-import { StructureTaskRequest } from "tasks/StructureTaskRequest";
+//import { CreepTaskRequest2 } from "tasks/CreepTaskRequest";
+//import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import * as utils from "utils/utils";
 export const MemoryVersion = 0;
-//export function m(): GameMemory {
-//  return Memory as any as GameMemory;
-//}
-//export interface GameMemory {
-//  uuid: number;
-//  memVersion: number;
-//  gcl: any;
-//  map: any;
-//  initialized: boolean;
-//  creeps:
-//  {
-//    [name: string]: any;
-//  };
+export const OwnerName = "KeyserSoze"
+let initialized = false;
 
-//  flags:
-//  {
-//    [name: string]: any;
-//  };
+function memoryInit() {
 
-//  rooms:
-//  {
-//    [name: string]: RoomMemory;
-//  };
+  console.log("Initializing Game");
+  
+  delete Memory.flags;
+  delete Memory.spawns;
+  delete Memory.creeps;
+  delete Memory.rooms;
 
-//  spawns:
-//  {
-//    [name: string]: any;
-//  };
-//}
+  const mem = Memory;
+  mem.owner = OwnerName;
+  mem.creeps = {};
+  mem.rooms = {};
+  mem.spawns = {};
+  mem.flags = {};
+  mem.scoutTargets = [];
+  mem.creepTasks = {};
+  mem.structureTasks = {};
 
-//export enum CreepRole {
-//  ROLE_UNASSIGNED = 0,
-//  ROLE_ALL = 1,
-//  ROLE_MINER = 2,
-//  ROLE_WORKER = 3,
-//  ROLE_UPGRADER = 4,
-//  ROLE_SCOUT = 5,
-//  ROLE_CARRIER = 6,
-//  ROLE_REMOTE_UPGRADER = 7,
-//  ROLE_DEFENDER = 8
-//}
-//export enum TaskStatus {
-//  PENDING = 0,
-//  INIT = 1,
-//  PREPARE = 2,
-//  PRE_RUN = 3,
-//  IN_PROGRESS = 4,
-//  POST_RUN = 5,
-//  FINISHED = 6,
-//}
-//export enum LinkMode {
-//  SEND = 0, MASTER_RECEIVE = 1, SLAVE_RECEIVE = 2
-//}
+  mem.uuid = utils.getTotalCreepCount();
+  mem.memVersion = MemoryVersion;
+}
 
-//interface RoomMemory {
-//  harvestLocations: { [index: string]: SmartSource };
-//  activeWorkerRequests: { [index: string]: CreepTaskRequest };
-//  test: StructureContainer[];
-//  pendingWorkerRequests: CreepTaskRequest[];
-//  pendingStructureRequests: StructureTaskRequest[];
-//  activeStructureRequests: { [index: string]: StructureTaskRequest };
-//  containers: {[index:string]:SmartContainer}
-//  links: {[index:string]:SmartLink}
-//  //activeResourcePileIDs: string[];
-//  towers: { [id: string]: SmartStructure };
-//  settingsMap: { [energyLevel: number]: RoomSettings };
-//  //avoid: any;
-//}
+export function InitializeGame() {
+  if (Memory.memVersion === undefined ||
+    Memory.memVersion !== MemoryVersion ||
+    (Memory.memVersion == 0 && !initialized)) {
 
+    memoryInit();
+    initialized = true;
+  }
+  if (!Memory.uuid || Memory.uuid > 10000) {
+    Memory.uuid = utils.getTotalCreepCount();
+  }
+  InitializeRoomMemory();
+}
+export function InitializeRoomMemory() {
+  for (var i in Game.rooms) {
+    const room: Room = Game.rooms[i];
+    let roomMemory = Memory.rooms[room.name];
+    if (roomMemory === undefined || roomMemory.initialized === false) {
+      
+
+      initRoomMemory(room.name);
+      //roomMemory = Memory.rooms[room.name];
+    }
+  }
+}
 export function initRoomMemory(roomName: string): void {
   let room = Game.rooms[roomName];
-  const rm: RoomMemory = Memory.rooms[room.name];
-  rm.harvestLocations = {};
-  rm.test = [];
-  rm.activeWorkerRequests = {};
-  rm.pendingWorkerRequests = [];
+  let rm: RoomMemory = Memory.rooms[room.name];
+  console.log(`Init room memory for ${room.name}.`);
+  rm = <RoomMemory>{};
+
+  rm.structures = {};
+
   rm.activeResourcePileIDs = [];
-  rm.activeStructureRequests = {};
-  rm.pendingStructureRequests = []
-  rm.towers = {};
-  rm.containers = {};
-  rm.links = {};
+
   rm.settingsMap = SetupRoomSettings(roomName);
-  rm.baseEntranceRamparts = [];
-  let start = Game.cpu.getUsed()
+  
+  //let start = Game.cpu.getUsed()
   var s = new utils.Search2();
   rm.baseEntranceRamparts = s.findEntrances(roomName, "rampart");
   rm.baseEntranceWalls = s.findEntrances(roomName, "constructedWall");
-  console.log("CPU USAGE: " + (Game.cpu.getUsed() - start))
+  //console.log("CPU USAGE: " + (Game.cpu.getUsed() - start))
+  rm.initialized = true;
+  Memory.rooms[room.name] = rm;
+
 }
 interface RoomSettingsMap {
   [energyLevel: number]: RoomSettings;
@@ -101,8 +83,8 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
   const settingsMap: RoomSettingsMap = {};
   var level1Settings = new RoomSettings(roomName);
   level1Settings.minersPerSource = 2;
-  level1Settings.maxWorkerCount = 4;
-  level1Settings.maxUpgraderCount = 3;
+  level1Settings.maxWorkerCount = 2;
+  level1Settings.maxUpgraderCount = 1;
   settingsMap[1] = level1Settings;
 
   var level2Settings = new RoomSettings(roomName);
@@ -114,13 +96,13 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
   var level3Settings = new RoomSettings(roomName);
   level3Settings.minersPerSource = 1;
   level3Settings.maxCarrierCount = 2;
-  level3Settings.maxUpgraderCount = 2;
+  level3Settings.maxUpgraderCount = 1;
   settingsMap[3] = level3Settings;
 
   var level4Settings = new RoomSettings(roomName);
   level4Settings.minersPerSource = 1;
-  level4Settings.maxCarrierCount = 2;
-  level4Settings.maxUpgraderCount = 3;
+  level4Settings.maxCarrierCount = 1;
+  level4Settings.maxUpgraderCount = 1;
   settingsMap[4] = level4Settings;
 
 
@@ -135,70 +117,28 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
 
 
 export function cleanupCreeps(): void {
-  for (const name in Memory.creeps) {
-    if (!Game.creeps[name]) {
+  for (const creepName in Memory.creeps) {
+    if (!Game.creeps[creepName]) {
       console.log("Clearing dead creeps from memory.")
       for (const roomName in Game.rooms) {
-        //let room = Game.rooms[roomName] as Room;
-        //let roomMemory = room.memory as RoomMemory;
-        //room.memory.
-        let harvestLocations = Game.rooms[roomName].memory.harvestLocations;
-        for (const sourceID in harvestLocations) {
-          let harvestSpot = harvestLocations[sourceID];
-          if (_.includes(harvestSpot.assignedTo, name)) {
-            console.log("unassiging harvest spot for " + name + " source: " + harvestSpot.sourceID)
-            harvestSpot.assignedTo = harvestSpot.assignedTo.filter(s=>s!=name);
-            //console.log(JSON.stringify(site.assignedTo))
+        let sources = <SourceMemory[]>_.filter(Game.rooms[roomName].memory.structures, s => {
+          s.type == "source"
+        });
+        _.forEach(sources, source => {
+          if (_.includes(source.assignedTo, creepName)) {
+            console.log("unassiging harvest spot for " + creepName + " source: " + source)
+            source.assignedTo = source.assignedTo.filter(s => s != creepName);
           }
-        }
+        })
       }
-      delete Memory.creeps[name];
+      delete Memory.creeps[creepName];
     }
-  }
-}
-
-
-
-
-export class SmartContainer {
-  containerID: string;
-  roomName: string;
-  shouldFill: boolean;
-  allowedWithdrawRoles: CreepRole[];
-  constructor(roomName: string, containerID: string, shouldFill: boolean, allowedWithdrawRoles: CreepRole[]) {
-    this.containerID = containerID;
-    this.roomName = roomName;
-    this.allowedWithdrawRoles = allowedWithdrawRoles;
-    this.shouldFill = shouldFill;
-  }
-}
-export class SmartSource {
-  sourceID: string;
-  roomName: string;
-  assignedTo: string[] = [];
-  linkID: string = "";
-  constructor(sourceID: string, roomName: string) {
-    this.sourceID = sourceID;
-    this.roomName = roomName;
-  }
-}
-
-export class SmartLink {
-  linkID: string;
-  roomName: string;
-  linkMode: LinkMode;
-  constructor(roomName: string, linkID: string, linkMode: LinkMode = "SEND") {
-    this.linkID = linkID;
-    this.roomName = roomName;
-    this.linkMode = linkMode;
   }
 }
 
 export class RoomSettings {
   roomName: string;
   minimumWorkerCount: number = 1;
-  //lowLevelMinersPerSource: number = 2;
-  //highLevelMinersPerSource: number = 1;
   minersPerSource: number = 2;
   minimumCarrierCount: number = 1;
   maxCarrierCount: number = 3;

@@ -2,21 +2,24 @@ import { CreepTask } from "../CreepTask";
 import { CreepTaskRequest } from "../CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as utils from "utils/utils"
+import { roomManager } from "RoomManager";
 
 export class PickUpEnergyRequest extends CreepTaskRequest {
   priority: number = 0;
   name: string = "PickupEnergy";
-  requiredRole: CreepRole[] = ["ROLE_WORKER"];
+  validRoles: CreepRole[] = ["ROLE_WORKER"];
   maxConcurrent: number = 2;
   resourceType: string;
   constructor(roomName: string, resourceID: string, resourceType: string) {
-    super(roomName, "😍", resourceID);
+    super(roomName, roomName, resourceID, "😍");
     this.resourceType = resourceType;
   }
 }
 export class PickupEnergy extends CreepTask {
-
-
+  static taskName: string = "PickupEnergy";
+  constructor(taskInfo: CreepTaskRequest) {
+    super(taskInfo);
+  }
   protected init(): void {
     super.init();
     //console.log("mine init assigned to " + this.request.assignedTo)
@@ -30,7 +33,7 @@ export class PickupEnergy extends CreepTask {
     this.request.status = "IN_PROGRESS";
   }
 
-  protected continue() {
+  protected work() {
     const requestInfo = this.request as PickUpEnergyRequest;
     const resource = Game.getObjectById(this.request.targetID);
     if (resource == null) {
@@ -82,7 +85,7 @@ export class PickupEnergy extends CreepTask {
         if (tombstone.store.energy == 0) continue;
         //console.log("found a tombstone with energy")
         let ts = new PickUpEnergyRequest(roomName, tombstone.id, "resource")
-        if (CreepTaskQueue.totalCount(roomName, ts.name) < ts.maxConcurrent) {
+        if (CreepTaskQueue.count(roomName, ts.name) < ts.maxConcurrent) {
           CreepTaskQueue.addPendingRequest(ts);
         }
       }
@@ -99,8 +102,6 @@ export class PickupEnergy extends CreepTask {
   //    creep.moveTo(container, { visualizePathStyle: { stroke: '#ffffff' } });
   //  }
   //}
-  constructor(taskInfo: CreepTaskRequest) {
-    super(taskInfo);
-  }
+  
 }
 

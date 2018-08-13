@@ -1,7 +1,3 @@
-//import { SmartSource, SmartContainer, SmartLink, SmartStructure, RoomSettings } from "utils/memory";
-//import { CreepTaskRequest } from "tasks/CreepTaskRequest";
-//import { StructureTaskRequest } from "tasks/StructureTaskRequest";
-
 // type shim for nodejs' `require()` syntax
 // for stricter node.js typings, remove this and install `@types/node`
 declare const require: (module: string) => any;
@@ -12,6 +8,12 @@ interface PathfinderReturn {
   ops: number;
   cost: number;
   incomplete: boolean;
+}
+
+interface StructureContainer {
+  shouldRefill: boolean;
+  allowedWithdrawRoles: CreepRole[];
+  roomName: string;
 }
 
 interface TravelToReturnData {
@@ -51,12 +53,7 @@ interface TravelData {
   state: any[];
   path: string;
 }
-interface StructureMemory {
-  idle: boolean;
-  alive: boolean;
-  currentTask: string;
 
-}
 interface TravelState {
   stuckCount: number;
   lastCoord: Coord;
@@ -64,13 +61,16 @@ interface TravelState {
   cpu: number;
 }
 
-
-declare class SmartLink {
-  linkID: string;
+interface StructureLink {
   roomName: string;
   linkMode: LinkMode;
-  constructor(roomName: string, linkID: string, linkMode: LinkMode);
 }
+//declare class SmartLink {
+//  linkID: string;
+//  roomName: string;
+//  linkMode: LinkMode;
+//  constructor(roomName: string, linkID: string, linkMode: LinkMode);
+//}
 declare class RoomSettings {
   roomName: string;
   minimumWorkerCount: number;
@@ -84,10 +84,10 @@ declare class RoomSettings {
   maxUpgraderCount: number;
   constructor(roomName: string);
 }
-interface SmartStructure {
-  memory: StructureMemory;
-  id: string;
-}
+//interface SmartStructure {
+//  memory: StructureMemory;
+//  id: string;
+//}
 
 
 interface CreepMemory {
@@ -96,145 +96,240 @@ interface CreepMemory {
   currentTask: string;
   idle: boolean;
   role: CreepRole;
+  homeRoom: string;
 
   _trav: any; //traveler
   _travel: any; //traveler
 }
 
-declare class SmartContainer {
-  containerID: string;
-  roomName: string;
-  shouldFill: boolean;
-  allowedWithdrawRoles: CreepRole[];
-  constructor(roomName: string, containerID: string, shouldFill: boolean, allowedWithdrawRoles: CreepRole[]);
-}
-declare class SmartSource {
-  sourceID: string;
-  roomName: string;
-  assignedTo: string[];
-  linkID: string;
-  constructor(sourceID: string, roomName: string);
-}
+//declare class SmartContainer {
+//  containerID: string;
+//  roomName: string;
+//  shouldFill: boolean;
+//  allowedWithdrawRoles: CreepRole[];
+//  //constructor(roomName: string, containerID: string, shouldFill: boolean, allowedWithdrawRoles: CreepRole[]);
+//}
+//interface Source {
+//  roomName: string;
+//  assignedTo: string[];
+//  linkID: string;
+//  containerID: string;
+//}
+//declare class SmartSource {
+//  sourceID: string;
+//  roomName: string;
+//  assignedTo: string[];
+//  linkID: string;
+//  constructor(sourceID: string, roomName: string);
+//}
+type RoomType = "OWNED" | "REMOTE_HARVEST" | "HOSTILE" | "UNKNOWN" | "SOURCE_KEEPER" | "EMPTY"
 interface RoomMemory {
-  harvestLocations: { [index: string]: SmartSource };
-  activeWorkerRequests: { [index: string]: CreepTaskRequest };
-  test: StructureContainer[];
-  pendingWorkerRequests: CreepTaskRequest[];
-  pendingStructureRequests: StructureTaskRequest[];
-  activeStructureRequests: { [index: string]: StructureTaskRequest };
-  containers: { [index: string]: SmartContainer }
-  links: { [index: string]: SmartLink }
+  //sources: { [index: string]: Source };
+
+  //creepTasks: { [requestID: string]: CreepTaskRequest2 }
+
+  //activeWorkerRequests: { [index: string]: CreepTaskRequest };
+  //test: StructureContainer[];
+  //pendingWorkerRequests: CreepTaskRequest[];
+  //pendingStructureRequests: StructureTaskRequest[];
+  //activeStructureRequests: { [index: string]: StructureTaskRequest };
+  roomType: RoomType;
+  initialized: boolean;
+  //containerIDs: string[];
+  //sourceIDs: string[];
+  //sources: { [sourceID: string]: SourceMemory };
+  //containers: { [sourceID: string]: ContainerMemory };
+  //towers: { [towerID: string]: TowerMemory };
+  //links: { [linkID: string]: LinkMemory };
+  structures: { [structureID: string] : StructureMemory}
+  //linkIDs: string[];
+  //towerIDs: string[];
   activeResourcePileIDs: string[];
   avoid: any;
-  towers: { [id: string]: SmartStructure };
   settingsMap: { [energyLevel: number]: RoomSettings };
   baseEntranceRamparts: RoomPosition[];
   baseEntranceWalls: RoomPosition[];
+  //towers: { [id: string]: SmartStructure };
+  //containers: { [id: string]: StructureContainer }
+  //links: { [id: string]: StructureLink }
+
 }
+interface StructureMemory {
+
+  id: string;
+  pos: RoomPosition;
+  //idle: boolean;
+  //alive: boolean;
+  currentTask: string;
+  roomName: string;
+  //alive: boolean | undefined;
+  type: StructureConstant | "source";
+  //role: StructureRole;
+
+}
+interface SourceMemory extends StructureMemory {
+
+  linkID: string;
+  containerID: string;
+  assignedTo: string[];
+}
+interface ContainerMemory extends StructureMemory {
+  shouldRefill: boolean | undefined;
+  allowedWithdrawRoles: CreepRole[] | undefined;
+}
+interface LinkMemory extends StructureMemory {
+
+  linkMode: LinkMode
+}
+interface SpawnMemory extends StructureMemory {
+}
+
+type TowerMode = "ATTACK" | "HEAL" | "REPAIR" | "IDLE"
+interface TowerMemory extends StructureMemory {
+  towerMode: TowerMode
+}
+//declare abstract class CreepTaskRequest implements ITaskRequest {
+//  status: TaskStatus;
+//  wingDing: string;
+//  isCreepTask: boolean;
+//  targetID: string;
+//  abstract name: string;
+//  requestingRoomName: string;
+//  targetRoomName: string;
+//  assignedTo: string;
+//  abstract priority: number;
+//  abstract validRoles: CreepRole[];
+//  abstract maxConcurrent: number;
+//  constructor(roomName: string, wingDing: string, targetID: string);
+//}
+//declare abstract class CreepTaskRequest2 implements ICreepTaskRequest {
+
+//  status: TaskStatus;
+//  wingDing: string;
+//  category: TaskCategory;
+//  id: string;
+//  targetID: string;
+//  targetRoomName: string;
+//  originatingRoomName: string;
+//  assignedToID: string;
+//  assignedToName: string;
+
+//  abstract priority: number;
+//  abstract validRoles: CreepRole[];
+//  abstract name: string;
+//  constructor(originatingRoomName: string, targetRoomName: string, targetID: string, wingDing: string);
+//}
 declare abstract class CreepTaskRequest implements ITaskRequest {
-  status: TaskStatus;
+
+  id: string;
+  status: TaskStatus
+  category: TaskCategory;
+
+  originatingRoomName: string;
+  targetID: string;
+  targetRoomName: string;
+
+  assignedToID: string;
+  //assignedToName: string;
+
   wingDing: string;
-  isCreepTask: boolean;
-  targetID: string;
-  abstract name: string;
-  requestingRoomName: string;
-  targetRoomName: string;
-  assignedTo: string;
+
   abstract priority: number;
-  abstract requiredRole: CreepRole[];
-  abstract maxConcurrent: number;
-  constructor(roomName: string, wingDing: string, targetID: string);
+  abstract validRoles: CreepRole[];
+  abstract name: string
+
+  constructor(originatingRoomName: string, targetRoomName: string, targetID: string, wingDing: string);
+
 }
+
 declare abstract class StructureTaskRequest implements ITaskRequest {
-  status: TaskStatus;
-  abstract name: string;
-  abstract priority: number;
+  id: string; status: TaskStatus;
+  category: TaskCategory;
   targetID: string;
-  requestingRoomName: string;
   targetRoomName: string;
-  assignedTo: string;
-  abstract maxConcurrent: number;
-  isCreepTask: boolean;
-  constructor(roomName: string, targetID: string);
+  originatingRoomName: string;
+  assignedToID: string;
+  //assignedToName: string;
+  abstract priority: number;
+  abstract validStructureTypes: StructureConstant[];
+  abstract name: string;
+  constructor(originatingRoomName: string, targetRoomName: string, targetID: string);
+  //status: TaskStatus;
+  //abstract name: string;
+  //abstract priority: number;
+  //targetID: string;
+  //requestingRoomName: string;
+  //targetRoomName: string;
+  //assignedTo: string;
+  //abstract maxConcurrent: number;
+  //isCreepTask: boolean;
+  //constructor(roomName: string, targetID: string);
 }
 interface Creep {
   travelTo(destination: HasPos | RoomPosition, ops?: TravelToOptions): number;
 }
-interface ITask {
+//interface ITask {
+//  request: ITaskRequest;
+//  run(): void;
+//}
+interface ITask2 {
+  //name: string;
   request: ITaskRequest;
+  //addRequests(roomName: string, energyLevel: number): void;
   run(): void;
 }
 interface ICreepTaskRequest extends ITaskRequest {
   wingDing: string;
 }
+//interface ITaskRequest {
+//  name: string;
+//  priority: number;
+//  targetID: string;
+//  requestingRoomName: string;
+//  targetRoomName: string;
+//  status: TaskStatus;
+//  assignedTo: string;
+//  maxConcurrent: number;
+//  isCreepTask: boolean;
+//}
 interface ITaskRequest {
-  name: string;
-  priority: number;
-  targetID: string;
-  requestingRoomName: string;
-  targetRoomName: string;
+  id: string;
+
   status: TaskStatus;
-  assignedTo: string;
-  maxConcurrent: number;
-  isCreepTask: boolean;
+  category: TaskCategory;
+  targetID: string;
+  targetRoomName: string;
+  originatingRoomName: string;
+  assignedToID: string;
+  priority: number;
+  //validRoles: IRole[];
+  name: string
 }
+
+//interface OwnedStructure { memory: StructureMemory }
+
 interface Memory {
+  owner: string;
   uuid: number;
   memVersion: number;
-  //gcl: any;
-  //map: any;
   initialized: boolean;
-  //creeps:
-  //{
-  //  [name: string]: any;
-  //};
-
-  //flags:
-  //{
-  //  [name: string]: any;
-  //};
-
-  //rooms:
-  //{
-  //  [name: string]: RoomMemory;
-  //};
-
-  //spawns:
-  //{
-  //  [name: string]: any;
-  //};
+  scoutTargets: string[];
+  creepTasks: { [requestID: string]: CreepTaskRequest }
+  structureTasks: { [requestID: string] : StructureTaskRequest}
+  Tasks: { [requestID: string]: ITaskRequest };
 }
-//declare enum TaskStatus {
-//  PENDING = 0,
-//  INIT = 1,
-//  PREPARE = 2,
-//  PRE_RUN = 3,
-//  IN_PROGRESS = 4,
-//  POST_RUN = 5,
-//  FINISHED = 6,
-//}
-//declare enum CreepRole {
-//  ROLE_UNASSIGNED = 0,
-//  ROLE_ALL = 1,
-//  ROLE_MINER = 2,
-//  ROLE_WORKER = 3,
-//  ROLE_UPGRADER = 4,
-//  ROLE_SCOUT = 5,
-//  ROLE_CARRIER = 6,
-//  ROLE_REMOTE_UPGRADER = 7,
-//  ROLE_DEFENDER = 8
-//}
+type ScoutMode = "CLAIM" | "RESERVE" | "SCOUT"
+type IRole = CreepRole | StructureRole;
 
 type CreepRole = "ROLE_UNASSIGNED" | "ROLE_ALL" | "ROLE_MINER" | "ROLE_WORKER" | "ROLE_UPGRADER" | "ROLE_SCOUT" | "ROLE_CARRIER" | "ROLE_REMOTE_UPGRADER" | "ROLE_DEFENDER" | "ROLE_DISMANTLER";
-type TaskStatus = "PENDING" | "INIT" | "PREPARE" | "PRE_RUN" | "IN_PROGRESS" | "POST_RUN" | "FINISHED";
+type StructureRole = "ROLE_UNASSIGNED" | "ROLE_TOWER" | "ROLE_LINK" | "ROLE_ALL";
+type TaskStatus = "INIT" | "PREPARE" | "PRE_RUN" | "IN_PROGRESS" | "WIND_DOWN" | "PENDING" | "FINISHED" | "ANY"
 type LinkMode = "SEND" | "MASTER_RECEIVE" | "SLAVE_RECEIVE";
 type Coord = { x: number, y: number };
 type HasPos = { pos: RoomPosition };
+type HasID = { id: string };
+type HasRef = { ref: string };
 
-interface RoomPosition {
-  bfsType: BFSSearchType;
-  //visited: boolean;
-}
+type TaskCategory = "CREEP" | "STRUCTURE";
 type BaseEdge = "constructedWall" | "rampart";
-type BFSSearchType = "walkable" | "rampart" | "blocked";
-// add your custom typings here
+type RangeTarget = AnyStructure | Creep | ConstructionSite | Source

@@ -1,112 +1,103 @@
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 
+
 export class StructureTaskQueue {
-  static totalCount(roomName: string, taskName: string = "") {
-    return StructureTaskQueue.activeCount(roomName, taskName)
-      + StructureTaskQueue.pendingCount(roomName, taskName);
-  }
-  static pendingCount(roomName: string, taskName: string = ""): number {
-    let roomMem = Game.rooms[roomName].memory as RoomMemory;
-    if (taskName == "") {
-      return roomMem.pendingStructureRequests.length;
-    }
-    else {
-      let count = 0;
-      let tasks = roomMem.pendingStructureRequests;
-      for (const id in tasks) {
-        let task = tasks[id];
-        if (task.name == taskName)
-          count++;
-      }
-      return count;
+  static removeFinished(): void {
+    const finished = _.filter(Memory.structureTasks, req => req.status == "FINISHED");
+    for (var id in finished) {
+      this.removeTask(id)
     }
   }
-  static activeCount(roomName: string, taskName: string = ""): number {
-
-
-    let roomMem = Game.rooms[roomName].memory as RoomMemory;
-    var count: number = 0;
-    for (var i in roomMem.activeStructureRequests) {
-      var request = roomMem.activeStructureRequests[i];
-      if (request.name == taskName || taskName == "")
-        count++;
-
-    }
-    return count;
-
-    //let roomMem = Game.rooms[roomName].memory as RoomMemory;
-    //if (taskName == "") {
-    //  return roomMem.activeStructureRequestCount;
-    //}
-    //else {
-    //  let count = 0;
-    //  let tasks = roomMem.activeStructureRequests;
-    //  for (let task in tasks) {
-    //    let test = tasks[task];
-    //    if (test.name == taskName)
-    //      count++;
-    //  }
-    //  return count;
-    //}
+  static removeTask(id: string): void {
+    delete Memory.structureTasks[id];
   }
   static addPendingRequest(request: StructureTaskRequest): void {
-    //console.log("addpending")
-    let roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
-    var totalCurrent = StructureTaskQueue.totalCount(request.requestingRoomName, request.name);
-    //console.log("total current pending tasks: "+ request.name + " "+ totalCurrent)
-    //console.log("when adding: "+ request.targetID)
-    if (totalCurrent < request.maxConcurrent) {
-      let roomMem = Game.rooms[request.requestingRoomName].memory as RoomMemory;
-      roomMem.pendingStructureRequests.push(request);
-    }
 
-  }
-  static startTask(buildingID: string, roomName: string): void {
-    let roomMem = Game.rooms[roomName].memory as RoomMemory;
-    if (roomMem.pendingStructureRequests.length == 0) {
-      //console.log("no pending requests.")
+    
+    if (request == undefined) {
+      console.log("In StructureTaskQueue.addPendingRequest, request was undefined");
       return;
     }
-    const sortedTasks = _.sortBy(roomMem.pendingStructureRequests, s => s.priority);
-    //console.log("sorted priority: " + JSON.stringify(sortedTasks.map(t => t.priority)))
-    for (const key in sortedTasks) {
-      if (sortedTasks.hasOwnProperty(key)) {
-        const task = sortedTasks[key];
-        var nextTask = _.find(roomMem.pendingStructureRequests, task)
-
-        if (nextTask != undefined) {
-          nextTask.assignedTo = buildingID;
-          //mem.idle = false;
-          //mem.currentTask = nextTask.name;
-
-          roomMem.activeStructureRequests[buildingID] = nextTask;
-          _.remove(roomMem.pendingStructureRequests, nextTask);
-
-          //console.log(JSON.stringify(nextTask))
-
-          nextTask.status = "INIT";
-          break;
-        }
-        else {
-          //console.log("ARGH!!!.")
-        }
-      }
+    if (Memory.structureTasks == undefined) {
+      console.log("In StructureTaskQueue.addPendingRequest, creepTasks was undefined");
+      return;
     }
-    //let nextTask = roomMem.pendingStructureRequests.shift();
-    //if (nextTask != undefined) {
-    //  console.log(JSON.stringify(nextTask))
-    //  nextTask.assignedTo = buildingID;
-    //  roomMem.activeStructureRequests[buildingID] = nextTask;
-    //  nextTask.status = "INIT";
-    //}
+    Memory.structureTasks[request.id] = request;
   }
-  //static finish(creepName: string, roomName: string) {
-  //  let roomMem = Game.rooms[roomName].memory as RoomMemory;
-  //  delete roomMem.activeStructureRequests[creepName];
-  //  roomMem.activeStructureRequestCount--;
-  //}
-  static allActive(roomName: string): { [index: string]: StructureTaskRequest; } {
-    let roomMem = Game.rooms[roomName].memory as RoomMemory;
-    return roomMem.activeStructureRequests as { [index: string]: StructureTaskRequest; };
+  static count(roomName: string, taskName: string = "", status: TaskStatus = "ANY", structureType: StructureConstant | undefined = undefined): number {
+    return StructureTaskQueue.getTasks(roomName, taskName, status, structureType).length;
+  }
+  static getTasks(roomName: string, taskName: string = "", status: TaskStatus = "ANY", structureType: StructureConstant | "source" | undefined = undefined): string[] {
+
+    var matchingRequests = _.filter(Memory.structureTasks, req =>
+      req.originatingRoomName == roomName &&
+      (taskName == "" || req.name == taskName) &&
+      (status == "ANY" || req.status == status) &&
+      (structureType == undefined || _.includes(req.validStructureTypes, structureType)));
+    return _.map(matchingRequests, request => request.id);
+  }
+
+  static activeTasks(roomName: string, taskName: string = "", targetID: string = "") {
+
+    return _.filter(Memory.structureTasks, task =>
+      task.originatingRoomName == roomName &&
+      task.status != "PENDING" && task.status != "FINISHED" &&
+      task.name == taskName || taskName == "" &&
+      targetID == task.targetID || targetID == "");
+  }
+
+  
+  static getTask(id: string): StructureTaskRequest | undefined {
+
+    var request = Memory.structureTasks[id];
+    if (request == undefined) {
+      console.log("ERROR: Invalid Task ID (StructureTaskQueue.getTask)");
+    }
+    return request;
+  }
+  static assignRequest(structureID: string, originatingRoomName: string): void {
+
+    const room = Memory.rooms[originatingRoomName];
+    if (room == undefined) return;
+    const structure = room.structures[structureID];
+
+    if (structure == undefined) {
+      console.log("ERROR: assignPendingRequest -> structure cannot be undefined!");
+      return;
+    }
+   
+    var nextTaskID = StructureTaskQueue.getNextTaskID(structureID, originatingRoomName);
+    ////console.log(`Next Task ID: ${nextTaskID}`)
+    if (nextTaskID == "") return;
+
+    var nextTask = Memory.structureTasks[nextTaskID];
+    if (nextTask == undefined) {
+      console.log("ERROR: assignPendingRequest -> nextTask cannot be undefined!");
+      return;
+    }
+    nextTask.assignedToID = structure.id;
+    nextTask.status = "INIT";
+
+    //console.log(`Next task ${nextTask.name} assigned to ${structure.structureType} - ${structure.id}`);
+  }
+  private static getNextTaskID(structureID: string, originatingRoomName: string): string {
+
+    //const structure = <OwnedStructure>Game.getObjectById(structureID);
+    const room = Game.rooms[originatingRoomName];
+    const structure = room.memory.structures[structureID];
+    const tasks = StructureTaskQueue.getTasks(originatingRoomName, "", "PENDING", structure.type);
+
+    if (tasks.length == 0) return "";
+
+    const sortedByPriority = _.sortByAll(_.map(tasks, id => Memory.structureTasks[id]),
+      [
+        'priority',
+        //t => structure.pos.getRangeTo(<HasPos>Game.getObjectById(t.targetID))
+      ]);
+    if (sortedByPriority.length == 0) return "";
+
+    return sortedByPriority[0].id;
   }
 }
+
+

@@ -2,41 +2,54 @@ import { StructureTask } from "tasks/StructureTask";
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import { StructureTaskQueue } from "tasks/StructureTaskQueue";
 import { CreepTaskQueue } from "../CreepTaskQueue";
+import { roomManager } from "RoomManager";
 
 export class TowerRepairRequest extends StructureTaskRequest {
+
+  validStructureTypes: StructureConstant[] = ["tower"];
   priority: number = 2;
   name: string = "TowerRepair";
   maxConcurrent: number = 3;
   static maxHitPoints: number = 1200000;
   constructor(roomName: string, siteID: string) {
-    super(roomName, siteID)
+    super(roomName, roomName, siteID)
   }
 
 }
 export class TowerRepair extends StructureTask {
+  static taskName: string = "TowerRepair";
+  protected windDown(): void {
+    throw new Error("Method not implemented.");
+  }
 
   protected init(): void {
     super.init();
+    if (this.request.status != "INIT") return;
+    //console.log("Repair INIT");
+    var room = Game.rooms[this.request.originatingRoomName] as Room;
+    const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    tower.currentTask = TowerRepair.taskName + this.request.id;
+    tower.towerMode = "REPAIR";
     this.request.status = "PREPARE";
   }
   protected prepare(): void {
     super.prepare();
+    if (this.request.status != "PREPARE") return;
+
+
     this.request.status = "IN_PROGRESS"
   }
-  protected continue(): void {
-    super.continue();
-    if (this.request.status == "FINISHED") return;
-    //console.log("continue start: " + this.request.targetID)
+  protected work(): void {
+    super.work();
+    if (this.request.status != "IN_PROGRESS") return;
+
     const site = Game.getObjectById(this.request.targetID) as AnyStructure;
-    const tower = Game.getObjectById(this.request.assignedTo) as StructureTower;
-    if (tower == null || site == null) {
-      console.log("something went wrong")
-    }
+    const tower = Game.getObjectById(this.request.assignedToID) as StructureTower;
+
     if (tower.energy < tower.energyCapacity * .5) {
       this.request.status = "FINISHED";
       return;
     }
-    
     var status = tower.repair(site);
     if (status == OK) {
       this.request.status = "FINISHED";
@@ -44,23 +57,56 @@ export class TowerRepair extends StructureTask {
 
     
   }
+  protected finish() {
+    super.finish();
+    if (this.request.status != "FINISHED") return;
+    
+
+    var room = Game.rooms[this.request.originatingRoomName] as Room;
+    const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    
+    if (tower == undefined) {
+      console.log(`Tower was undefined: ${this.request.assignedToID}`);
+    }
+    else {
+      tower.towerMode = "IDLE"
+      tower.currentTask = "";
+    }
+  }
   
   constructor(taskInfo: StructureTaskRequest) {
     super(taskInfo);
   }
-  static addTask(roomName: string) {
+  static addRequests(roomName: string) {
     const room = Game.rooms[roomName];
     const targets = room.find(FIND_STRUCTURES)
       .filter(structure => structure.hits < structure.hitsMax * .75 && structure.hits < TowerRepairRequest.maxHitPoints)
 
     const sorted = _.sortBy(targets, t => t.hits);
-    var target = _.first(sorted);
-    if (target != undefined) {
-      if (CreepTaskQueue.active(roomName, "Dismantle", target.id).length == 0) {
-        StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
-      }
-      
+    var count = StructureTaskQueue.count(roomName, TowerRepair.taskName);
+    var i = 0;
+    for (var id in sorted) {
+      if (i + count == 3) break;
+      var target = sorted[id];
+      StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
+      i++;
     }
+    //for (var i = 0; i < sorted.length; i++) {
+
+    //  var target = sorted[i];
+      
+    //  if (StructureTaskQueue.activeTasks(roomName, this.taskName, target.id).length < 3) {
+    //    StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
+    //  }
+
+    //}
+    //var target = _.first(sorted);
+    //if (target != undefined) {
+    //  if (StructureTaskQueue.activeTasks(roomName, this.taskName, target.id).length < 3) {
+    //    StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
+    //  }
+      
+    //}
 
   }
 }
