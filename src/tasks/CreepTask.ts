@@ -24,7 +24,20 @@ export abstract class CreepTask extends Task {
       this.request.status == "FINISHED";
       return;
     }
-    else if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
+    else {
+      if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
+
+      if (Object.keys(this.creep.carry).length > 1) {
+        const room = Game.rooms[this.request.originatingRoomName];
+        const storage = room.storage;
+        if (storage != undefined) {
+          var result = this.creep.transfer(storage, <ResourceConstant>_.findKey(this.creep.carry));
+          if (result == ERR_NOT_IN_RANGE) {
+            this.creep.travelTo(storage);
+          }
+        }
+      }
+    }
   }
 
   protected prepare(): void {
@@ -33,6 +46,10 @@ export abstract class CreepTask extends Task {
       this.request.status = "FINISHED";
       return;
     }
+    //if (Object.keys(this.creep.carry).length > 1) {
+    //  this.request.status = "INIT";
+    //  return;
+    //}
     if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
 
     if (this.creep.room.name != this.request.targetRoomName) {
@@ -47,6 +64,10 @@ export abstract class CreepTask extends Task {
       this.request.status = "FINISHED";
       return;
     }
+    //if (Object.keys(this.creep.carry).length > 1) {
+    //  this.request.status = "INIT";
+    //  return;
+    //}
     if (this.creep.room.name != this.request.targetRoomName) {
       this.request.status = "IN_PROGRESS";
       return;
