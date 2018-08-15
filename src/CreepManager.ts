@@ -331,7 +331,7 @@ export class CreepManager {
 
       const memory: CreepMemory =
       {
-        spawnID: spawn.id,
+        //spawnID: spawn.id,
         homeRoom: spawn.room.name,
         idle: true,
         currentTask: "",

@@ -10,12 +10,23 @@ export class RoomManager {
   }
   //creeps: Array<Creep> = [];
   _defaultSpawn: string = "";
+  creepsTest: { [roomName: string]: CreepDictionary } = {};
   creeps2: { [roomName: string]: Creep[] } = {}
   _sources2: { [roomName: string]: SourceMemory[] } = {}
   _links2: { [roomName: string]: LinkMemory[] } = {}
   _containers2: { [roomName: string]: ContainerMemory[] } = {}
   _towers2: { [roomName: string]: TowerMemory[] } = {}
 
+  //getCreepsTest(roomName: string): CreepDictionary {
+  //  if (this.creepsTest[roomName] == undefined || this.creepsTest[roomName] == null || this.creepsTest[roomName] == {}) {
+  //    console.log(`Initializing creep dictionary for ${roomName}`)
+  //    this.loadCreepsTest(roomName);
+  //    return this.creepsTest[roomName];
+  //  }
+  //  else {
+
+  //  }
+  //}
   
   getSources2(roomName: string): SourceMemory[] {
     const room = Memory.rooms[roomName];
@@ -132,12 +143,13 @@ export class RoomManager {
     const creeps = this.creeps2[roomName];
     let spawn = room.find(FIND_MY_SPAWNS)[0];
     if (spawn != undefined) this._defaultSpawn = spawn.id;
-
+    
     for (let id in creeps) {
       let creep = creeps[id];
       if (creep.memory === undefined || creep.memory.alive === undefined) {
+        console.log("got here")
         creep.memory = {
-          spawnID: (spawn != undefined ? spawn.id : this._defaultSpawn),
+          //spawnID: (spawn != undefined ? spawn.id : this._defaultSpawn),
           idle: true,
           alive: true,
           role: getRole(creep.name),
@@ -178,6 +190,64 @@ export class RoomManager {
     return containerMems;
   }
 
+  private loadCreepsTest(roomName: string): void {
+
+    //const roomMem = Memory.rooms[roomName];
+    ////const dictionary: CreepDictionary = {}; WONT WORK assigning will rewrite creeps in other rooms
+    //if (roomMem == undefined) {
+    //  console.log("ERROR_loadCreepsTest - need to handle undefined room " + roomName);
+    //  return {};
+    //}
+    const room = Game.rooms[roomName];
+    if (room == undefined) {
+      console.log("WARNING_loadCreepsTest - don't have visibility to room " + roomName);
+      return;
+    }
+    if (this.creepsTest[roomName] == undefined || this.creepsTest[roomName] == null) {
+      console.log(`Initializing creep dictionary for ${roomName}`)
+      this.creepsTest[roomName] = {};
+    }
+    const creeps = room.find(FIND_MY_CREEPS);
+    for (var id in creeps) {
+      const creep = creeps[id];
+      if (this.creepsTest[creep.name] == undefined || this.creepsTest[creep.name] == null) {
+        console.log(`Don't have cached memory for ${creep.name} - creating`);
+        if (creep.memory == undefined) {
+          console.log(`found a creep with no memory - would have reset it here... ${creep.name}`)
+          //creep.memory = {
+          //  idle: true,
+          //  alive: true,
+          //  role: getRole(creep.name),
+          //  currentTask: "",
+          //  homeRoom: room.name,
+          //  _trav: 0,
+          //  _travel: 0
+          //};;
+        }
+        else {
+          this.creepsTest[roomName][creep.id] = creep.memory;
+        }
+
+      }
+    }
+
+
+    //const towers = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "tower");
+    //const sourceMems: TowerMemory[] = [];
+    //_.forEach(towers, tower => {
+    //  const mem = <TowerMemory>{
+    //    pos: tower.pos,
+    //    towerMode: "IDLE",
+    //    id: tower.id,
+    //    currentTask: "",
+    //    type: tower.structureType,
+    //    roomName: tower.room.name,
+    //  }
+    //  if (roomMem.structures[tower.id] == undefined) roomMem.structures[tower.id] = mem;
+    //  sourceMems.push(mem);
+    //});
+    //return sourceMems;
+  }
   private loadTowers2(roomName: string): TowerMemory[] {
     const roomMem = Memory.rooms[roomName];
     if (roomMem == undefined) {

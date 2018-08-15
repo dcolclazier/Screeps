@@ -36,6 +36,10 @@ export class TaskManager {
     TowerRepair.addRequests(roomName);
     //Scout.addRequests(roomName);
 
+    //var test = roomManager.getCreepsTest(roomName);
+    //console.log(JSON.stringify(test));
+    
+
   }
   private runLinks(roomName: string) {
     const room = Memory.rooms[roomName];

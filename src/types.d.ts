@@ -91,7 +91,7 @@ declare class RoomSettings {
 
 
 interface CreepMemory {
-  spawnID: string;
+  //spawnID: string;
   alive: boolean | undefined;
   currentTask: string;
   idle: boolean;
@@ -292,6 +292,10 @@ interface ICreepTaskRequest extends ITaskRequest {
 //  maxConcurrent: number;
 //  isCreepTask: boolean;
 //}
+
+interface CreepDictionary {
+  [creepID: string]: CreepMemory;
+}
 interface ITaskRequest {
   id: string;
 

@@ -35,12 +35,11 @@ export class FillTower extends CreepTask {
     var roomMem = room.memory as RoomMemory;
     if (this.creep.carry.energy == 0) {
 
-
-      if (this.collectFromTombstone(room.name)) return;
-      else if (this.collectFromDroppedEnergy(room.name)) return;
-      else if (this.collectFromMasterLink(room.name)) return;
+      if (this.collectFromMasterLink(room.name)) return;
       else if (this.collectFromStorage(room.name)) return;
       else if (this.collectFromContainer(room.name)) return;
+      else if (this.collectFromTombstone(room.name)) return;
+      else if (this.collectFromDroppedEnergy(room.name)) return;
       //this.collectFromSource(room.name);
 
     }
@@ -53,6 +52,11 @@ export class FillTower extends CreepTask {
     if (tower.energy == tower.energyCapacity) {
       this.request.status = "FINISHED";
       return;
+    }
+    if (this.creep.carry.energy == 0) {
+      this.request.status = "PREPARE";
+      return;
+
     }
     let result = this.creep.transfer(tower, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {

@@ -109,7 +109,7 @@ export function SetupRoomSettings(roomName: string) : RoomSettingsMap
 
   var level5Settings = new RoomSettings(roomName);
   level5Settings.minersPerSource = 1;
-  level5Settings.maxCarrierCount = 1;
+  level5Settings.maxCarrierCount = 2;
   level5Settings.maxUpgraderCount = 1;
   settingsMap[5] = level5Settings;
 

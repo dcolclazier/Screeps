@@ -48,6 +48,10 @@ export class FillContainers extends CreepTask {
 
     //const creep = Game.creeps[this.request.assignedTo];
     var room = Game.rooms[this.request.targetRoomName];
+    if (this.creep.carry.energy == 0) {
+      this.request.status = "PREPARE";
+      return;
+    }
 
     var cMem = _.find(roomManager.getContainers2(this.request.targetRoomName), c => {
       var container = <StructureContainer>Game.getObjectById(c.id);

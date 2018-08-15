@@ -10,7 +10,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
   priority: number = 2;
   name: string = "TowerRepair";
   maxConcurrent: number = 3;
-  static maxHitPoints: number = 3200000;
+  static maxHitPoints: number = 2840000;
   constructor(roomName: string, siteID: string) {
     super(roomName, roomName, siteID)
   }

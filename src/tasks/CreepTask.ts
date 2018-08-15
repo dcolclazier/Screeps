@@ -50,6 +50,7 @@ export abstract class CreepTask extends Task {
     //  this.request.status = "INIT";
     //  return;
     //}
+    
     if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
 
     if (this.creep.room.name != this.request.targetRoomName) {
@@ -120,7 +121,7 @@ export abstract class CreepTask extends Task {
 
     const resourcePileIDs = room.memory.activeResourcePileIDs
       .map(s => Game.getObjectById(s) as Resource)
-      .filter(ss => ss.amount > 300)
+      .filter(ss => ss != undefined && ss != null && ss.amount > 300)
     if (resourcePileIDs.length == 0) return false;
 
     const sortedByRange = _.sortBy(resourcePileIDs, s => s.amount / this.creep.pos.getRangeTo(s.pos)).reverse();
