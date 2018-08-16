@@ -46,10 +46,10 @@ export abstract class CreepTask extends Task {
       this.request.status = "FINISHED";
       return;
     }
-    //if (Object.keys(this.creep.carry).length > 1) {
-    //  this.request.status = "INIT";
-    //  return;
-    //}
+    if (Object.keys(this.creep.carry).length > 1) {
+      this.request.status = "INIT";
+      return;
+    }
     
     if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
 

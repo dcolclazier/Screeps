@@ -37,10 +37,6 @@ export class FillStorage extends CreepTask {
     const restockInfo = this.request as FillStorageRequest;
     var room = Game.rooms[this.request.targetRoomName];
     var roomMem = room.memory as RoomMemory;
-    //this.collectFromContainer(this.request.roomName, creep.id);
-
-    //temp code...
-
 
     if (this.creep.carry.energy == 0) {
       
@@ -49,7 +45,7 @@ export class FillStorage extends CreepTask {
       if (this.collectFromMasterLink(room.name)) return;
       if (this.collectFromContainer(room.name)) return;
       //this.collectFromSource(room.name);
-
+      this.request.status = "FINISHED";
     }
     else {
       this.request.status = "IN_PROGRESS";
@@ -58,35 +54,19 @@ export class FillStorage extends CreepTask {
   protected work(): void {
     super.work();
     if (this.request.status != "IN_PROGRESS") return;
-    const storage = this.creep.room.storage;
+    const storage = <StructureStorage>Game.getObjectById(this.request.targetID)
     if (storage == undefined) {
       this.request.status = "FINISHED";
       return;
     }
     const result = this.creep.transfer(storage, _.findKey(this.creep.carry) as ResourceConstant)
-    //const target = sortedByRange[0]
     if (result == ERR_NOT_IN_RANGE) {
       this.creep.travelTo(storage);
     }
     if (_.findKey(this.creep.carry) == undefined) {
       this.request.status = "FINISHED";
     }
-    //let storages = creep.room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[]
-    //const sortedByRange = _.sortBy(storages, s => this.creep.pos.getRangeTo(s));
-    //console.log("sorted ranges: " + JSON.stringify(sortedByRange))
-    
-    //if (sortedByRange.length == 0) {
-      //this.request.status = "FINISHED";
-    //}
-    //else {
-      
-      //else if (result == OK) {
-      //  this.request.status = "FINISHED";
-      //}
-      //else {
-      //  this.request.status = "FINISHED";
-      //}
-    //}
+  
   }
 
 
