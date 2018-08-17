@@ -323,19 +323,7 @@ export function findContainers(roomName: string, creepRole:CreepRole, energyAmou
 
 }
 
-export function findSpawns(roomName: string, onlyNonSpawning: boolean = true) {
-  let room = Game.rooms[roomName];
-  return room.find(FIND_MY_STRUCTURES, {
-    filter: (structure: Structure) => {
-      if (structure.structureType == STRUCTURE_SPAWN) {
-        let spawner = structure as StructureSpawn;
-        Memory.spawns[spawner.id] = spawner.memory
-        return onlyNonSpawning ? spawner.spawning === null : true;
-      }
-      return false;
-    }
-  });
-}
+
 export function getTotalCreepCount(): number {
   let totalcreepCount = 0;
   for (const i in Game.rooms) {
@@ -345,16 +333,7 @@ export function getTotalCreepCount(): number {
   }
   return totalcreepCount;
 }
-export function getRestockables(roomName: string): Array<AnyStructure> {
-  let room = Game.rooms[roomName];
-  return room.find(FIND_STRUCTURES, {
-    filter: (structure) => {
-      return (structure.structureType == STRUCTURE_EXTENSION
-        || structure.structureType == STRUCTURE_SPAWN)
-        && structure.energy < structure.energyCapacity;
-    }
-  });
-}
+
 
 export function getRole(creepName: string): CreepRole {
 
@@ -362,7 +341,7 @@ export function getRole(creepName: string): CreepRole {
   if (creepName.search("ROLE_WORKER") != -1) return "ROLE_WORKER";
   if (creepName.search("ROLE_UPGRADER") != -1) return "ROLE_UPGRADER";
   if (creepName.search("ROLE_CARRIER") != -1) return "ROLE_CARRIER";
-  if (creepName.search("ROLE_SCOUT") != -1) return "ROLE_SCOUT";
+  if (creepName.search("ROLE_RESERVER") != -1) return "ROLE_RESERVER";
   if (creepName.search("ROLE_REMOTE_UPGRADER") != -1) return "ROLE_REMOTE_UPGRADER";
   if (creepName.search("ROLE_DEFENDER") != -1) return "ROLE_DEFENDER";
   if (creepName.search("ROLE_DISMANTLER") != -1) return "ROLE_DISMANTLER";
@@ -373,27 +352,9 @@ export function getHomeRoom(creepName: string): string {
 
   return creepName.split("-")[0];
 }
-export enum CantBuildReasons {
-  NotTheOwner = -1,
-  NameAlreadyExists = -3,
-  BuildingBusy = -4,
-  NotEnoughEnergy = -6,
-  InvalidArguments = -10,
-  RCLNotHighEnough = -14
 
-}
 
-export function errorToString(job: CantBuildReasons): string {
-  switch (job) {
-    case CantBuildReasons.NotTheOwner: return "You don't own this building...?";
-    case CantBuildReasons.NameAlreadyExists: return "Name already exists...";
-    case CantBuildReasons.BuildingBusy: return "Name already exists...";
-    case CantBuildReasons.NotEnoughEnergy: return "You can't afford it!";
-    case CantBuildReasons.InvalidArguments: return "Invalid arguments passed to spawnCreep";
-    case CantBuildReasons.RCLNotHighEnough: return "Your RCL level is not high enough";
-    default: return "unknown error";
-  }
-}
+
 
 
 

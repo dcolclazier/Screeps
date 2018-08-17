@@ -9,9 +9,9 @@ import { CreepManager } from "CreepManager";
 
 function mainLoop() {
   MemUtils.InitializeGame();
-  for (const i in Game.rooms) {
-    const room: Room = Game.rooms[i];
-    const roomName = room.name;
+  for (const roomName in Memory.rooms) {
+    //const room: Room = Game.rooms[i];
+    //const roomName = room.name;
     roomManager.Run(roomName);
     CreepManager.run(roomName);
     taskManager.run(roomName);

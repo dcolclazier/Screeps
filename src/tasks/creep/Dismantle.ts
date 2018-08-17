@@ -77,41 +77,10 @@ export class Dismantle extends CreepTask {
 
       var dismantle = _.first(test.filter(t => t.structureType == structureType));
       CreepTaskQueue.addPendingRequest(new DismantleRequest(originatingRoomName, targetRoomName, dismantle.id));
-      //if (Game.rooms[targetRoomName] == undefined) {
-      //  //we need visibility to this room in order to add this request...
-      //  // todo: we need a visibility manager to handle this
-      //  originatingRoomName = Utils.closestOwnedRoom(targetRoomName);
-      //  //Memory.scoutTargets.push(targetRoomName);
-      //  //return;
-      //}
-      //else {
-      //  originatingRoomName = Memory.rooms[roomName].homeRoom;
-      //}
-
-
-      //let originatingRoomName = flag.name;
-      //if (Game.rooms[originatingRoomName] == undefined) {
-      //  throw new Error("Originating room cannot be undefined.")
-      //}
-      //var req = new DismantleRequest(originatingRoomName,targetRoomName)
-
+     
 
     })
 
-    //for (var i in flags) {
-    //  var flag = flags[i];
-    //  var targetRoomName = flag
-    //  var structureType = flag.name as StructureConstant;
-    //  var test = room.lookForAt("structure", flag.pos.x, flag.pos.y);
-    //  var dismantle = _.first(test.filter(t => t.structureType == structureType));
-    //  if (dismantle == undefined) return;
-    //  var request = new DismantleRequest(roomName, dismantle.id)
-    //  if (CreepTaskQueue.count(roomName, request.name, request.targetID, "ACTIVE").length < 2) {
-    //    CreepTaskQueue.addPendingRequest(request);
-    //  }
-
-
-    //}
 
   }
   constructor(taskInfo: CreepTaskRequest) {

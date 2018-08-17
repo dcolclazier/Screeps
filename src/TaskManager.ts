@@ -12,14 +12,14 @@ import { FillTower } from "tasks/creep/FillTower";
 import { FillStorage } from "tasks/creep/FillStorage";
 import { FillContainers } from "tasks/creep/FillContainers";
 import { Upgrade } from "tasks/creep/Upgrade";
-import { Scout } from "tasks/creep/Scout";
+import { Reserve } from "tasks/creep/Scout";
 import { Restock } from "tasks/creep/Restock";
 import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
 import { roomManager } from "RoomManager";
 
 
-export const TaskStore: any = { Build, Mine, PickupEnergy, Dismantle, FillTower, FillStorage, FillContainers, Scout, Upgrade, Restock, TowerRepair, TowerAttack}
+export const TaskStore: any = { Build, Mine, PickupEnergy, Dismantle, FillTower, FillStorage, FillContainers, Reserve, Upgrade, Restock, TowerRepair, TowerAttack}
 export class TaskManager {
 
   private addTaskRequests(roomName: string) {
@@ -34,7 +34,7 @@ export class TaskManager {
     FillTower.addRequests(roomName);
     TowerAttack.addRequests(roomName);
     TowerRepair.addRequests(roomName);
-    //Scout.addRequests(roomName);
+    //Reserve.addRequests(roomName);
 
     //var test = roomManager.getCreepsTest(roomName);
     //console.log(JSON.stringify(test));

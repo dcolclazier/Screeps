@@ -4,7 +4,7 @@ import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import { getRole, getHomeRoom } from "utils/utils"
 //import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 export class CreepManager {
-  
+  creepsTest: { [roomName: string]: CreepDictionary } = {};
   private static loadCreeps(roomName: string) {
     let room = Game.rooms[roomName];
     //this.creeps2[roomName] = 
@@ -30,6 +30,48 @@ export class CreepManager {
       }
     }
   }
+
+  private loadCreepsTest(roomName: string): void {
+
+    if (Memory.rooms[roomName] == undefined) {
+      console.log("ERROR_loadCreepsTest - need to handle undefined room " + roomName);
+      return;
+    }
+    const room = Game.rooms[roomName];
+    if (room == undefined) {
+      console.log("WARNING_loadCreepsTest - don't have visibility to room " + roomName);
+      Memory.scoutTargets.push(roomName);
+      return;
+    }
+    if (_.contains(Memory.scoutTargets, roomName)) {
+      _.remove(Memory.scoutTargets, roomName)
+    }
+    if (this.creepsTest[roomName] == undefined || this.creepsTest[roomName] == null) {
+      console.log(`Initializing creep dictionary for ${roomName}`)
+      this.creepsTest[roomName] = {};
+    }
+    const creeps = room.find(FIND_MY_CREEPS);
+    for (var id in creeps) {
+      const creep = creeps[id];
+      if (this.creepsTest[creep.name] == undefined || this.creepsTest[creep.name] == null) {
+        console.log(`Don't have cached memory for ${creep.name} - creating`);
+        if (creep.memory == undefined) {
+          console.log(`found a creep with no memory - would have reset it here... ${creep.name}`)
+          creep.memory = {
+            idle: true,
+            alive: true,
+            role: getRole(creep.name),
+            currentTask: "",
+            homeRoom: getHomeRoom(creep.name),
+            _trav: 0,
+            _travel: 0
+          };
+        }
+        this.creepsTest[roomName][creep.id] = creep.memory;
+      }
+    }
+  }
+
   
   static run(roomName: string) {
     CreepManager.loadCreeps(roomName);
@@ -41,7 +83,7 @@ export class CreepManager {
       case "ROLE_MINER": return CreepManager.getMinerBodyParts(roomEnergyLevel);
       case "ROLE_UPGRADER": return CreepManager.getUpgraderBodyParts(roomEnergyLevel);
       case "ROLE_WORKER": return CreepManager.getWorkerBodyParts(roomEnergyLevel);
-      case"ROLE_SCOUT": return CreepManager.getScoutBodyParts(roomEnergyLevel);
+      case"ROLE_RESERVER": return CreepManager.getReserverBodyParts(roomEnergyLevel);
       case"ROLE_CARRIER": return CreepManager.getCarrierBodyParts(roomEnergyLevel);
       case"ROLE_DEFENDER": return CreepManager.getDefenderBodyParts(roomEnergyLevel);
       case"ROLE_REMOTE_UPGRADER": return CreepManager.getRemoteUpgraderBodyParts(roomEnergyLevel);
@@ -56,7 +98,7 @@ export class CreepManager {
     CreepManager.spawnMissingWorkers(roomName, energyLevel);
     CreepManager.spawnMissingUpgraders(roomName, energyLevel);
     CreepManager.spawnMissingCarriers(roomName, energyLevel);
-    CreepManager.spawnMissingScouts(roomName, energyLevel);
+    CreepManager.spawnMissingReservers(roomName, energyLevel);
     CreepManager.spawnMissingRemoteUpgraders(roomName, energyLevel);
     CreepManager.spawnMissingDismantlers(roomName, energyLevel);
     //CreepManager.spawnMissingDefenders(roomName, energyLevel);
@@ -144,7 +186,7 @@ export class CreepManager {
       default: return [WORK, WORK, MOVE, MOVE];
     }
   }
-  private static getScoutBodyParts(energyLevel: number): BodyPartConstant[] {
+  private static getReserverBodyParts(energyLevel: number): BodyPartConstant[] {
 
     switch (energyLevel) {
       case 1: return [MOVE, MOVE, MOVE];
@@ -169,7 +211,7 @@ export class CreepManager {
 
     var flags = _.filter(Game.flags, f => f.color == COLOR_BLUE && f.secondaryColor == COLOR_BLUE);
     if (flags.length == 0) return;
-    const spawns = utils.findSpawns(roomName);
+    const spawns = roomManager.findSpawns(roomName);
     let remoteUpgradersNeeded: number = 3 - currentRUCount;
     let spawned: number = 0;
     for (var i in spawns) {
@@ -187,7 +229,7 @@ export class CreepManager {
   }
   static spawnMissingDefenders(roomName: string, energyLevel: number) {
     const currentDefenderCount = utils.creepCountAllRooms("ROLE_DEFENDER");
-    const spawns = utils.findSpawns(roomName);
+    const spawns = roomManager.findSpawns(roomName);
     let defendersNeeded: number = 3 - currentDefenderCount;
     let spawned: number = 0;
     for (var i in spawns) {
@@ -203,7 +245,7 @@ export class CreepManager {
     }
    
   }
-  static spawnMissingScouts(roomName: string, energyLevel: number): void {
+  static spawnMissingReservers(roomName: string, energyLevel: number): void {
     const miners = utils.creepCount(roomName,"ROLE_MINER");
     const workers = utils.creepCount(roomName,"ROLE_WORKER");
     const upgraders = utils.creepCount(roomName,"ROLE_UPGRADER");
@@ -217,22 +259,22 @@ export class CreepManager {
       return;
     }
 
-    var currentPending = CreepTaskQueue.count(roomName, "Scout", "", "PENDING");
-    var currentlySpawning = _.filter(utils.findSpawns(roomName, false), s => {
+    var currentPending = CreepTaskQueue.count(roomName, "Reserve", "", "PENDING");
+
+    var currentlySpawning = _.filter(roomManager.findSpawns(roomName, false), s => {
       var spawn = s as StructureSpawn;
-      return spawn.spawning != null && utils.getRole(spawn.spawning.name) == "ROLE_SCOUT";
+      return spawn.spawning != null && utils.getRole(spawn.spawning.name) == "ROLE_RESERVER";
     }).length;
 
-    var scoutsNeeded = currentPending - currentlySpawning;
-    if (scoutsNeeded < 1) return;
-    var availableSpawns = utils.findSpawns(roomName, true);
+    var reserversNeeded = currentPending - currentlySpawning;
+    if (reserversNeeded < 1) return;
+    var availableSpawns = roomManager.findSpawns(roomName, true);
 
-    //var taskName = new ScoutRequest("test", "temp", false).name;
-    let scoutsSpawned: number = 0;
+    let reserversSpawned: number = 0;
     for (var i in availableSpawns) {
       var spawn = availableSpawns[i] as StructureSpawn;
-      if (scoutsSpawned < scoutsNeeded) {
-        if (CreepManager.trySpawnCreep(spawn, "ROLE_SCOUT", energyLevel)) scoutsSpawned++;
+      if (reserversSpawned < reserversNeeded) {
+        if (CreepManager.trySpawnCreep(spawn, "ROLE_RESERVER", energyLevel)) reserversSpawned++;
       }
       else break;
     }
@@ -302,7 +344,7 @@ export class CreepManager {
   private static spawnMissingMiners(roomName: string, energyLevel: number) {
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
     const settings = roomMem.settingsMap[energyLevel];
-    const spawns = utils.findSpawns(roomName);
+    const spawns = roomManager.findSpawns(roomName);
     const currentMinerCount = utils.creepCount(roomName,"ROLE_MINER");
 
     const room = Game.rooms[roomName]
@@ -315,14 +357,14 @@ export class CreepManager {
   }
 
   private static spawnCreeps(roomName: string, role: CreepRole, max: number, energyLevel: number) {
-    const spawns = utils.findSpawns(roomName, false);
+    const spawns = roomManager.findSpawns(roomName, false);
     const currentCount = utils.creepCount(roomName, role);
     var currentlySpawning = _.filter(spawns, s => {
       var spawn = s as StructureSpawn;
       return spawn.spawning != null && utils.getRole(spawn.spawning.name) == role;
     }).length;
 
-    var availableSpawns = utils.findSpawns(roomName, true);
+    var availableSpawns = roomManager.findSpawns(roomName, true);
 
     let totalNeeded: number = max - (currentCount + currentlySpawning);
     if (totalNeeded < 1) return;
