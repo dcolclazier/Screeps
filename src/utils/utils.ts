@@ -191,7 +191,7 @@ export function findClosestContainer(roomName: string, targetID: string, fullOK:
     //console.log("container target was null.")
     return;
   }
-  let roomContainers = findAllContainers(roomName)
+  let roomContainers = roomManager.getContainers2(roomName)
     .sort((a, b) => a.pos.getRangeTo(target as any) - b.pos.getRangeTo(target as any));
 
   for (const id in roomContainers) {
@@ -230,9 +230,14 @@ export function creepNamesByRole(roomName: string, role: CreepRole): string[] {
   return found;
 }
 export function creepCount(roomName: string, role: CreepRole | undefined): number {
+
+
   let room = Game.rooms[roomName];
   if (room == undefined) return 0;
+
+  //var start = Game.cpu.getUsed();
   let creeps = room.find(FIND_MY_CREEPS) as Creep[];
+  //console.log(`CPU used for room find creeps: ${Game.cpu.getUsed() - start}`);
   if (role == undefined) return creeps.length;
   else {
     return creepIDsByRole(roomName, role).length
@@ -248,20 +253,15 @@ export function creepCountAllRooms(role: CreepRole): number {
   }
   return count;
 }
+
+
 export function roomSources(roomName: string): Source[] {
   return Game.rooms[roomName].find(FIND_SOURCES) as Source[];
 }
 export function sourceCount(roomName: string) {
   return roomSources(roomName).length;
 }
-export function findAllContainers(roomName: string): ContainerMemory[] {
 
-  return roomManager.getContainers2(roomName);
-  //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
-  //  return i.structureType == STRUCTURE_CONTAINER;
-  //}) as StructureContainer[];
-
-}
 export function findClosestContainerID(roomName: string, creepRole: CreepRole, energyAmount: number, targetID: string) : string | undefined {
 
   var containerIDs = findContainers(roomName, creepRole, energyAmount, targetID);
@@ -269,33 +269,18 @@ export function findClosestContainerID(roomName: string, creepRole: CreepRole, e
   else return containerIDs[0];
 
 }
-export function getRoomEnergyLevel(roomName: string): number {
 
-  //var roomCreeps = _.filter(Game.creeps, c => c.memory.homeRoom = roomName)
-  var room = Game.rooms[roomName];
-  var creeps = room.find(FIND_MY_CREEPS);
+//export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0) : string | undefined{
 
-  if (creeps.length < 3 && room.energyAvailable < 800) return 1;
+//  var sources = roomManager.getSources2(roomName);
+//  var withEnergy2: Source[] = [];
 
-  let cap = room.energyCapacityAvailable;
-
-  if (cap < 550) return 1;
-  else if (cap <= 950) return 2;
-  else if (cap <= 1500) return 3;
-  else if (cap <= 3500) return 4;
-  else return 5;
-}
-export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0) : string | undefined{
-
-  var sources = roomManager.getSources2(roomName);
-  var withEnergy2: Source[] = [];
-
-  _.forEach(sources, sourceMem => {
-    var source = <Source>Game.getObjectById(sourceMem.id);
-    if (source.energy > energyAmount) withEnergy2.push(source);
-  })
-  return _.min(withEnergy2, source => targetPos.getRangeTo(source)).id
-}
+//  _.forEach(sources, sourceMem => {
+//    var source = <Source>Game.getObjectById(sourceMem.id);
+//    if (source.energy > energyAmount) withEnergy2.push(source);
+//  })
+//  return _.min(withEnergy2, source => targetPos.getRangeTo(source)).id
+//}
 export function getRoomType(roomName: string): RoomType {
   if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
 
@@ -321,7 +306,7 @@ export function findContainers(roomName: string, creepRole:CreepRole, energyAmou
 
   var room = Game.rooms[roomName];
   if (room == undefined) return [];
-  var containers = findAllContainers(roomName);
+  var containers = roomManager.getContainers2(roomName);
   
   var filtered = _.filter(containers, c =>
     _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)

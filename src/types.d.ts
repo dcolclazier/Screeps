@@ -65,6 +65,7 @@ interface StructureLink {
   roomName: string;
   linkMode: LinkMode;
 }
+
 //declare class SmartLink {
 //  linkID: string;
 //  roomName: string;

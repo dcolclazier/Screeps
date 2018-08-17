@@ -1,11 +1,38 @@
 import * as utils from "utils/utils"
 import { roomManager } from "RoomManager";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
+import { getRole, getHomeRoom } from "utils/utils"
 //import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 export class CreepManager {
   
+  private static loadCreeps(roomName: string) {
+    let room = Game.rooms[roomName];
+    //this.creeps2[roomName] = 
+
+    const creeps = room.find(FIND_MY_CREEPS);
+    //let spawn = room.find(FIND_MY_SPAWNS)[0];
+    //if (spawn != undefined) this._defaultSpawn = spawn.id;
+
+    for (let id in creeps) {
+      let creep = creeps[id];
+      if (creep.memory === undefined || creep.memory.alive === undefined) {
+        //console.log("got here")
+        creep.memory = {
+          //spawnID: (spawn != undefined ? spawn.id : this._defaultSpawn),
+          idle: true,
+          alive: true,
+          role: getRole(creep.name),
+          currentTask: "",
+          homeRoom: getHomeRoom(creep.name),
+          _trav: {},
+          _travel: 0
+        };;
+      }
+    }
+  }
   
   static run(roomName: string) {
+    CreepManager.loadCreeps(roomName);
     CreepManager.spawnMissingCreeps(roomName);
   }
   static GetCreepParts(role: CreepRole, roomEnergyLevel: number): BodyPartConstant[] {
@@ -24,7 +51,7 @@ export class CreepManager {
   }
 
   static spawnMissingCreeps(roomName: string) {
-    var energyLevel = utils.getRoomEnergyLevel(roomName);
+    var energyLevel = roomManager.getEnergyLevel(roomName);
     CreepManager.spawnMissingMiners(roomName, energyLevel);
     CreepManager.spawnMissingWorkers(roomName, energyLevel);
     CreepManager.spawnMissingUpgraders(roomName, energyLevel);

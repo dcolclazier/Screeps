@@ -1,7 +1,6 @@
 import { Task } from "./Task";
 import { CreepTaskRequest } from "./CreepTaskRequest";
 //import { SmartContainer, SmartSource,  SmartLink } from "utils/memory"
-import * as utils from "utils/utils";
 import { Traveler } from "Traveler";
 import { roomManager } from "RoomManager";
 
@@ -198,7 +197,7 @@ export abstract class CreepTask extends Task {
     const room = Game.rooms[roomName];
     if (room == undefined) return false;
 
-    var closestSourceID = utils.findClosestSourceID(roomName, this.creep.pos, 0);
+    var closestSourceID = roomManager.findClosestSource(roomName, this.creep, 0);
     if (closestSourceID == undefined) return false;
 
     var source = <Source>Game.getObjectById(closestSourceID);

@@ -80,7 +80,7 @@ export class Mine extends CreepTask {
     if (room == undefined) return;
     //if (unassigned.length === 0) return;
     var minersPerSource = 1;
-    if (utils.getRoomEnergyLevel(roomName) < 3) {
+    if (roomManager.getEnergyLevel(roomName) < 3) {
       minersPerSource = 2;
     }
     //var sources = room.find(FIND_SOURCES) as Source[];

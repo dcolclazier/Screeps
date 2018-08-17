@@ -18,6 +18,7 @@ export class FillContainers extends CreepTask {
   static taskName: string = "FillContainers";
   protected init(): void {
     super.init();
+    if (this.request.status != "INIT") return;
 
     if (Object.keys(this.creep.carry).length == 1) {
       this.request.status = "PREPARE"
