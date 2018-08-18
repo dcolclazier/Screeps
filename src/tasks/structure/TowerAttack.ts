@@ -1,7 +1,6 @@
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import { StructureTask } from "tasks/StructureTask";
 import { StructureTaskQueue } from "../StructureTaskQueue";
-import { roomManager } from "RoomManager";
 
 export class TowerAttackRequest extends StructureTaskRequest {
   validStructureTypes: StructureConstant[] = ["tower"];

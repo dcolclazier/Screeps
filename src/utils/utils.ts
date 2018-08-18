@@ -1,5 +1,4 @@
 import { Traveler } from "Traveler";
-import { roomManager } from "RoomManager";
 
 export function initializeFlags(roomName: string) {
   let room = Game.rooms[roomName];
@@ -191,7 +190,7 @@ export function findClosestContainer(roomName: string, targetID: string, fullOK:
     //console.log("container target was null.")
     return;
   }
-  let roomContainers = roomManager.getContainers2(roomName)
+  let roomContainers = global.roomManager.getContainers2(roomName)
     .sort((a, b) => a.pos.getRangeTo(target as any) - b.pos.getRangeTo(target as any));
 
   for (const id in roomContainers) {
@@ -272,7 +271,7 @@ export function findClosestContainerID(roomName: string, creepRole: CreepRole, e
 
 //export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0) : string | undefined{
 
-//  var sources = roomManager.getSources2(roomName);
+//  var sources = global.roomManager.getSources2(roomName);
 //  var withEnergy2: Source[] = [];
 
 //  _.forEach(sources, sourceMem => {
@@ -306,7 +305,7 @@ export function findContainers(roomName: string, creepRole:CreepRole, energyAmou
 
   var room = Game.rooms[roomName];
   if (room == undefined) return [];
-  var containers = roomManager.getContainers2(roomName);
+  var containers = global.roomManager.getContainers2(roomName);
   
   var filtered = _.filter(containers, c =>
     _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)

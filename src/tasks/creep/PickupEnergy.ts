@@ -2,7 +2,6 @@ import { CreepTask } from "../CreepTask";
 import { CreepTaskRequest } from "../CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as utils from "utils/utils"
-import { roomManager } from "RoomManager";
 
 export class PickUpEnergyRequest extends CreepTaskRequest {
   priority: number = 0;
@@ -43,14 +42,14 @@ export class PickupEnergy extends CreepTask {
     if (requestInfo.resourceType == "tombstone") {
       let tombstone = resource as Tombstone;
       if (this.creep.withdraw(tombstone, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(tombstone);
+        this.creep.travelTo(tombstone);
       }
       else this.request.status = "FINISHED";
     }
     else if (requestInfo.resourceType == "resource") {
       let droppedResource = resource as Resource;
       if (this.creep.pickup(droppedResource) == ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(droppedResource);
+        this.creep.travelTo(droppedResource);
       }
       else this.request.status = "FINISHED";
     }

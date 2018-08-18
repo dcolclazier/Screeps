@@ -1,5 +1,4 @@
 import * as utils from "utils/utils"
-import { roomManager } from "RoomManager";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import { getRole, getHomeRoom } from "utils/utils"
 //import { CreepTaskRequest } from "tasks/CreepTaskRequest";
@@ -93,7 +92,7 @@ export class CreepManager {
   }
 
   static spawnMissingCreeps(roomName: string) {
-    var energyLevel = roomManager.getEnergyLevel(roomName);
+    var energyLevel = global.roomManager.getEnergyLevel(roomName);
     CreepManager.spawnMissingMiners(roomName, energyLevel);
     CreepManager.spawnMissingWorkers(roomName, energyLevel);
     CreepManager.spawnMissingUpgraders(roomName, energyLevel);
@@ -210,8 +209,9 @@ export class CreepManager {
       || carriers < settings.maxCarrierCount) return;
 
     var flags = _.filter(Game.flags, f => f.color == COLOR_BLUE && f.secondaryColor == COLOR_BLUE);
+
     if (flags.length == 0) return;
-    const spawns = roomManager.findSpawns(roomName);
+    const spawns = global.roomManager.findSpawns(roomName);
     let remoteUpgradersNeeded: number = 3 - currentRUCount;
     let spawned: number = 0;
     for (var i in spawns) {
@@ -229,7 +229,7 @@ export class CreepManager {
   }
   static spawnMissingDefenders(roomName: string, energyLevel: number) {
     const currentDefenderCount = utils.creepCountAllRooms("ROLE_DEFENDER");
-    const spawns = roomManager.findSpawns(roomName);
+    const spawns = global.roomManager.findSpawns(roomName);
     let defendersNeeded: number = 3 - currentDefenderCount;
     let spawned: number = 0;
     for (var i in spawns) {
@@ -261,14 +261,14 @@ export class CreepManager {
 
     var currentPending = CreepTaskQueue.count(roomName, "Reserve", "", "PENDING");
 
-    var currentlySpawning = _.filter(roomManager.findSpawns(roomName, false), s => {
+    var currentlySpawning = _.filter(global.roomManager.findSpawns(roomName, false), s => {
       var spawn = s as StructureSpawn;
       return spawn.spawning != null && utils.getRole(spawn.spawning.name) == "ROLE_RESERVER";
     }).length;
 
     var reserversNeeded = currentPending - currentlySpawning;
     if (reserversNeeded < 1) return;
-    var availableSpawns = roomManager.findSpawns(roomName, true);
+    var availableSpawns = global.roomManager.findSpawns(roomName, true);
 
     let reserversSpawned: number = 0;
     for (var i in availableSpawns) {
@@ -344,7 +344,7 @@ export class CreepManager {
   private static spawnMissingMiners(roomName: string, energyLevel: number) {
     const roomMem = Game.rooms[roomName].memory as RoomMemory;
     const settings = roomMem.settingsMap[energyLevel];
-    const spawns = roomManager.findSpawns(roomName);
+    const spawns = global.roomManager.findSpawns(roomName);
     const currentMinerCount = utils.creepCount(roomName,"ROLE_MINER");
 
     const room = Game.rooms[roomName]
@@ -357,14 +357,14 @@ export class CreepManager {
   }
 
   private static spawnCreeps(roomName: string, role: CreepRole, max: number, energyLevel: number) {
-    const spawns = roomManager.findSpawns(roomName, false);
+    const spawns = global.roomManager.findSpawns(roomName, false);
     const currentCount = utils.creepCount(roomName, role);
     var currentlySpawning = _.filter(spawns, s => {
       var spawn = s as StructureSpawn;
       return spawn.spawning != null && utils.getRole(spawn.spawning.name) == role;
     }).length;
 
-    var availableSpawns = roomManager.findSpawns(roomName, true);
+    var availableSpawns = global.roomManager.findSpawns(roomName, true);
 
     let totalNeeded: number = max - (currentCount + currentlySpawning);
     if (totalNeeded < 1) return;

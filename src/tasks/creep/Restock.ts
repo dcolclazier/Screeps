@@ -3,7 +3,6 @@ import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as utils from "utils/utils"
 import { Task } from "../Task";
-import { roomManager } from "RoomManager";
 
 export class RestockRequest extends CreepTaskRequest {
   priority: number = 0;
@@ -40,7 +39,7 @@ export class Restock extends CreepTask {
 
     var room = Game.rooms[this.request.targetRoomName];
 
-    const links = roomManager.getLinks2(this.request.targetRoomName);
+    const links = global.roomManager.getLinks2(this.request.targetRoomName);
     var masterLink = _.find(links, l => l.linkMode == "MASTER_RECEIVE");
 
     //this.collectFromContainer(this.request.roomName, creep.id);
@@ -115,7 +114,7 @@ export class Restock extends CreepTask {
 
 
   static addRequests(roomName: string) {
-    let restockables = roomManager.findRestockables(roomName);
+    let restockables = global.roomManager.findRestockables(roomName);
 
     for (const targetID in restockables) {
       let restockable = restockables[targetID];

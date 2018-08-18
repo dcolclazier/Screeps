@@ -4,7 +4,6 @@ import { Task } from "../Task";
 import { Traveler } from "Traveler";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as Utils from "utils/utils"
-import { roomManager } from "RoomManager";
 
 export class BuildRequest extends CreepTaskRequest {
   priority: number = 1;
@@ -60,7 +59,8 @@ export class Build extends CreepTask {
     }
     const result = this.creep.build(site);
     if (result == ERR_NOT_IN_RANGE) {
-      Traveler.travelTo(this.creep, site);
+      this.creep.travelTo(site);
+      //Traveler.travelTo(this.creep, site);
     }
     else if (this.creep.carry.energy == 0) {
       this.request.status = "PREPARE";

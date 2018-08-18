@@ -4,6 +4,7 @@ export class RoomManager {
   constructor() {
     console.log("Global reset!!")
   }
+  _sources3: Record<string, SourceMemory> = {};
   
   _sources2: { [roomName: string]: SourceMemory[] } = {}
   _links2: { [roomName: string]: LinkMemory[] } = {}
@@ -405,7 +406,7 @@ export class RoomManager {
 //}
 //export function findAllContainers(roomName: string): ContainerMemory[] {
 
-//  return roomManager.getContainers2(roomName);
+//  return global.roomManager.getContainers2(roomName);
 //  //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
 //  //  return i.structureType == STRUCTURE_CONTAINER;
 //  //}) as StructureContainer[];
@@ -436,7 +437,7 @@ export class RoomManager {
 //}
 //export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0): string | undefined {
 
-//  var sources = roomManager.getSources2(roomName);
+//  var sources = global.roomManager.getSources2(roomName);
 //  var withEnergy2: Source[] = [];
 
 //  _.forEach(sources, sourceMem => {
@@ -490,7 +491,7 @@ export class RoomManager {
 }
 
 
-export const roomManager = new RoomManager();
+//export const roomManager = new RoomManager();
 const CACHE_TIMEOUT = 50;
 const SHORT_CACHE_TIMEOUT = 10;
 //export class $ { // $ = cash = cache... get it? :D

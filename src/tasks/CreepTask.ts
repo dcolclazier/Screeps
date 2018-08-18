@@ -2,7 +2,6 @@ import { Task } from "./Task";
 import { CreepTaskRequest } from "./CreepTaskRequest";
 //import { SmartContainer, SmartSource,  SmartLink } from "utils/memory"
 import { Traveler } from "Traveler";
-import { roomManager } from "RoomManager";
 
 
 export abstract class CreepTask extends Task {
@@ -98,7 +97,7 @@ export abstract class CreepTask extends Task {
     if (room == undefined) return false;
 
     //const links = utils.findStructures<LinkMemory>(roomName, "link");
-    const links = roomManager.getLinks2(roomName);
+    const links = global.roomManager.getLinks2(roomName);
 
     let masterLinkID = _.find(links, linkMem => linkMem.linkMode == "MASTER_RECEIVE");
     if (masterLinkID == undefined) return false;
@@ -137,7 +136,7 @@ export abstract class CreepTask extends Task {
   protected collectFromContainer(roomName: string): boolean {
 
     const room = Game.rooms[roomName];
-    var containers = roomManager.getContainers2(roomName);
+    var containers = global.roomManager.getContainers2(roomName);
     //console.log(JSON.stringify(containers));
 
     var filtered = _.filter(containers, c =>
@@ -197,7 +196,7 @@ export abstract class CreepTask extends Task {
     const room = Game.rooms[roomName];
     if (room == undefined) return false;
 
-    var closestSourceID = roomManager.findClosestSource(roomName, this.creep, 0);
+    var closestSourceID = global.roomManager.findClosestSource(roomName, this.creep, 0);
     if (closestSourceID == undefined) return false;
 
     var source = <Source>Game.getObjectById(closestSourceID);

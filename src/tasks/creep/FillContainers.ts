@@ -2,7 +2,6 @@ import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import { Traveler } from "Traveler";
-import { roomManager } from "RoomManager";
 
 export class FillContainersRequest extends CreepTaskRequest {
   name: string = "FillContainers";
@@ -59,7 +58,7 @@ export class FillContainers extends CreepTask {
       return;
     }
 
-    var cMem = _.find(roomManager.getContainers2(this.request.targetRoomName), c => {
+    var cMem = _.find(global.roomManager.getContainers2(this.request.targetRoomName), c => {
       var container = <StructureContainer>Game.getObjectById(c.id);
       return container.store.energy < container.storeCapacity
         && c.shouldRefill;
@@ -101,7 +100,7 @@ export class FillContainers extends CreepTask {
     const room = Game.rooms[roomName];
     const roomMem = room.memory as RoomMemory;
     //let storages = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[];
-    const containers = roomManager.getContainers2(roomName).filter(cm => {
+    const containers = global.roomManager.getContainers2(roomName).filter(cm => {
       var cont = <StructureContainer>Game.getObjectById(cm.id);
       return cont.store.energy < cont.storeCapacity
         && cm.shouldRefill;

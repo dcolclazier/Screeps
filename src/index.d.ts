@@ -1,7 +1,13 @@
 // type shim for nodejs' `require()` syntax
 // for stricter node.js typings, remove this and install `@types/node`
 declare const require: (module: string) => any;
-
+declare var global: NodeJS.Global;
+declare namespace NodeJS {
+  interface Global {
+    roomManager: RoomManager;
+    help: any;
+  }
+}
 
 interface PathfinderReturn {
   path: RoomPosition[];
@@ -203,3 +209,16 @@ interface TravelState {
   destination: RoomPosition;
   cpu: number;
 }
+
+declare class RoomManager {
+  public getSources2(roomName: string): SourceMemory[];
+  public getContainers2(roomName: string): ContainerMemory[];
+  public getLinks2(roomName: string): LinkMemory[];
+  public getEnergyLevel(roomName: string): number;
+  public findClosestSource(roomName: string, targetPos: HasPos, energyAmount: number) : string;
+  public Run(roomName: string): void;
+  public findRestockables(roomName: string): Array<AnyStructure>;
+}
+
+
+

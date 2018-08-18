@@ -1,7 +1,5 @@
 import { Task } from "./Task";
 import { StructureTaskRequest } from "./StructureTaskRequest";
-import { roomManager } from "RoomManager";
-//import { StructureTaskRequest } from "./StructureTaskRequest";
 export abstract class StructureTask extends Task {
   public request: StructureTaskRequest;
   structureID: string;

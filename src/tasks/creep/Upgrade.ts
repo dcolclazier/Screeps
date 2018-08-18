@@ -2,8 +2,6 @@ import { CreepTask } from "tasks/CreepTask"
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import * as utils from "utils/utils";
-import { roomManager } from "RoomManager";
-//import { roomManager } from "RoomManager";
 
 export class UpgradeRequest extends CreepTaskRequest {
 
@@ -68,10 +66,10 @@ export class Upgrade extends CreepTask {
 
     if (controller.sign == undefined || controller.sign.username != "KeyserSoze") {
       var result = this.creep.signController(controller, "The greatest trick the devil ever pulled was convincing the world he did not exist.");
-      if (result == ERR_NOT_IN_RANGE) this.creep.moveTo(controller);
+      if (result == ERR_NOT_IN_RANGE) this.creep.travelTo(controller);
     }
     if (this.creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
+      this.creep.travelTo(controller);
     }
     
   }

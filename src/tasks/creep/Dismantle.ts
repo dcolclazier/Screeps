@@ -2,7 +2,6 @@ import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTask } from "tasks/CreepTask";
 import * as utils from "utils/utils"
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
-import { roomManager } from "RoomManager";
 
 export class DismantleRequest extends CreepTaskRequest {
   priority: number = 1;

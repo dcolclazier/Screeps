@@ -16,7 +16,6 @@ import { Reserve } from "tasks/creep/Scout";
 import { Restock } from "tasks/creep/Restock";
 import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
-import { roomManager } from "RoomManager";
 
 
 export const TaskStore: any = { Build, Mine, PickupEnergy, Dismantle, FillTower, FillStorage, FillContainers, Reserve, Upgrade, Restock, TowerRepair, TowerAttack}
@@ -36,14 +35,14 @@ export class TaskManager {
     TowerRepair.addRequests(roomName);
     //Reserve.addRequests(roomName);
 
-    //var test = roomManager.getCreepsTest(roomName);
+    //var test = global.roomManager.getCreepsTest(roomName);
     //console.log(JSON.stringify(test));
     
 
   }
   private runLinks(roomName: string) {
     const room = Memory.rooms[roomName];
-    var links = roomManager.getLinks2(roomName);
+    var links = global.roomManager.getLinks2(roomName);
 
 
     var masterLinkMem = <LinkMemory>_.find(links, l => l.linkMode == "MASTER_RECEIVE");

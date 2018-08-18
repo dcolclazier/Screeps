@@ -2,7 +2,6 @@ import { StructureTask } from "tasks/StructureTask";
 import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import { StructureTaskQueue } from "tasks/StructureTaskQueue";
 import { CreepTaskQueue } from "../CreepTaskQueue";
-import { roomManager } from "RoomManager";
 
 export class TowerRepairRequest extends StructureTaskRequest {
 
@@ -10,7 +9,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
   priority: number = 2;
   name: string = "TowerRepair";
   maxConcurrent: number = 3;
-  static maxHitPoints: number = 200000;
+  static maxHitPoints: number = 2800000;
   constructor(roomName: string, siteID: string) {
     super(roomName, roomName, siteID)
   }
@@ -51,24 +50,17 @@ export class TowerRepair extends StructureTask {
     if (status == OK) {
       this.request.status = "FINISHED";
     }
-
-    
+       
   }
   protected finish() {
     super.finish();
     if (this.request.status != "FINISHED") return;
-    
 
     var room = Game.rooms[this.request.originatingRoomName] as Room;
     const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
-    
-    if (tower == undefined) {
-      console.log(`Tower was undefined: ${this.request.assignedToID}`);
-    }
-    else {
-      tower.towerMode = "IDLE"
-      tower.currentTask = "";
-    }
+
+    tower.currentTask = "";
+    tower.towerMode = "IDLE"
   }
   
   constructor(taskInfo: StructureTaskRequest) {
@@ -88,22 +80,7 @@ export class TowerRepair extends StructureTask {
       StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
       i++;
     }
-    //for (var i = 0; i < sorted.length; i++) {
-
-    //  var target = sorted[i];
-      
-    //  if (StructureTaskQueue.activeTasks(roomName, this.taskName, target.id).length < 3) {
-    //    StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
-    //  }
-
-    //}
-    //var target = _.first(sorted);
-    //if (target != undefined) {
-    //  if (StructureTaskQueue.activeTasks(roomName, this.taskName, target.id).length < 3) {
-    //    StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
-    //  }
-      
-    //}
+   
 
   }
 }

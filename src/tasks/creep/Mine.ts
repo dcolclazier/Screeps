@@ -3,7 +3,6 @@ import { CreepTask } from "../CreepTask";
 import * as utils from "utils/utils";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import { Task } from "../Task";
-import { roomManager } from "RoomManager";
 
 export class MineRequest extends CreepTaskRequest {
   priority: number = 1;
@@ -46,7 +45,7 @@ export class Mine extends CreepTask {
     super.prepare();
     if (this.request.status != "PREPARE") return;
     if (this.creep.room.name != this.request.targetRoomName) return;
-    const sources = roomManager.getSources2(this.request.targetRoomName);
+    const sources = global.roomManager.getSources2(this.request.targetRoomName);
     const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
     const source2 = <SourceMemory>Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
     source.assignedTo.push(this.creep.name);
@@ -80,7 +79,7 @@ export class Mine extends CreepTask {
     if (room == undefined) return;
     //if (unassigned.length === 0) return;
     var minersPerSource = 1;
-    if (roomManager.getEnergyLevel(roomName) < 3) {
+    if (global.roomManager.getEnergyLevel(roomName) < 3) {
       minersPerSource = 2;
     }
     //var sources = room.find(FIND_SOURCES) as Source[];
@@ -95,7 +94,7 @@ export class Mine extends CreepTask {
     }
     targetRoomName = roomName;
     //const sources = utils.findStructures<SourceMemory>(roomName, "source");
-    _.forEach(roomManager.getSources2(roomName), source => {
+    _.forEach(global.roomManager.getSources2(roomName), source => {
       //console.log(JSON.stringify(source))
       //console.log(`AssignedTo: ${source.assignedTo.length}, minersPer: ${minersPerSource}`);
       
@@ -131,8 +130,7 @@ export class Mine extends CreepTask {
 
     const room = Game.rooms[this.request.targetRoomName];
     //const source = Game.getObjectById(this.request.targetID) as Source;
-
-    const sources = roomManager.getSources2(this.request.targetRoomName);
+    const sources = global.roomManager.getSources2(this.request.targetRoomName);
     const source = _.find(sources, s => s.id == this.request.targetID);
     if (source == undefined) {
       console.log("ERROR:Mine::deliver -> source was undefined...")
@@ -151,7 +149,7 @@ export class Mine extends CreepTask {
 
     }
     else if (source.containerID != "") {
-      const containers = roomManager.getContainers2(this.request.targetRoomName);
+      const containers = global.roomManager.getContainers2(this.request.targetRoomName);
       const container = _.find(containers, c => c.id == source.containerID);
       if (container == undefined) {
         console.log("ERROR:Mine::deliver -> container was undefined...")

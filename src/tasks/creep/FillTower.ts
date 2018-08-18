@@ -2,7 +2,6 @@ import { CreepTask } from "tasks/CreepTask";
 import * as utils from "utils/utils"
 import { CreepTaskQueue } from "../CreepTaskQueue";
 import { CreepTaskRequest } from "../CreepTaskRequest";
-import { roomManager } from "RoomManager";
 
 export class FillTowerRequest extends CreepTaskRequest {
   static RefillThreshold: number = .75
@@ -60,7 +59,7 @@ export class FillTower extends CreepTask {
     }
     let result = this.creep.transfer(tower, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(tower, { visualizePathStyle: { stroke: '#ffffff' } });
+      this.creep.travelTo(tower);
     }
     else if (result == OK) {
       this.request.status = "FINISHED";

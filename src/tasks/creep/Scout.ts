@@ -2,7 +2,6 @@ import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 import * as utils from "utils/utils";
-import { roomManager } from "RoomManager";
 
 export class ReserveRequest extends CreepTaskRequest {
 

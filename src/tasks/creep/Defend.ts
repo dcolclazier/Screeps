@@ -1,6 +1,5 @@
 import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
-import { roomManager } from "RoomManager";
 
 export class DefendRequest extends CreepTaskRequest {
 
@@ -67,7 +66,7 @@ export class Defend extends CreepTask {
     }
     var lowest = _.first(enemies);
     if (this.creep.attack(lowest) == ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(lowest);
+      this.creep.travelTo(lowest);
     }
 
     //const creep = Game.creeps[this.request.assignedTo];
@@ -78,7 +77,7 @@ export class Defend extends CreepTask {
     //const info = this.request as UpgradeRequest
     //let controller = Game.getObjectById(info.targetID) as StructureController;
     //if (this.creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
-    //  this.creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
+    //  this.creep.travelTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
     //}
 
   }
