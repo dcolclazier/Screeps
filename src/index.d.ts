@@ -215,7 +215,8 @@ declare class RoomManager {
   public getContainers2(roomName: string): ContainerMemory[];
   public getLinks2(roomName: string): LinkMemory[];
   public getEnergyLevel(roomName: string): number;
-  public findClosestSource(roomName: string, targetPos: HasPos, energyAmount: number) : string;
+  public findClosestSource(roomName: string, targetPos: HasPos, energyAmount: number): string;
+  public findSpawns(roomName: string, onlyNonSpawning?: boolean): AnyOwnedStructure[]
   public Run(roomName: string): void;
   public findRestockables(roomName: string): Array<AnyStructure>;
 }

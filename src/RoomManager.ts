@@ -109,7 +109,7 @@ export class RoomManager {
       }
     });
   }
-  public findSpawns(roomName: string, onlyNonSpawning: boolean = true) {
+  public findSpawns(roomName: string, onlyNonSpawning: boolean = true) :StructureSpawn[] {
   let room = Game.rooms[roomName];
   return room.find(FIND_MY_STRUCTURES, {
     filter: (structure: Structure) => {
