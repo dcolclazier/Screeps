@@ -5,6 +5,7 @@ declare var global: NodeJS.Global;
 declare namespace NodeJS {
   interface Global {
     roomManager: RoomManager;
+    taskManager: TaskManager;
     help: any;
   }
 }
@@ -211,15 +212,23 @@ interface TravelState {
 }
 
 declare class RoomManager {
-  public getSources2(roomName: string): SourceMemory[];
-  public getContainers2(roomName: string): ContainerMemory[];
-  public getLinks2(roomName: string): LinkMemory[];
+  public sources(roomName: string): SourceMemory[];
+  public containers(roomName: string): ContainerMemory[];
+  public links(roomName: string): LinkMemory[];
+  public towers(roomName: string): TowerMemory[]
+
   public getEnergyLevel(roomName: string): number;
+  public idleStructureIDs(roomName: string): string[]
   public findClosestSource(roomName: string, targetPos: HasPos, energyAmount: number): string;
+  public findContainers(roomName: string, creepRole: CreepRole, energyAmount: number, sortByRangeToID?: string): string[]
   public findSpawns(roomName: string, onlyNonSpawning?: boolean): AnyOwnedStructure[]
-  public Run(roomName: string): void;
   public findRestockables(roomName: string): Array<AnyStructure>;
+  public run(roomName: string): void;
+  constructor();
 }
 
+declare class TaskManager {
 
+  public run(roomName: string) : void;
+}
 

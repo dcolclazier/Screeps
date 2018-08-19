@@ -39,7 +39,7 @@ export class Restock extends CreepTask {
 
     var room = Game.rooms[this.request.targetRoomName];
 
-    const links = global.roomManager.getLinks2(this.request.targetRoomName);
+    const links = global.roomManager.links(this.request.targetRoomName);
     var masterLink = _.find(links, l => l.linkMode == "MASTER_RECEIVE");
 
     //this.collectFromContainer(this.request.roomName, creep.id);

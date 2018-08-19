@@ -1,18 +1,30 @@
+
 export class RoomManager {
   
 
   constructor() {
     console.log("Global reset!!")
   }
-  _sources3: Record<string, SourceMemory> = {};
+  private _sources3: Record<string, SourceMemory> = {};
   
-  _sources2: { [roomName: string]: SourceMemory[] } = {}
-  _links2: { [roomName: string]: LinkMemory[] } = {}
-  _containers2: { [roomName: string]: ContainerMemory[] } = {}
-  _towers2: { [roomName: string]: TowerMemory[] } = {}
+  private _sources2: { [roomName: string]: SourceMemory[] } = {}
+  private _links2: { [roomName: string]: LinkMemory[] } = {}
+  private _containers2: { [roomName: string]: ContainerMemory[] } = {}
+  private _towers2: { [roomName: string]: TowerMemory[] } = {}
 
- 
-  getSources2(roomName: string): SourceMemory[] {
+
+  public idleStructureIDs(roomName: string): string[] {
+
+    //just load structures with active logic (links, towers, terminals, etc)
+    var list: StructureMemory[] = [];
+
+    var towers = this.towers(roomName);
+    for (var i in towers) {
+      if (towers[i].currentTask == "") list.push(towers[i]);
+    }
+    return list.map(s => s.id);
+  }
+  public sources(roomName: string): SourceMemory[] {
     const room = Memory.rooms[roomName];
     if (room == undefined) {
       console.log("ERROR_getSources2 - undefined room in memory? how? " + roomName);
@@ -25,7 +37,7 @@ export class RoomManager {
     }
     return this._sources2[roomName];
   }
-  getContainers2(roomName: string): ContainerMemory[] {
+  public containers(roomName: string): ContainerMemory[] {
     const room = Memory.rooms[roomName];
     if (room == undefined) {
       console.log("ERROR_getContainers2 - undefined room in memory? how? " + roomName);
@@ -39,7 +51,7 @@ export class RoomManager {
     
     return this._containers2[roomName];
   }
-  getLinks2(roomName: string): LinkMemory[] {
+  public links(roomName: string): LinkMemory[] {
     const room = Memory.rooms[roomName];
     if (room == undefined) {
       console.log("ERROR_getLinks2 - undefined room in memory? how?" + roomName);
@@ -51,7 +63,7 @@ export class RoomManager {
     }
     return links;
   }
-  getTowers2(roomName: string): TowerMemory[] {
+  public towers(roomName: string): TowerMemory[] {
     const room = Memory.rooms[roomName];
     if (room == undefined) {
       console.log("ERROR_getLinks2 - undefined room in memory? how?" + roomName);
@@ -83,18 +95,35 @@ export class RoomManager {
 
   public findClosestSource(roomName: string, targetPos: HasPos, energyAmount: number = 0) {
     var withEnergy2: Source[] = [];
-    var sources = this.getSources2(roomName);
+    var sources = this.sources(roomName);
     _.forEach(sources, sourceMem => {
       var source = <Source>Game.getObjectById(sourceMem.id);
       if (source.energy > energyAmount) withEnergy2.push(source);
     })
     return _.min(withEnergy2, source => source.pos.getRangeTo(targetPos)).id;
   }
+  public findContainers(roomName: string, creepRole: CreepRole, energyAmount: number, sortByRangeToID?: string): string[] {
 
-  public Run(roomName: string): void {
+  var containers = global.roomManager.containers(roomName);
+
+  var filtered = _.filter(containers, c =>
+    _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)
+    && (<StructureContainer>Game.getObjectById(c.id)).store.energy > energyAmount);
+
+  if (sortByRangeToID != undefined) {
+    var rangeToTarget = <RangeTarget>Game.getObjectById(sortByRangeToID);
+    if (rangeToTarget == undefined) throw new Error("findContainers:rangeToTarget cannot be undefined");
+
+    var sorted = _.sortBy(filtered, c => c.pos.getRangeTo(rangeToTarget))
+    return _.map(sorted, s => s.id);
+  }
+  else return _.map(filtered, f => f.id);
+
+}
+  public run(roomName: string): void {
     this.loadResources(roomName);
-    this.getTowers2(roomName);
-    this.getContainers2(roomName);
+    this.towers(roomName);
+    this.containers(roomName);
     
   }
 
@@ -109,7 +138,7 @@ export class RoomManager {
       }
     });
   }
-  public findSpawns(roomName: string, onlyNonSpawning: boolean = true) :StructureSpawn[] {
+  public findSpawns(roomName: string, onlyNonSpawning: boolean = true) :AnyOwnedStructure[] {
   let room = Game.rooms[roomName];
   return room.find(FIND_MY_STRUCTURES, {
     filter: (structure: Structure) => {
@@ -122,13 +151,15 @@ export class RoomManager {
     }
   });
 }
+
+
   /* Initialization methods - runs after loaded*/
   private initializeContainers(roomName: string) {
 
-    //var test = this.getContainers2(roomName);
+    //var test = this.containers(roomName);
     _.forEach(this._containers2[roomName], c => {
       if (c.shouldRefill == undefined || c.allowedWithdrawRoles == undefined) {
-        var rangeToSources = _.map(this.getSources2(roomName), s => c.pos.getRangeTo(s));
+        var rangeToSources = _.map(this.sources(roomName), s => c.pos.getRangeTo(s));
         var closestRange = _.min(rangeToSources, s => s);
         if (closestRange <= 2) {
           //miner depository
@@ -152,13 +183,13 @@ export class RoomManager {
       if (source.linkID == "" && source.containerID == "") {
        
         if (source.linkID == "") {
-          const closestLinks = _.filter(this.getLinks2(roomName), l => source.pos.getRangeTo(l) <= 2);
+          const closestLinks = _.filter(this.links(roomName), l => source.pos.getRangeTo(l) <= 2);
           if (closestLinks.length > 0) {
             source.linkID = closestLinks[0].id;
           }
         }
         if (source.containerID == "") {
-          var test = this.getContainers2(roomName);
+          var test = this.containers(roomName);
           const closestContainers = _.filter(test, c => source.pos.getRangeTo(c.pos) <= 2);
           if (closestContainers.length > 0) {
             source.containerID = closestContainers[0].id;
@@ -198,9 +229,6 @@ export class RoomManager {
     });
     return containerMems;
   }
-
-
-
   private loadTowers2(roomName: string): TowerMemory[] {
     const roomMem = Memory.rooms[roomName];
     if (roomMem == undefined) {
@@ -272,7 +300,7 @@ export class RoomManager {
     }
 
     const links = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "link");
-    //const sources = this.getSources2(roomName);
+    //const sources = this.sources(roomName);
     const linkMems: LinkMemory[] = [];
     _.forEach(links, link => {
       let linkMode: LinkMode = "SEND";
@@ -311,265 +339,7 @@ export class RoomManager {
   }
   /* End Loading methods*/
   
-//export function findIdleCreeps(homeRoomName: string, role: CreepRole = "ROLE_ALL"): Creep[] {
 
-//  var creeps = Game.creeps;
-//  var idle: Creep[] = []
-//  for (var i in creeps) {
-//    var creep = creeps[i] as Creep;
-//    if (creep.memory.homeRoom != homeRoomName) continue;
-//    if (!creep.memory.idle) continue;
-//    if (creep.memory.role != role && role != "ROLE_ALL") continue;
-//    idle.push(creep);
-//  }
-//  return idle;
-
-//}
-//export function findIdleStructures(roomName: string, type?: StructureConstant | undefined): string[] {
-
-//  const room = Game.rooms[roomName];
-//  if (room == undefined) return [];
-//  var test = _.filter(room.memory.structures, s => s.currentTask == "" && (type == undefined || s.type == type));
-//  return _.map(test, s => s.id);
-//}
-//export function idleCreepCount(roomName: string, role: CreepRole = "ROLE_ALL") {
-//  return findIdleCreeps(roomName, role).length;
-//}
-//export function findClosestContainer(roomName: string, targetID: string, fullOK: boolean, emptyOK: boolean): StructureContainer | undefined {
-//  let target = Game.getObjectById(targetID);
-//  if (target == null) {
-//    //console.log("container target was null.")
-//    return;
-//  }
-//  let roomContainers = findAllContainers(roomName)
-//    .sort((a, b) => a.pos.getRangeTo(target as any) - b.pos.getRangeTo(target as any));
-
-//  for (const id in roomContainers) {
-//    let container = <StructureContainer>Game.getObjectById(id);
-//    if (container == null) continue;
-//    if (!fullOK && container.store.energy == container.storeCapacity) continue; //has room
-//    if (!emptyOK && container.store.energy == 0) continue; //can't be empty
-//    return container;
-//  }
-//  return undefined;
-//}
-//export function creepIDsByRole(roomName: string, role: CreepRole): string[] {
-//  let room = Game.rooms[roomName];
-//  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-//  let found: string[] = [];
-//  for (const key in creeps) {
-//    if (creeps.hasOwnProperty(key)) {
-//      const creep = creeps[key];
-//      const mem = creep.memory as CreepMemory;
-//      if (mem.role == role || role == undefined) found.push(creep.id);
-//    }
-//  }
-//  return found;
-//}
-//export function creepNamesByRole(roomName: string, role: CreepRole): string[] {
-//  let room = Game.rooms[roomName];
-//  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-//  let found: string[] = [];
-//  for (const key in creeps) {
-//    if (creeps.hasOwnProperty(key)) {
-//      const creep = creeps[key];
-//      const mem = creep.memory as CreepMemory;
-//      if (mem.role == role || role == undefined) found.push(creep.name);
-//    }
-//  }
-//  return found;
-//}
-//export function creepCount(roomName: string, role: CreepRole | undefined): number {
-//  let room = Game.rooms[roomName];
-//  if (room == undefined) return 0;
-//  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-//  if (role == undefined) return creeps.length;
-//  else {
-//    return creepIDsByRole(roomName, role).length
-//  }
-//}
-//export function creepCountAllRooms(role: CreepRole): number {
-//  var count = 0;
-//  let rooms = Game.rooms;
-//  for (var id in rooms) {
-//    var room = rooms[id];
-//    let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-//    count += creepIDsByRole(room.name, role).length;
-//  }
-//  return count;
-//}
-//export function roomSources(roomName: string): Source[] {
-//  return Game.rooms[roomName].find(FIND_SOURCES) as Source[];
-//}
-//export function sourceCount(roomName: string) {
-//  return roomSources(roomName).length;
-//}
-//export function findAllContainers(roomName: string): ContainerMemory[] {
-
-//  return global.roomManager.getContainers2(roomName);
-//  //return Game.rooms[roomName].find(FIND_STRUCTURES).filter(i => {
-//  //  return i.structureType == STRUCTURE_CONTAINER;
-//  //}) as StructureContainer[];
-
-//}
-//export function findClosestContainerID(roomName: string, creepRole: CreepRole, energyAmount: number, targetID: string): string | undefined {
-
-//  var containerIDs = findContainers(roomName, creepRole, energyAmount, targetID);
-//  if (containerIDs.length == 0) return undefined;
-//  else return containerIDs[0];
-
-//}
-//export function getRoomEnergyLevel(roomName: string): number {
-
-//  //var roomCreeps = _.filter(Game.creeps, c => c.memory.homeRoom = roomName)
-//  var room = Game.rooms[roomName];
-//  var creeps = room.find(FIND_MY_CREEPS);
-
-//  if (creeps.length < 3 && room.energyAvailable < 800) return 1;
-
-//  let cap = room.energyCapacityAvailable;
-
-//  if (cap < 550) return 1;
-//  else if (cap <= 950) return 2;
-//  else if (cap <= 1500) return 3;
-//  else if (cap <= 3500) return 4;
-//  else return 5;
-//}
-//export function findClosestSourceID(roomName: string, targetPos: RoomPosition, energyAmount: number = 0): string | undefined {
-
-//  var sources = global.roomManager.getSources2(roomName);
-//  var withEnergy2: Source[] = [];
-
-//  _.forEach(sources, sourceMem => {
-//    var source = <Source>Game.getObjectById(sourceMem.id);
-//    if (source.energy > energyAmount) withEnergy2.push(source);
-//  })
-//  return _.min(withEnergy2, source => targetPos.getRangeTo(source)).id
-//}
-//export function getRoomType(roomName: string): RoomType {
-//  if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
-
-//  const room = Game.rooms[roomName];
-//  if (room == undefined) return "UNKNOWN";
-
-//  if (room.controller != undefined) {
-//    if (room.controller.my) {
-//      if (room.find(FIND_SOURCES).length > 0) return "OWNED";
-//      else return "REMOTE_HARVEST"; //todo - handle expansion case
-//    }
-//    else return "HOSTILE"; //todo - add in friendly folks
-//  }
-//  else {
-//    if (room.find(FIND_HOSTILE_SPAWNS).length > 0) return "SOURCE_KEEPER";
-//    else return "EMPTY"
-//  }
-
-//  //todo - refactor this?
-//}
-//export function findContainers(roomName: string, creepRole: CreepRole, energyAmount: number, sortByRangeToID: string = ""): string[] {
-
-
-//  var room = Game.rooms[roomName];
-//  if (room == undefined) return [];
-//  var containers = findAllContainers(roomName);
-
-//  var filtered = _.filter(containers, c =>
-//    _.includes(<CreepRole[]>c.allowedWithdrawRoles, creepRole)
-//    && (<StructureContainer>Game.getObjectById(c.id)).store.energy > energyAmount);
-
-//  if (sortByRangeToID != "") {
-//    var rangeToTarget = <RangeTarget>Game.getObjectById(sortByRangeToID);
-//    if (rangeToTarget == undefined) throw new Error("findContainers:rangeToTarget cannot be undefined");
-
-//    var sorted = _.sortBy(filtered, c => c.pos.getRangeTo(rangeToTarget))
-//    return _.map(sorted, s => s.id);
-//  }
-//  else return _.map(filtered, f => f.id);
-
-//}
 
 }
 
-
-//export const roomManager = new RoomManager();
-const CACHE_TIMEOUT = 50;
-const SHORT_CACHE_TIMEOUT = 10;
-//export class $ { // $ = cash = cache... get it? :D
-//  static structures<T extends Structure>(saver: { ref: string }, key: string, callback: () => T[],
-//    timeout = CACHE_TIMEOUT): T[] {
-//    let cacheKey = saver.ref + ':' + key;
-//    if (!_cache.structures[cacheKey] || Game.time > _cache.expiration[cacheKey]) {
-//      // Recache if new entry or entry is expired
-//      _cache.structures[cacheKey] = callback();
-//      _cache.expiration[cacheKey] = getCacheExpiration(timeout, Math.ceil(timeout / 10));
-//    } else {
-//      // Refresh structure list by ID if not already done on current tick
-//      if (_cache.accessed[cacheKey] < Game.time) {
-//        _cache.structures[cacheKey] = _.compact(_.map(_cache.structures[cacheKey],
-//          s => Game.getObjectById(s.id))) as Structure[];
-//        _cache.accessed[cacheKey] = Game.time;
-//      }
-//    }
-//    return _cache.structures[cacheKey] as T[];
-//  }
-
-//  static number(saver: { ref: string }, key: string, callback: () => number, timeout = SHORT_CACHE_TIMEOUT): number {
-//    let cacheKey = saver.ref + ':' + key;
-//    if (_cache.numbers[cacheKey] == undefined || Game.time > _cache.expiration[cacheKey]) {
-//      // Recache if new entry or entry is expired
-//      _cache.numbers[cacheKey] = callback();
-//      _cache.expiration[cacheKey] = getCacheExpiration(timeout, Math.ceil(timeout / 10));
-//    }
-//    return _cache.numbers[cacheKey];
-//  }
-
-//  static list<T>(saver: { ref: string }, key: string, callback: () => T[], timeout = CACHE_TIMEOUT): T[] {
-//    let cacheKey = saver.ref + ':' + key;
-//    if (_cache.lists[cacheKey] == undefined || Game.time > _cache.expiration[cacheKey]) {
-//      // Recache if new entry or entry is expired
-//      _cache.lists[cacheKey] = callback();
-//      _cache.expiration[cacheKey] = getCacheExpiration(timeout, Math.ceil(timeout / 10));
-//    }
-//    return _cache.lists[cacheKey];
-//  }
-
-//  static costMatrix(roomName: string, key: string, callback: () => CostMatrix,
-//    timeout = SHORT_CACHE_TIMEOUT): CostMatrix {
-//    let cacheKey = roomName + ':' + key;
-//    if (_cache.costMatrices[cacheKey] == undefined || Game.time > _cache.expiration[cacheKey]) {
-//      // Recache if new entry or entry is expired
-//      _cache.costMatrices[cacheKey] = callback();
-//      _cache.expiration[cacheKey] = getCacheExpiration(timeout, Math.ceil(timeout / 10));
-//    }
-//    return _cache.costMatrices[cacheKey];
-//  }
-
-//  static costMatrixRecall(roomName: string, key: string): CostMatrix | undefined {
-//    let cacheKey = roomName + ':' + key;
-//    return _cache.costMatrices[cacheKey];
-//  }
-
-//  static set<T extends HasRef, K extends keyof T>(thing: T, key: K,
-//    callback: () => (T[K] & (undefined | HasID | HasID[])),
-//    timeout = CACHE_TIMEOUT) {
-//    let cacheKey = thing.ref + '$' + key;
-//    if (!_cache.things[cacheKey] || Game.time > _cache.expiration[cacheKey]) {
-//      // Recache if new entry or entry is expired
-//      _cache.things[cacheKey] = callback();
-//      _cache.expiration[cacheKey] = getCacheExpiration(timeout, Math.ceil(timeout / 10));
-//    } else {
-//      // Refresh structure list by ID if not already done on current tick
-//      if (_cache.accessed[cacheKey] < Game.time) {
-//        if (_.isArray(_cache.things[cacheKey])) {
-//          _cache.things[cacheKey] = _.compact(_.map(_cache.things[cacheKey] as HasID[],
-//            s => Game.getObjectById(s.id))) as HasID[];
-//        } else {
-//          _cache.things[cacheKey] = Game.getObjectById((<HasID>_cache.things[cacheKey]).id) as HasID;
-//        }
-//        _cache.accessed[cacheKey] = Game.time;
-//      }
-//    }
-//    thing[key] = _cache.things[cacheKey] as T[K] & (undefined | HasID | HasID[]);
-//  }
-
-//}

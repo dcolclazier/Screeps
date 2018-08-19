@@ -18,7 +18,8 @@ export class TowerAttack extends StructureTask {
   protected init(): void {
     super.init();
     var room = Game.rooms[this.request.originatingRoomName] as Room;
-    const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    //const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    const tower = <TowerMemory>_.find(global.roomManager.towers(this.request.originatingRoomName), t => t.id == this.request.assignedToID)
     tower.currentTask = TowerAttack.taskName + this.request.id;
     tower.towerMode = "ATTACK";
     this.request.status = "PREPARE";
@@ -53,8 +54,9 @@ export class TowerAttack extends StructureTask {
   }
   protected finish() {
     super.finish();
-
-    const tower = <TowerMemory>Game.rooms[this.request.originatingRoomName].memory.structures[this.request.assignedToID];
+    //const towers = global.roomManager.towers(this.request.originatingRoomName);
+    const tower = <TowerMemory>_.find(global.roomManager.towers(this.request.originatingRoomName), t => t.id == this.request.assignedToID)
+    //const tower = <TowerMemory>Game.rooms[this.request.originatingRoomName].memory.structures[this.request.assignedToID];
     tower.currentTask = "";
     tower.towerMode = "IDLE";
     

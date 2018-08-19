@@ -42,7 +42,7 @@ export class TaskManager {
   }
   private runLinks(roomName: string) {
     const room = Memory.rooms[roomName];
-    var links = global.roomManager.getLinks2(roomName);
+    var links = global.roomManager.links(roomName);
 
 
     var masterLinkMem = <LinkMemory>_.find(links, l => l.linkMode == "MASTER_RECEIVE");
@@ -74,8 +74,8 @@ export class TaskManager {
     const idleCreeps = utils.findIdleCreeps(roomName);
     _.forEach(idleCreeps, creep => CreepTaskQueue.assignRequest(creep.name, roomName))
 
-    const idleStructures = utils.findIdleStructures(roomName);
-    _.forEach(idleStructures, structure => StructureTaskQueue.assignRequest(structure, roomName));
+    const idleStructuresIDs = global.roomManager.idleStructureIDs(roomName);
+    _.forEach(idleStructuresIDs, id => StructureTaskQueue.assignRequest(id, roomName));
   }
   private continueTasks(roomName: string) {
 

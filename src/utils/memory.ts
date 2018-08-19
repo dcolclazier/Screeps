@@ -27,8 +27,17 @@ function memoryInit() {
 
   mem.uuid = utils.getTotalCreepCount();
   mem.memVersion = MemoryVersion;
+  initializeFlags();
 }
+export function initializeFlags() {
+  var flags = Game.flags;
+  console.log("found " + Object.keys(flags).length + " flags.")
+  for (var id in flags) {
+    Memory.flags[id] = flags[id];
+  }
 
+  //m().flags = room.find(FIND_FLAGS);
+}
 export function InitializeGame() {
   if (Memory.memVersion === undefined ||
     Memory.memVersion !== MemoryVersion ||
@@ -124,7 +133,7 @@ export function cleanupCreeps(): void {
         //let sources = <SourceMemory[]>_.filter(Game.rooms[roomName].memory.structures, s => {
         //  s.type == "source"
         //});
-        _.forEach(global.roomManager.getSources2(roomName), source => {
+        _.forEach(global.roomManager.sources(roomName), source => {
           console.log(source.assignedTo)
           if (_.includes(source.assignedTo, creepName)) {
             console.log("unassiging harvest spot for " + creepName + " source: " + source)

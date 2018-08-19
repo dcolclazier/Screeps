@@ -90,17 +90,7 @@ export class PickupEnergy extends CreepTask {
       }
     }
   }
-  //private deliver() {
-  //  let creep = Game.creeps[this.request.assignedTo];
-  //  let container = utils.findClosestContainer(this.request.roomName, creep.id, false, true) as StructureContainer;
-  //  if (container == undefined) throw "Error!";
-
-  //  if (container.store.energy == container.storeCapacity) return;
-
-  //  if (creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-  //    creep.moveTo(container, { visualizePathStyle: { stroke: '#ffffff' } });
-  //  }
-  //}
+ 
   
 }
 

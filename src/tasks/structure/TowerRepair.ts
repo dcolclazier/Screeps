@@ -23,7 +23,8 @@ export class TowerRepair extends StructureTask {
     if (this.request.status != "INIT") return;
     //console.log("Repair INIT");
     var room = Game.rooms[this.request.originatingRoomName] as Room;
-    const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    const tower = <TowerMemory>_.find(global.roomManager.towers(this.request.originatingRoomName), t => t.id == this.request.assignedToID)
+    //const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
     tower.currentTask = TowerRepair.taskName + this.request.id;
     tower.towerMode = "REPAIR";
     this.request.status = "PREPARE";
@@ -40,6 +41,7 @@ export class TowerRepair extends StructureTask {
     if (this.request.status != "IN_PROGRESS") return;
 
     const site = Game.getObjectById(this.request.targetID) as AnyStructure;
+
     const tower = Game.getObjectById(this.request.assignedToID) as StructureTower;
 
     if (tower.energy < tower.energyCapacity * .5) {
@@ -57,7 +59,9 @@ export class TowerRepair extends StructureTask {
     if (this.request.status != "FINISHED") return;
 
     var room = Game.rooms[this.request.originatingRoomName] as Room;
-    const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    //const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];
+    const tower = <TowerMemory>_.find(global.roomManager.towers(this.request.originatingRoomName),
+      t => t.id == this.request.assignedToID);
 
     tower.currentTask = "";
     tower.towerMode = "IDLE"

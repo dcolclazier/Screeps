@@ -97,7 +97,7 @@ export abstract class CreepTask extends Task {
     if (room == undefined) return false;
 
     //const links = utils.findStructures<LinkMemory>(roomName, "link");
-    const links = global.roomManager.getLinks2(roomName);
+    const links = global.roomManager.links(roomName);
 
     let masterLinkID = _.find(links, linkMem => linkMem.linkMode == "MASTER_RECEIVE");
     if (masterLinkID == undefined) return false;
@@ -136,7 +136,7 @@ export abstract class CreepTask extends Task {
   protected collectFromContainer(roomName: string): boolean {
 
     const room = Game.rooms[roomName];
-    var containers = global.roomManager.getContainers2(roomName);
+    var containers = global.roomManager.containers(roomName);
     //console.log(JSON.stringify(containers));
 
     var filtered = _.filter(containers, c =>

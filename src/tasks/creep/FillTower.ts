@@ -67,15 +67,19 @@ export class FillTower extends CreepTask {
   }
   static addRequests(roomName: string): void {
     let room = Game.rooms[roomName];
-    const towers = room.find(FIND_MY_STRUCTURES)
-      .filter(t => t.structureType == "tower"
-        && t.energy < t.energyCapacity * FillTowerRequest.RefillThreshold) as StructureTower[];
+    //const towers = room.find(FIND_MY_STRUCTURES)
+    //  .filter(t => t.structureType == "tower"
+    //    && t.energy < t.energyCapacity * FillTowerRequest.RefillThreshold) as StructureTower[];
 
-    let sorted = towers.sort((a, b) => a.energy - b.energy);
+    const towers = global.roomManager.towers(roomName).map(mem => Game.getObjectById(mem.id) as StructureTower)
+      .filter(tower => {
+        return tower.energy < tower.energyCapacity * FillTowerRequest.RefillThreshold;
+      }).sort((a, b) => a.energy - b.energy);
+
     //console.log("sorted" + sorted.map(s => s.energy))
 
-    for (const id in sorted) {
-      let tower = sorted[id] as StructureTower;
+    for (const id in towers) {
+      let tower = towers[id] as StructureTower;
       let request = new FillTowerRequest(roomName, tower.id);
       //if (CreepTaskQueue2.totalCount(roomName, request.name) < request.maxConcurrent) {
       if (CreepTaskQueue.count(roomName, request.name) < request.maxConcurrent) {

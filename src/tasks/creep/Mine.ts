@@ -45,7 +45,7 @@ export class Mine extends CreepTask {
     super.prepare();
     if (this.request.status != "PREPARE") return;
     if (this.creep.room.name != this.request.targetRoomName) return;
-    const sources = global.roomManager.getSources2(this.request.targetRoomName);
+    const sources = global.roomManager.sources(this.request.targetRoomName);
     const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
     const source2 = <SourceMemory>Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
     source.assignedTo.push(this.creep.name);
@@ -94,7 +94,7 @@ export class Mine extends CreepTask {
     }
     targetRoomName = roomName;
     //const sources = utils.findStructures<SourceMemory>(roomName, "source");
-    _.forEach(global.roomManager.getSources2(roomName), source => {
+    _.forEach(global.roomManager.sources(roomName), source => {
       //console.log(JSON.stringify(source))
       //console.log(`AssignedTo: ${source.assignedTo.length}, minersPer: ${minersPerSource}`);
       
@@ -130,7 +130,7 @@ export class Mine extends CreepTask {
 
     const room = Game.rooms[this.request.targetRoomName];
     //const source = Game.getObjectById(this.request.targetID) as Source;
-    const sources = global.roomManager.getSources2(this.request.targetRoomName);
+    const sources = global.roomManager.sources(this.request.targetRoomName);
     const source = _.find(sources, s => s.id == this.request.targetID);
     if (source == undefined) {
       console.log("ERROR:Mine::deliver -> source was undefined...")
@@ -149,7 +149,7 @@ export class Mine extends CreepTask {
 
     }
     else if (source.containerID != "") {
-      const containers = global.roomManager.getContainers2(this.request.targetRoomName);
+      const containers = global.roomManager.containers(this.request.targetRoomName);
       const container = _.find(containers, c => c.id == source.containerID);
       if (container == undefined) {
         console.log("ERROR:Mine::deliver -> container was undefined...")
