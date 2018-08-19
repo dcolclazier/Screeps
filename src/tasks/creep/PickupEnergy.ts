@@ -60,7 +60,7 @@ export class PickupEnergy extends CreepTask {
     let resources = room.find(FIND_DROPPED_RESOURCES) as Resource[];
     let tombstones = room.find(FIND_TOMBSTONES) as Tombstone[];
 
-    let workers = utils.creepNamesByRole(roomName,"ROLE_WORKER").filter(name => {
+    let workers = global.creepManager.creepNamesByRole(roomName, "ROLE_WORKER").filter(name => {
       const worker = Game.creeps[name] as Creep;
       return worker.carry.energy < worker.carryCapacity;
     })

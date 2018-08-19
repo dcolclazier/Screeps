@@ -25,7 +25,7 @@ function memoryInit() {
   mem.creepTasks = {};
   mem.structureTasks = {};
 
-  mem.uuid = utils.getTotalCreepCount();
+  mem.uuid = global.creepManager.creepCountAllRooms();
   mem.memVersion = MemoryVersion;
   initializeFlags();
 }
@@ -47,7 +47,7 @@ export function InitializeGame() {
     initialized = true;
   }
   if (!Memory.uuid || Memory.uuid > 10000) {
-    Memory.uuid = utils.getTotalCreepCount();
+    Memory.uuid = global.creepManager.creepCountAllRooms();
   }
   InitializeRoomMemory();
 }
@@ -129,19 +129,7 @@ export function cleanupCreeps(): void {
   for (const creepName in Memory.creeps) {
     if (!Game.creeps[creepName]) {
       console.log("Clearing dead creeps from memory.")
-      for (const roomName in Game.rooms) {
-        //let sources = <SourceMemory[]>_.filter(Game.rooms[roomName].memory.structures, s => {
-        //  s.type == "source"
-        //});
-        _.forEach(global.roomManager.sources(roomName), source => {
-          console.log(source.assignedTo)
-          if (_.includes(source.assignedTo, creepName)) {
-            console.log("unassiging harvest spot for " + creepName + " source: " + source)
-            source.assignedTo = source.assignedTo.filter(s => s != creepName);
-          }
-        })
-      }
-      delete Memory.creeps[creepName];
+      global.creepManager.deleteCreep(creepName)
     }
   }
 }

@@ -146,93 +146,6 @@ class Queue<T> {
   }
 }
 
-
-
-
-export function findIdleCreeps(homeRoomName: string, role: CreepRole ="ROLE_ALL"): Creep[] {
-
-  var creeps = Game.creeps;
-  var idle : Creep[] = []
-  for (var i in creeps) {
-    var creep = creeps[i] as Creep;
-    if (creep.memory.homeRoom != homeRoomName) continue;
-    if (!creep.memory.idle) continue;
-    if (creep.memory.role != role && role !="ROLE_ALL") continue;
-    idle.push(creep);
-  }
-  return idle;
-
-}
-export function idleCreepCount(roomName: string, role: CreepRole ="ROLE_ALL") {
-  return findIdleCreeps(roomName, role).length;
-}
-export function creepIDsByRole(roomName: string, role: CreepRole): string[] {
-  let room = Game.rooms[roomName];
-  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-  let found: string[] = [];
-  for (const key in creeps) {
-    if (creeps.hasOwnProperty(key)) {
-      const creep = creeps[key];
-      const mem = creep.memory as CreepMemory;
-      if (mem.role == role || role == undefined) found.push(creep.id);
-    }
-  }
-  return found;
-}
-export function creepNamesByRole(roomName: string, role: CreepRole): string[] {
-  let room = Game.rooms[roomName];
-  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-  let found: string[] = [];
-  for (const key in creeps) {
-    if (creeps.hasOwnProperty(key)) {
-      const creep = creeps[key];
-      const mem = creep.memory as CreepMemory;
-      if (mem.role == role || role == undefined) found.push(creep.name);
-    }
-  }
-  return found;
-}
-export function creepCount(roomName: string, role: CreepRole | undefined): number {
-
-
-  let room = Game.rooms[roomName];
-  if (room == undefined) return 0;
-
-  //var start = Game.cpu.getUsed();
-  let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-  //console.log(`CPU used for room find creeps: ${Game.cpu.getUsed() - start}`);
-  if (role == undefined) return creeps.length;
-  else {
-    return creepIDsByRole(roomName, role).length
-  }
-}
-export function creepCountAllRooms(role: CreepRole): number {
-  var count = 0;
-  let rooms = Game.rooms;
-  for (var id in rooms) {
-    var room = rooms[id];
-    let creeps = room.find(FIND_MY_CREEPS) as Creep[];
-    count += creepIDsByRole(room.name, role).length;
-  }
-  return count;
-}
-export function getTotalCreepCount(): number {
-  let totalcreepCount = 0;
-  for (const i in Game.rooms) {
-    const room: Room = Game.rooms[i];
-    let creeps = room.find(FIND_MY_CREEPS);
-    totalcreepCount += creeps.length;
-  }
-  return totalcreepCount;
-}
-
-export function roomSources(roomName: string): Source[] {
-  return Game.rooms[roomName].find(FIND_SOURCES) as Source[];
-}
-export function sourceCount(roomName: string) {
-  return roomSources(roomName).length;
-}
-
 export function getRoomType(roomName: string): RoomType {
   if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
 
@@ -255,29 +168,18 @@ export function getRoomType(roomName: string): RoomType {
 }
 
 
+export function findIdleCreeps(homeRoomName: string, role: CreepRole ="ROLE_ALL"): Creep[] {
 
+  var creeps = Game.creeps;
+  var idle : Creep[] = []
+  for (var i in creeps) {
+    var creep = creeps[i] as Creep;
+    if (creep.memory.homeRoom != homeRoomName) continue;
+    if (!creep.memory.idle) continue;
+    if (creep.memory.role != role && role !="ROLE_ALL") continue;
+    idle.push(creep);
+  }
+  return idle;
 
-
-export function getRole(creepName: string): CreepRole {
-
-  if (creepName.search("ROLE_MINER") != -1) return "ROLE_MINER";
-  if (creepName.search("ROLE_WORKER") != -1) return "ROLE_WORKER";
-  if (creepName.search("ROLE_UPGRADER") != -1) return "ROLE_UPGRADER";
-  if (creepName.search("ROLE_CARRIER") != -1) return "ROLE_CARRIER";
-  if (creepName.search("ROLE_RESERVER") != -1) return "ROLE_RESERVER";
-  if (creepName.search("ROLE_REMOTE_UPGRADER") != -1) return "ROLE_REMOTE_UPGRADER";
-  if (creepName.search("ROLE_DEFENDER") != -1) return "ROLE_DEFENDER";
-  if (creepName.search("ROLE_DISMANTLER") != -1) return "ROLE_DISMANTLER";
-  if (creepName.search("unknown role") != -1) return "ROLE_DISMANTLER";
-  return"ROLE_UNASSIGNED";
 }
-export function getHomeRoom(creepName: string): string {
-
-  return creepName.split("-")[0];
-}
-
-
-
-
-
 

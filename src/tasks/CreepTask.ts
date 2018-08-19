@@ -96,7 +96,6 @@ export abstract class CreepTask extends Task {
     const room = Game.rooms[roomName];
     if (room == undefined) return false;
 
-    //const links = utils.findStructures<LinkMemory>(roomName, "link");
     const links = global.roomManager.links(roomName);
 
     let masterLinkID = _.find(links, linkMem => linkMem.linkMode == "MASTER_RECEIVE");
@@ -149,8 +148,6 @@ export abstract class CreepTask extends Task {
     var sorted = _.sortBy(filtered, c => c.pos.getRangeTo(rangeToTarget))
     var closest = _.first(sorted);
     if (sorted.length == 0) return false;
-    //const closestContainerID = utils.findClosestContainerID(roomName, this.creep.memory.role, (this.creep.carryCapacity - this.creep.carry.energy) * .25, this.creep.id)
-    //if (closestContainerID == undefined) return false;
 
     var container = Game.getObjectById(closest.id) as StructureContainer;
     var result = this.creep.withdraw(container, RESOURCE_ENERGY)

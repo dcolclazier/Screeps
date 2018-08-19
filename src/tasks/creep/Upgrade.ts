@@ -90,7 +90,7 @@ export class Upgrade extends CreepTask {
     let controller = Game.rooms[roomName].controller as StructureController;
     if (controller == undefined || !controller.my) return;
 
-    var upgraderCount = utils.creepCount(roomName, "ROLE_UPGRADER");
+    var upgraderCount = global.creepManager.creepCount(roomName, "ROLE_UPGRADER");
     if (controller == undefined || upgraderCount == 0) return;
     let tasksNeeded = upgraderCount - CreepTaskQueue.count(roomName, "Upgrade");
     for (let i = 0; i < tasksNeeded; i++) {

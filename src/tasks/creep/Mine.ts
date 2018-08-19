@@ -20,7 +20,7 @@ export class MineRequest extends CreepTaskRequest {
     if (source == undefined) console.log("You cant init a mine request with an undefined source.")
 
     //console.log("after finding source: " + this.source.sourceID)
-    var minerCount = utils.creepCount(targetRoomName, "ROLE_MINER");
+    var minerCount = global.creepManager.creepCount(targetRoomName, "ROLE_MINER");
     this.maxConcurrent = minerCount;
     //console.log("max concurrent: " + this.maxConcurrent)
   }
@@ -93,7 +93,6 @@ export class Mine extends CreepTask {
       originatingRoomName = roomName;
     }
     targetRoomName = roomName;
-    //const sources = utils.findStructures<SourceMemory>(roomName, "source");
     _.forEach(global.roomManager.sources(roomName), source => {
       //console.log(JSON.stringify(source))
       //console.log(`AssignedTo: ${source.assignedTo.length}, minersPer: ${minersPerSource}`);

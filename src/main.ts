@@ -8,6 +8,8 @@ import { RoomManager } from "RoomManager"
 
 global.roomManager = new RoomManager();
 global.taskManager = new TaskManager();
+global.creepManager = new CreepManager();
+
 
 function mainLoop() {
   MemUtils.InitializeGame();
@@ -15,7 +17,7 @@ function mainLoop() {
     //const room: Room = Game.rooms[i];
     //const roomName = room.name;
     global.roomManager.run(roomName);
-    CreepManager.run(roomName);
+    global.creepManager.run(roomName);
     global.taskManager.run(roomName);
   }
   MemUtils.cleanupCreeps();

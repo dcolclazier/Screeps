@@ -6,8 +6,19 @@ declare namespace NodeJS {
   interface Global {
     roomManager: RoomManager;
     taskManager: TaskManager;
+    creepManager: CreepManager;
     help: any;
   }
+}
+
+declare class CreepManager {
+  public deleteCreep(creepName: string): void;
+  public creeps(roomName: string): CreepDictionary;
+  public creepCountAllRooms(role?: CreepRole): number;
+  public creepCount(roomName: string, role?: CreepRole): number;
+  public idleCreepNames(roomName: string, role?: CreepRole): string[]
+  public creepNamesByRole(roomName: string, role: CreepRole): string[];
+  public run(roomName: string): void;
 }
 
 interface PathfinderReturn {
@@ -127,6 +138,8 @@ interface CreepDictionary {
 }
 
 interface CreepMemory {
+  id: string;
+  name: string;
   alive: boolean | undefined;
   currentTask: string;
   idle: boolean;
@@ -221,7 +234,7 @@ declare class RoomManager {
   public idleStructureIDs(roomName: string): string[]
   public findClosestSource(roomName: string, targetPos: HasPos, energyAmount: number): string;
   public findContainers(roomName: string, creepRole: CreepRole, energyAmount: number, sortByRangeToID?: string): string[]
-  public findSpawns(roomName: string, onlyNonSpawning?: boolean): AnyOwnedStructure[]
+  public findSpawns(roomName: string, spawning?: boolean): AnyOwnedStructure[]
   public findRestockables(roomName: string): Array<AnyStructure>;
   public run(roomName: string): void;
   constructor();

@@ -138,14 +138,15 @@ export class RoomManager {
       }
     });
   }
-  public findSpawns(roomName: string, onlyNonSpawning: boolean = true) :AnyOwnedStructure[] {
+  public findSpawns(roomName: string, spawning: boolean = false) :AnyOwnedStructure[] {
   let room = Game.rooms[roomName];
   return room.find(FIND_MY_STRUCTURES, {
     filter: (structure: Structure) => {
       if (structure.structureType == STRUCTURE_SPAWN) {
         let spawner = structure as StructureSpawn;
         Memory.spawns[spawner.id] = spawner.memory
-        return onlyNonSpawning ? spawner.spawning === null : true;
+        return spawning ? spawner.spawning !== null : spawner.spawning === null;
+        //return onlyNonSpawning ? spawner.spawning === null : true;
       }
       return false;
     }
