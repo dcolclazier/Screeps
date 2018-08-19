@@ -25,7 +25,7 @@ function memoryInit() {
   mem.creepTasks = {};
   mem.structureTasks = {};
 
-  mem.uuid = global.creepManager.creepCountAllRooms();
+  mem.uuid = global.creepManager.totalCreepCount();
   mem.memVersion = MemoryVersion;
   initializeFlags();
 }
@@ -50,7 +50,7 @@ export function InitializeGame() {
     initialized = true;
   }
   if (!Memory.uuid || Memory.uuid > 10000) {
-    Memory.uuid = global.creepManager.creepCountAllRooms();
+    Memory.uuid = global.creepManager.totalCreepCount();
   }
   InitializeRoomMemory();
 }
@@ -67,24 +67,18 @@ export function InitializeRoomMemory() {
   }
 }
 export function initRoomMemory(roomName: string): void {
-  let room = Game.rooms[roomName];
-  let rm: RoomMemory = Memory.rooms[room.name];
-  console.log(`Init room memory for ${room.name}.`);
-  rm = <RoomMemory>{};
-
+  console.log(`Init room memory for ${roomName}.`);
+  const rm = <RoomMemory>{};
   rm.structures = {};
-
   rm.activeResourcePileIDs = [];
-
   rm.settingsMap = SetupRoomSettings(roomName);
-  
   //let start = Game.cpu.getUsed()
   var s = new utils.Search2();
   rm.baseEntranceRamparts = s.findEntrances(roomName, "rampart");
   rm.baseEntranceWalls = s.findEntrances(roomName, "constructedWall");
   //console.log("CPU USAGE: " + (Game.cpu.getUsed() - start))
   rm.initialized = true;
-  Memory.rooms[room.name] = rm;
+  Memory.rooms[roomName] = rm;
 
 }
 interface RoomSettingsMap {

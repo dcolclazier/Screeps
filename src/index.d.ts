@@ -7,17 +7,15 @@ declare namespace NodeJS {
         roomManager: RoomManager;
         taskManager: TaskManager;
         creepManager: CreepManager;
-        help: any;
+
+        log: (thing:any) => void;
     }
 }
 
 declare class CreepManager {
     public deleteCreep(creepName: string): void;
-    public creeps(roomName: string): CreepDictionary;
-    public creepCountAllRooms(role?: CreepRole): number;
-    public creepCount(roomName: string, role?: CreepRole): number;
-    public idleCreepNames(roomName: string, role?: CreepRole): string[]
-    public creepNamesByRole(roomName: string, role: CreepRole): string[];
+    public creeps(roomName: string, role?: CreepRole, idle?: boolean): string[];
+    public totalCreepCount(role?: CreepRole): number;
     public run(roomName: string): void;
 }
 

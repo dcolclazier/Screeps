@@ -10,18 +10,17 @@ global.roomManager = new RoomManager();
 global.taskManager = new TaskManager();
 global.creepManager = new CreepManager();
 
+global.log = (thing: any) => console.log(JSON.stringify(thing, null, 2));
 
 function mainLoop() {
   MemUtils.InitializeGame();
   for (const roomName in Memory.rooms) {
-    //const room: Room = Game.rooms[i];
-    //const roomName = room.name;
     global.roomManager.run(roomName);
     global.creepManager.run(roomName);
     global.taskManager.run(roomName);
   }
   MemUtils.cleanupCreeps();
-  global.help = () => console.log("Helps!")
+  
 }
 
 export const loop = ErrorMapper.wrapLoop(mainLoop);

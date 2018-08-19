@@ -8,21 +8,15 @@ export class MineRequest extends CreepTaskRequest {
   priority: number = 1;
   validRoles: CreepRole[] = ["ROLE_MINER"]
   name: string = "Mine";
-  maxConcurrent: number;
-  //source: SmartSource;
+    maxConcurrent: number;
+
   constructor(originatingRoomName: string, targetRoomName: string, sourceID: string) {
     super(originatingRoomName, targetRoomName, sourceID, `💲`);
 
-    //console.log("source id in mine req ctor: " + sourceID)
     const source = Game.getObjectById(sourceID);
-    //const source = roomMem.sources[sourceID] as SmartSource;
-    //this.source = _.find(roomMem.harvestLocations, h => h.sourceID == sourceID) as SmartSource;
     if (source == undefined) console.log("You cant init a mine request with an undefined source.")
-
-    //console.log("after finding source: " + this.source.sourceID)
-    var minerCount = global.creepManager.creepCount(targetRoomName, "ROLE_MINER");
+    var minerCount = global.creepManager.creeps(targetRoomName, "ROLE_MINER").length;
     this.maxConcurrent = minerCount;
-    //console.log("max concurrent: " + this.maxConcurrent)
   }
 }
 
@@ -33,10 +27,6 @@ export class Mine extends CreepTask {
   }
   protected init(): void {
     super.init();
-
-    //const source = Game.getObjectById(this.request.targetID) as Source;
-    
-
     this.request.status = "PREPARE";
 
   }
@@ -45,11 +35,11 @@ export class Mine extends CreepTask {
     super.prepare();
     if (this.request.status != "PREPARE") return;
     if (this.creep.room.name != this.request.targetRoomName) return;
+
     const sources = global.roomManager.sources(this.request.targetRoomName);
     const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
-    const source2 = <SourceMemory>Game.rooms[this.request.targetRoomName].memory.structures[this.request.targetID];
-    source.assignedTo.push(this.creep.name);
-    source2.assignedTo.push(this.creep.name);
+
+      source.assignedTo.push(this.creep.name);
     console.log("mine init assigned to " + source.assignedTo)
 
     this.request.status = "IN_PROGRESS";
