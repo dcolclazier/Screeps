@@ -71,11 +71,8 @@ export class TaskManager {
   }
   private assignTasks(roomName: string) {
 
-    //const idleCreepNames = global.creepManager.idleCreepNames(roomName);
-    //console.log(JSON.stringify(idleCreepNames,null,2))
-
-    const idleCreeps = utils.findIdleCreeps(roomName);
-    _.forEach(idleCreeps, creep => CreepTaskQueue.assignRequest(creep.name, roomName))
+    const idleCreepNames = global.creepManager.idleCreepNames(roomName);
+    _.forEach(idleCreepNames, name => CreepTaskQueue.assignRequest(name, roomName))
 
     const idleStructuresIDs = global.roomManager.idleStructureIDs(roomName);
     _.forEach(idleStructuresIDs, id => StructureTaskQueue.assignRequest(id, roomName));

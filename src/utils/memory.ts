@@ -33,7 +33,10 @@ export function initializeFlags() {
   var flags = Game.flags;
   console.log("found " + Object.keys(flags).length + " flags.")
   for (var id in flags) {
-    Memory.flags[id] = flags[id];
+      Memory.flags[id] = flags[id];
+      if (Memory[flags[id].pos.roomName] == undefined) {
+          //initRoomMemory(flags[id].pos.roomName);
+      }
   }
 
   //m().flags = room.find(FIND_FLAGS);
