@@ -57,7 +57,7 @@ export class Defend extends CreepTask {
 
     var room = Game.rooms[this.request.targetRoomName];
 
-    var roomMem = room.memory as RoomMemory;
+    var roomMem = room.memory as OwnedRoomMemory;
     var enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);
     var closestRampartToEn
     if (enemies.length == 0) {

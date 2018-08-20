@@ -120,7 +120,7 @@ export class Restock extends CreepTask {
       let restockable = restockables[targetID];
       let request = new RestockRequest(roomName, restockable.id);
      
-      let existingTaskCount = CreepTaskQueue.count(roomName, request.name);
+      let existingTaskCount = CreepTaskQueue.count(roomName, undefined, request.name);
       let maxConcurrentCount = request.maxConcurrent;
 
       if (existingTaskCount < maxConcurrentCount) {

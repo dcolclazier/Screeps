@@ -76,7 +76,7 @@ export class Build extends CreepTask {
       _.each(sorted, site => {
 
         if (site.progressTotal > 0) {
-          if(CreepTaskQueue.count(roomName, "Build", site.id) == 0)
+          if(CreepTaskQueue.count(roomName, undefined, "Build", site.id) == 0)
             CreepTaskQueue.addPendingRequest(new BuildRequest(roomName, site.pos.roomName, site.id));
         }
       })

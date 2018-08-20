@@ -50,7 +50,10 @@ export class Search2 {
     private initialize(roomName: string) {
 
         var room = Game.rooms[roomName];
-        if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
+        if (room == undefined) {
+            console.log("Cant get neighbors on a non-visible room...");
+
+        }
         this.roomMatrix = new PathFinder.CostMatrix();
 
         for (let i = 0; i < 50; i++) {
@@ -64,7 +67,7 @@ export class Search2 {
 
         this.toFind = toFind;
         var room = Game.rooms[roomName];
-        if (room == undefined) throw Error("Cant get neighbors on a non-visible room...");
+        if (room == undefined) return [];
 
         this.initialize(roomName);
 
@@ -138,23 +141,29 @@ class Queue<T> {
     }
 }
 
+
+export function isRemoteHarvestRoom(roomName: string): boolean {
+
+    var flag = _.find(Memory.flags, f => f.pos.roomName == roomName && f.color == COLOR_BLUE && f.secondaryColor == COLOR_WHITE);
+    return flag != undefined;
+
+}
 export function getRoomType(roomName: string): RoomType {
     if (Memory.rooms[roomName] != undefined) return Memory.rooms[roomName].roomType;
+
+    if (isRemoteHarvestRoom(roomName)) return "REMOTE_HARVEST";
 
     const room = Game.rooms[roomName];
     if (room == undefined) return "UNKNOWN";
 
     if (room.controller != undefined) {
-        if (room.controller.my) {
-            if (room.find(FIND_SOURCES).length > 0) return "OWNED";
-            else return "REMOTE_HARVEST"; //todo - handle expansion case
-        }
+        if (room.controller.my) return "OWNED";
         else return "HOSTILE"; //todo - add in friendly folks
     }
-    else {
-        if (room.find(FIND_HOSTILE_SPAWNS).length > 0) return "SOURCE_KEEPER";
-        else return "EMPTY"
-    }
+
+    if (room.find(FIND_HOSTILE_SPAWNS).length > 0) return "SOURCE_KEEPER";
+
+    else return "EMPTY"
 
     //todo - refactor this?
 }

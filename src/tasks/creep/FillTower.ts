@@ -31,7 +31,7 @@ export class FillTower extends CreepTask {
     if (this.request.status == "FINISHED") return;
 
     var room = Game.rooms[this.request.originatingRoomName];
-    var roomMem = room.memory as RoomMemory;
+    var roomMem = room.memory as OwnedRoomMemory;
     if (this.creep.carry.energy == 0) {
 
       if (this.collectFromMasterLink(room.name)) return;
@@ -82,7 +82,7 @@ export class FillTower extends CreepTask {
       let tower = towers[id] as StructureTower;
       let request = new FillTowerRequest(roomName, tower.id);
       //if (CreepTaskQueue2.totalCount(roomName, request.name) < request.maxConcurrent) {
-      if (CreepTaskQueue.count(roomName, request.name) < request.maxConcurrent) {
+      if (CreepTaskQueue.count(roomName, undefined, request.name) < request.maxConcurrent) {
         CreepTaskQueue.addPendingRequest(request);
       }
     }

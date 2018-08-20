@@ -163,7 +163,7 @@ export class Traveler {
   /**
    * check if room should be avoided by findRoute algorithm
    * @param roomName
-   * @returns {RoomMemory|number}
+   * @returns {OwnedRoomMemory|number}
    */
 
   public static checkAvoid(roomName: string) {

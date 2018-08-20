@@ -84,7 +84,7 @@ export class PickupEnergy extends CreepTask {
         if (tombstone.store.energy == 0) continue;
         //console.log("found a tombstone with energy")
         let ts = new PickUpEnergyRequest(roomName, tombstone.id, "resource")
-        if (CreepTaskQueue.count(roomName, ts.name) < ts.maxConcurrent) {
+        if (CreepTaskQueue.count(roomName, undefined, ts.name) < ts.maxConcurrent) {
           CreepTaskQueue.addPendingRequest(ts);
         }
       }

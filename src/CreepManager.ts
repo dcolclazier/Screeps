@@ -20,8 +20,13 @@ export class CreepManager {
         })
     }
     public run(roomName: string) {
+
         this.loadCreeps(roomName);
-        this.spawnMissingCreeps(roomName);
+        const room = Memory.rooms[roomName];
+        if (room.roomType == "OWNED") {
+            this.spawnMissingCreeps(roomName);
+        }
+        
     }
     private loadCreeps(roomName: string) {
         if (this._creeps[roomName] == undefined) {
@@ -30,11 +35,14 @@ export class CreepManager {
         }
         const room = Game.rooms[roomName];
         if (room == undefined) {
-            console.log(`room ${roomName} was undefined in CreepManager.loadCreeps`)
+            this._creeps[roomName] = []
+            //console.log(`room ${roomName} was undefined in CreepManager.loadCreeps`)
             return;
         }
         const foundCreeps = room.find(FIND_MY_CREEPS);
-        this._creeps[roomName] = [];
+        //if (this._creeps[roomName] == undefined) this._creeps[roomName] = [];
+
+
         for (let id in foundCreeps) {
             const creep = foundCreeps[id];
             if (creep.memory === undefined || creep.memory.id === undefined) {
@@ -50,9 +58,16 @@ export class CreepManager {
                     _trav: {},
                 };
             }
-            this._creeps[roomName].push(creep.name);
+            if (this._creeps[creep.memory.homeRoom] == undefined) {
+                this._creeps[creep.memory.homeRoom] = [];
+            }
+            if (!_.contains(this._creeps[creep.memory.homeRoom], creep.name)) {
+                this._creeps[creep.memory.homeRoom].push(creep.name);
+            }
+           
         }
     }
+
 
 
     public deleteCreep(creepName: string): void {
@@ -75,33 +90,7 @@ export class CreepManager {
         }
         return count;
     }
-
-    //public creepCount(roomName: string, role?: CreepRole): number {
-    //    return (role == undefined)
-    //        ? this.creeps(roomName).length
-    //        : this.creepNamesByRole(roomName, role).length;
-    //}
-    //public creepNamesByRole(roomName: string, role: CreepRole): string[] {
-    //    const creepNames = this.creeps(roomName);
-    //    return _.filter(creepNames, name => {
-    //        var creep = Game.creeps[name];
-    //        return creep != undefined && creep.memory.role == role
-    //    })
-    //}
-    //public idleCreepNames(roomName: string, role?: CreepRole): string[] {
-    //    const creepNames = this.creeps(roomName);
-    //    //console.log(Object.keys(creepDict).length)
-    //    var matching = _.filter(creepNames, name => {
-    //        var creep = Game.creeps[name];
-    //        if (creep == undefined) return false;
-    //        if (role != undefined && creep.memory.role != role) return false;
-    //        if (!creep.memory.idle) return false;
-    //        return true;
-    //        //return creepMemory.idle == true && (role == undefined || creepMemory.role == role)
-    //    })
-    //    return matching;
-    //}
-
+    
     // START OF BAD CODE _ SHOULD REFACTOR
     private spawnMissingCreeps(roomName: string) {
 
@@ -200,7 +189,7 @@ export class CreepManager {
             case 1: return [MOVE, MOVE, MOVE];
             case 2: return [MOVE, MOVE, MOVE]
             case 3: return [CLAIM, MOVE,]
-            case 4: return [CLAIM, MOVE,]
+            case 4: return [MOVE, CLAIM, MOVE, CLAIM]
             case 5: return [MOVE, CLAIM, MOVE, CLAIM]
             default: return [MOVE, MOVE];
         }
@@ -211,7 +200,7 @@ export class CreepManager {
         const workers = this.creeps(roomName, "ROLE_WORKER");
         const carriers = this.creeps(roomName, "ROLE_CARRIER");
         const upgraders = this.creeps(roomName, "ROLE_UPGRADER");
-        const roomMem = Game.rooms[roomName].memory as RoomMemory;
+        const roomMem = Game.rooms[roomName].memory as OwnedRoomMemory;
         const settings = roomMem.settingsMap[energyLevel];
         const currentRUCount = this.totalCreepCount("ROLE_REMOTE_UPGRADER");
         if (miners.length < settings.minersPerSource * 2
@@ -257,34 +246,43 @@ export class CreepManager {
     }
     private spawnMissingReservers(roomName: string, energyLevel: number): void {
         const miners = this.creeps(roomName, "ROLE_MINER");
-        const workers = this.creeps(roomName, "ROLE_WORKER");
         const upgraders = this.creeps(roomName, "ROLE_UPGRADER");
         const carriers = this.creeps(roomName, "ROLE_CARRIER");
-        const roomMem = Game.rooms[roomName].memory as RoomMemory;
+        const roomMem = Game.rooms[roomName].memory as OwnedRoomMemory;
         const settings = roomMem.settingsMap[energyLevel];
 
         if (miners.length < settings.minimumMinerCount
             || carriers.length < settings.maxCarrierCount
             || upgraders.length < settings.maxUpgraderCount) {
             return;
+          
         }
+        var currentIdle = this.creeps(roomName, "ROLE_RESERVER", true).length;
 
-        var currentPending = CreepTaskQueue.count(roomName, "Reserve", "", "PENDING");
-
-        var currentlySpawning = _.filter(global.roomManager.findSpawns(roomName, false), s => {
+        var currentPending = CreepTaskQueue.count(roomName, undefined, "Reserve", undefined, "PENDING");
+        //console.log(`current Pending count: ${currentPending}`);
+        var currentlySpawning = _.filter(global.roomManager.findSpawns(roomName, true), s => {
             var spawn = s as StructureSpawn;
             return spawn.spawning != null && this.getRole(spawn.spawning.name) == "ROLE_RESERVER";
         }).length;
+        //console.log(`current spawning count: ${currentlySpawning}`);
 
-        var reserversNeeded = currentPending - currentlySpawning;
+        var reserversNeeded = currentPending - currentlySpawning - currentIdle;
         if (reserversNeeded < 1) return;
-        var availableSpawns = global.roomManager.findSpawns(roomName, true);
+
+        console.log(`need to spawn ${reserversNeeded} reservers`);
+        var availableSpawns = global.roomManager.findSpawns(roomName, false);
 
         let reserversSpawned: number = 0;
         for (var i in availableSpawns) {
             var spawn = availableSpawns[i] as StructureSpawn;
             if (reserversSpawned < reserversNeeded) {
-                if (this.trySpawnCreep(spawn, "ROLE_RESERVER", energyLevel)) reserversSpawned++;
+                //var result = false;
+                var result = this.trySpawnCreep(spawn, "ROLE_RESERVER", energyLevel)
+                if (result) reserversSpawned++;
+                else {
+                    console.log("couldn't spawn! " + energyLevel )
+                }
             }
             else break;
         }
@@ -295,7 +293,7 @@ export class CreepManager {
         const carriers = this.creeps(roomName, "ROLE_CARRIER");
         const upgraders = this.creeps(roomName, "ROLE_UPGRADER");
         const room = Game.rooms[roomName]
-        const roomMem = room.memory as RoomMemory;
+        const roomMem = room.memory as OwnedRoomMemory;
         const settings = roomMem.settingsMap[energyLevel];
         const currentCount = this.creeps(roomName, "ROLE_WORKER").length;
         if (miners.length < settings.minimumMinerCount - 1 && currentCount > 0) {
@@ -313,7 +311,7 @@ export class CreepManager {
         const carriers = this.creeps(roomName, "ROLE_CARRIER");
         const upgraders = this.creeps(roomName, "ROLE_UPGRADER");
         const room = Game.rooms[roomName]
-        const roomMem = room.memory as RoomMemory;
+        const roomMem = room.memory as OwnedRoomMemory;
         const settings = roomMem.settingsMap[energyLevel];
         const currentCount = this.creeps(roomName, "ROLE_WORKER").length;
         if (miners.length < settings.minimumMinerCount - 1 && currentCount > 0) {
@@ -330,7 +328,7 @@ export class CreepManager {
         const workers = this.creeps(roomName, "ROLE_WORKER");
 
         const room = Game.rooms[roomName];
-        const roomMem = room.memory as RoomMemory;
+        const roomMem = room.memory as OwnedRoomMemory;
         const settings = roomMem.settingsMap[energyLevel];
         const currentCarrierCount = this.creeps(roomName, "ROLE_CARRIER").length;
         if (miners.length < settings.minimumMinerCount - 1 && workers.length < settings.minimumWorkerCount && currentCarrierCount > 0) {
@@ -405,7 +403,7 @@ export class CreepManager {
     }
 
     private spawnCreep(spawn: StructureSpawn, bodyParts: BodyPartConstant[], role: CreepRole): number {
-        //console.log("trying to spawn " + getRoleString(role))
+        //console.log("trying to spawn " + role);
         let uuid: number = Memory.uuid;
         let creepName: string = spawn.room.name + "-" + role + "-" + (uuid + 1);
 

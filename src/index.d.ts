@@ -39,12 +39,22 @@ declare class RoomSettings {
 }
 
 type RoomType = "OWNED" | "REMOTE_HARVEST" | "HOSTILE" | "UNKNOWN" | "SOURCE_KEEPER" | "EMPTY"
+
 interface RoomMemory {
     roomType: RoomType;
+    activeResourcePileIDs: string[];
     initialized: boolean;
     structures: { [structureID: string]: StructureMemory }
-    activeResourcePileIDs: string[];
     avoid: any;
+}
+interface RemoteHarvestRoomMemory extends RoomMemory {
+    baseRoomName: string;
+    sourceCount: number;
+    assignedReserver: string;
+}
+
+interface OwnedRoomMemory extends RoomMemory {
+
     settingsMap: { [energyLevel: number]: RoomSettings };
     baseEntranceRamparts: RoomPosition[];
     baseEntranceWalls: RoomPosition[];

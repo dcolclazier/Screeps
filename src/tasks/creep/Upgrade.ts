@@ -87,12 +87,14 @@ export class Upgrade extends CreepTask {
 
 
     static addRequests(roomName: string): void {
-        let controller = Game.rooms[roomName].controller as StructureController;
+        const room = Game.rooms[roomName];
+        if (room == undefined) return;
+        let controller = room.controller as StructureController;
         if (controller == undefined || !controller.my) return;
 
         var upgraderCount = global.creepManager.creeps(roomName, "ROLE_UPGRADER").length;
         if (controller == undefined || upgraderCount == 0) return;
-        let tasksNeeded = upgraderCount - CreepTaskQueue.count(roomName, "Upgrade");
+        let tasksNeeded = upgraderCount - CreepTaskQueue.count(roomName, undefined, "Upgrade");
         if (tasksNeeded <= 0) return;
 
         for (let i = 0; i < tasksNeeded; i++) {

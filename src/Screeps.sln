@@ -38,8 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "creep", "creep", "{A198E0CF
 		tasks\creep\FillTower.ts = tasks\creep\FillTower.ts
 		tasks\creep\Mine.ts = tasks\creep\Mine.ts
 		tasks\creep\PickupEnergy.ts = tasks\creep\PickupEnergy.ts
+		tasks\creep\Reserve.ts = tasks\creep\Reserve.ts
 		tasks\creep\Restock.ts = tasks\creep\Restock.ts
-		tasks\creep\Scout.ts = tasks\creep\Scout.ts
 		TerminalTransfer.ts = TerminalTransfer.ts
 		tasks\creep\Upgrade.ts = tasks\creep\Upgrade.ts
 	EndProjectSection

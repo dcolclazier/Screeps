@@ -19,9 +19,7 @@ export abstract class Task implements ITask2 {
       case "FINISHED": this.finish(); break;
 
     }
-    if (this.request != null && oldStatus != this.request.status && this.request.status == "FINISHED") {
-      this.run()
-    }
+    if (this.request != null && oldStatus != this.request.status) this.run()
   }
 
   constructor(taskInfo: ITaskRequest) {
