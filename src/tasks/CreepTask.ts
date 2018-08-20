@@ -35,9 +35,9 @@ export abstract class CreepTask extends Task {
                     }
                 }
             }
-            else if (this.creep.room.name != this.request.targetRoomName) {
-                this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
-            }
+            //else if (this.creep.room.name != this.request.targetRoomName) {
+            //    this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
+            //}
             
         }
     }
@@ -64,10 +64,10 @@ export abstract class CreepTask extends Task {
             return;
         }
 
-        if (this.creep.room.name != this.request.targetRoomName) {
-            this.request.status = "INIT";
-            return;
-        }
+        //if (this.creep.room.name != this.request.targetRoomName) {
+        //    this.request.status = "INIT";
+        //    return;
+        //}
         //if (Object.keys(this.creep.carry).length > 1) {
         //  this.request.status = "INIT";
         //  return;

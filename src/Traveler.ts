@@ -538,7 +538,7 @@ export class Traveler {
   public static serializePath(startPos: RoomPosition, path: RoomPosition[], color = "orange"): string {
     let serializedPath = "";
     let lastPosition = startPos;
-    this.circle(startPos, color);
+    //this.circle(startPos, color);
     for (let position of path) {
       if (position.roomName === lastPosition.roomName) {
         new RoomVisual(position.roomName)

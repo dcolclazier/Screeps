@@ -40,6 +40,7 @@ export class Reserve extends CreepTask {
                 this.request.status = "PREPARE";
             else this.creep.moveTo(new RoomPosition(25, 25, this.request.targetRoomName));
         }
+        else this.creep.moveTo(new RoomPosition(25, 25, this.request.targetRoomName));
     }
 
     protected prepare(): void {
@@ -56,6 +57,15 @@ export class Reserve extends CreepTask {
     protected work(): void {
         super.work();
         if (this.request.status != "IN_PROGRESS") return;
+
+        var roomMem = Memory.rooms[this.request.targetRoomName] as RemoteHarvestRoomMemory;
+        
+        if (roomMem.sourceCount == 0) {
+            var room = Game.rooms[this.request.targetRoomName] as Room;
+            roomMem.sourceCount = room.find(FIND_SOURCES).length;
+        }
+        //global.roomManager.sources(this.request.targetRoomName);
+        //global.roomManager.containers(this.request.targetRoomName);
 
         const request = <ReserveRequest>this.request;
         const controller = this.creep.room.controller as StructureController;
@@ -87,7 +97,9 @@ export class Reserve extends CreepTask {
         if (room != undefined) {
             var controller = room.controller;
             if (controller != undefined && controller.reservation != undefined) {
-                if (controller.reservation.username == OwnerName && controller.reservation.ticksToEnd > 2500 && reservers.length == 0) return;
+                if (controller.reservation.username == OwnerName && controller.reservation.ticksToEnd > 2500 && reservers.length == 0) {
+                    return;
+                }
             }
         }
 

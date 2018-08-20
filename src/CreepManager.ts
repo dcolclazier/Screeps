@@ -106,6 +106,7 @@ export class CreepManager {
         this.spawnMissingReservers(roomName, energyLevel);
         this.spawnMissingRemoteUpgraders(roomName, energyLevel);
         this.spawnMissingDismantlers(roomName, energyLevel);
+        this.spawnMissingRemoteCarriers(roomName, energyLevel);
         //CreepManager.spawnMissingDefenders(roomName, energyLevel);
     }
 
@@ -194,6 +195,19 @@ export class CreepManager {
             default: return [MOVE, MOVE];
         }
     }
+
+    private getRemoteCarrierBodyParts(energyLevel: number): BodyPartConstant[] {
+
+        switch (energyLevel) {
+            case 1: return [MOVE, MOVE, CARRY, CARRY];
+            case 2: return [MOVE, MOVE, MOVE, CARRY, CARRY, WORK]
+            case 3: return [MOVE, MOVE, CARRY, CARRY, CARRY, WORK]
+            case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
+            case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
+            default: return [MOVE, MOVE];
+        }
+    }
+
 
     private spawnMissingRemoteUpgraders(roomName: string, energyLevel: number) {
         const miners = this.creeps(roomName, "ROLE_MINER");
@@ -319,7 +333,13 @@ export class CreepManager {
         }
         if (carriers.length < settings.minimumCarrierCount || upgraders.length < settings.maxUpgraderCount) return;
 
-        if (room.find(FIND_CONSTRUCTION_SITES).length == 0) return;
+        var workerCount = global.creepManager.creeps(roomName, "ROLE_WORKER").length;
+        var pendingTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Build", undefined, "PENDING").length;
+        if (pendingTaskCount == 0) return;
+
+        if (workerCount > settings.maxWorkerCount) return;
+
+        //if (room.find(FIND_CONSTRUCTION_SITES).length == 0) return;
         this.spawnCreeps(roomName, "ROLE_WORKER", settings.maxWorkerCount, energyLevel);
 
     }
@@ -336,6 +356,23 @@ export class CreepManager {
         }
         this.spawnCreeps(roomName, "ROLE_CARRIER", settings.maxCarrierCount, energyLevel);
     }
+
+    private spawnMissingRemoteCarriers(roomName: string, energyLevel: number) {
+        const miners = this.creeps(roomName, "ROLE_MINER");
+        const upgraders = this.creeps(roomName, "ROLE_UPGRADER");
+        const carriers = this.creeps(roomName, "ROLE_CARRIER");
+        const roomMem = Game.rooms[roomName].memory as OwnedRoomMemory;
+        const settings = roomMem.settingsMap[energyLevel];
+
+        if (miners.length < settings.minimumMinerCount
+            || carriers.length < settings.maxCarrierCount
+            || upgraders.length < settings.maxUpgraderCount) {
+            return;
+        }
+        var totalTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "RemotePickup").length;
+
+        this.spawnCreeps(roomName, "ROLE_REMOTE_CARRIER", totalTaskCount, energyLevel);
+    }
     private spawnMissingUpgraders(roomName: string, energyLevel: number) {
 
         const settings = Game.rooms[roomName].memory.settingsMap[energyLevel];
@@ -351,10 +388,14 @@ export class CreepManager {
 
     private spawnMissingMiners(roomName: string, energyLevel: number) {
 
-        const minersPerSource = Game.rooms[roomName].memory.settingsMap[energyLevel].minersPerSource;
-        const sourceCount = global.roomManager.sources(roomName).length;
+        //var pendingTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Mine", undefined, "PENDING").length;
+        var totalTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Mine").length;
+        //var miners = global.creepManager.creeps(roomName, "ROLE_MINER");
+        this.spawnCreeps(roomName, "ROLE_MINER", totalTaskCount, energyLevel);
+        //const minersPerSource = Game.rooms[roomName].memory.settingsMap[energyLevel].minersPerSource;
+        //const sourceCount = global.roomManager.sources(roomName).length;
 
-        this.spawnCreeps(roomName, "ROLE_MINER", sourceCount * minersPerSource, energyLevel);
+        //this.spawnCreeps(roomName, "ROLE_MINER", sourceCount * minersPerSource, energyLevel);
     }
 
     private getCreepParts(role: CreepRole, roomEnergyLevel: number): BodyPartConstant[] {
@@ -368,6 +409,7 @@ export class CreepManager {
             case "ROLE_DEFENDER": return this.getDefenderBodyParts(roomEnergyLevel);
             case "ROLE_REMOTE_UPGRADER": return this.getRemoteUpgraderBodyParts(roomEnergyLevel);
             case "ROLE_DISMANTLER": return this.getDismantlerBodyParts(roomEnergyLevel);
+            case "ROLE_REMOTE_CARRIER": return this.getRemoteCarrierBodyParts(roomEnergyLevel);
             default: throw new Error(`${role} is not a valid creep role.`);
         }
     }

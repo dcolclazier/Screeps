@@ -110,7 +110,7 @@ export class CreepTaskQueue {
         if (creep.spawning) return;
         if (creep == undefined) return;
 
-        //console.log("Assiging task to " + creepName);
+        console.log("Assiging task to " + creepName);
 
         var nextTaskID = CreepTaskQueue.getNextTaskID(creepName, originatingRoomName);
         if (nextTaskID == undefined) return;

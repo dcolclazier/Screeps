@@ -167,7 +167,7 @@ export class RoomManager {
                 var closestRange = _.min(rangeToSources, s => s);
                 if (closestRange <= 2) {
                     //miner depository
-                    c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER"];
+                    c.allowedWithdrawRoles = ["ROLE_WORKER", "ROLE_CARRIER", "ROLE_REMOTE_CARRIER"];
                 }
                 else {
                     //probably container withdraw point
@@ -228,6 +228,7 @@ export class RoomManager {
                 shouldRefill: false,
                 allowedWithdrawRoles: undefined,
             };
+            if (roomMem.structures == undefined) roomMem.structures = {};
             if (roomMem.structures[container.id] == undefined) roomMem.structures[container.id] = mem;
             containerMems.push(mem);
         });
@@ -288,6 +289,7 @@ export class RoomManager {
                 roomName: source.room.name,
                 containerID: "",
             }
+            if (roomMem.structures == undefined) roomMem.structures = {};
             if (roomMem.structures[source.id] == undefined) roomMem.structures[source.id] = mem;
             sourceMems.push(mem);
         });

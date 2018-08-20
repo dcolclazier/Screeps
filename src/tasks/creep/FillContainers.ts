@@ -84,7 +84,7 @@ export class FillContainers extends CreepTask {
 
         const containers = global.roomManager.containers(roomName).filter(cm => {
             var cont = <StructureContainer>Game.getObjectById(cm.id);
-            return cont.store.energy < (cont.storeCapacity / 2)
+            return cont.store.energy < (cont.storeCapacity * .75)
                 && cm.shouldRefill;
         });
 
