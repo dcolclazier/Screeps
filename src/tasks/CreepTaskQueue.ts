@@ -32,7 +32,7 @@ export class CreepTaskQueue {
         //console.log(`creepRole: ${creepRole}`)
         return CreepTaskQueue.getTasks(originatingRoomName, targetRoomName, taskName, targetID, status, creepRole).length;
     }
-    static getTasks(originatingRoomName: string, targetRoomName?: string, taskName?: string, targetID?: string, status?: TaskStatus, creepRole?: CreepRole): string[] {
+    static getTasks(originatingRoomName?: string, targetRoomName?: string, taskName?: string, targetID?: string, status?: TaskStatus, creepRole?: CreepRole): string[] {
 
         //console.log("get Tasks....................................")
         //console.log(`originating: ${originatingRoomName}`)
@@ -43,7 +43,7 @@ export class CreepTaskQueue {
         //console.log(`creepRole: ${creepRole}`)
         var matchingRequests = _.filter(Memory.creepTasks, req => {
 
-            if (originatingRoomName != req.originatingRoomName) return false;
+            if (originatingRoomName != undefined && originatingRoomName != req.originatingRoomName) return false;
             if (targetRoomName != undefined && targetRoomName != req.targetRoomName) return false;
             if (taskName != undefined && taskName != req.name) return false;
             if (targetID != undefined && targetID != req.targetID) return false;
@@ -110,7 +110,7 @@ export class CreepTaskQueue {
         if (creep.spawning) return;
         if (creep == undefined) return;
 
-        console.log("Assiging task to " + creepName);
+        //console.log("Assiging task to " + creepName);
 
         var nextTaskID = CreepTaskQueue.getNextTaskID(creepName, originatingRoomName);
         if (nextTaskID == undefined) return;

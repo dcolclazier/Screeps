@@ -8,7 +8,7 @@ declare namespace NodeJS {
         taskManager: TaskManager;
         creepManager: CreepManager;
 
-        log: (thing:any) => void;
+        log: (thing: any) => void;
     }
 }
 
@@ -51,6 +51,7 @@ interface RemoteHarvestRoomMemory extends RoomMemory {
     baseRoomName: string;
     sourceCount: number;
     assignedReserver: string;
+    assignedDefender: string;
 }
 
 interface OwnedRoomMemory extends RoomMemory {

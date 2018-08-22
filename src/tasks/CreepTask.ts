@@ -2,6 +2,8 @@ import { Task } from "./Task";
 import { CreepTaskRequest } from "./CreepTaskRequest";
 //import { SmartContainer, SmartSource,  SmartLink } from "utils/memory"
 import { Traveler } from "Traveler";
+import { CreepTaskQueue } from "./CreepTaskQueue";
+import { TerminalTransferFinish, TerminalTransferStart } from "TerminalTransfer";
 
 
 export abstract class CreepTask extends Task {
@@ -25,16 +27,16 @@ export abstract class CreepTask extends Task {
         else {
             if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
 
-            if (Object.keys(this.creep.carry).length > 1) {
-                const room = Game.rooms[this.request.originatingRoomName];
-                const storage = room.storage;
-                if (storage != undefined) {
-                    var result = this.creep.transfer(storage, <ResourceConstant>_.findKey(this.creep.carry));
-                    if (result == ERR_NOT_IN_RANGE) {
-                        this.creep.travelTo(storage);
-                    }
-                }
-            }
+            //if (Object.keys(this.creep.carry).length > 1) {
+            //    const room = Game.rooms[this.request.originatingRoomName];
+            //    const storage = room.storage;
+            //    if (storage != undefined) {
+            //        var result = this.creep.transfer(storage, <ResourceConstant>_.findKey(this.creep.carry));
+            //        if (result == ERR_NOT_IN_RANGE) {
+            //            this.creep.travelTo(storage);
+            //        }
+            //    }
+            //}
             //else if (this.creep.room.name != this.request.targetRoomName) {
             //    this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
             //}
@@ -48,12 +50,16 @@ export abstract class CreepTask extends Task {
             this.request.status = "FINISHED";
             return;
         }
-        if (Object.keys(this.creep.carry).length > 1 || this.creep.room.name != this.request.targetRoomName) {
-            this.request.status = "INIT";
-            return;
-        }
+        //if (Object.keys(this.creep.carry).length > 1 || this.creep.room.name != this.request.targetRoomName) {
+        //    this.request.status = "INIT";
+        //    return;
+        //}
 
         if (Game.time % this.creepSayDelay == 0) this.creep.say(`${this.request.wingDing}`);
+
+    }
+
+    protected flee(): void {
 
     }
 
@@ -128,7 +134,7 @@ export abstract class CreepTask extends Task {
 
         const resourcePileIDs = room.memory.activeResourcePileIDs
             .map(s => Game.getObjectById(s) as Resource)
-            .filter(ss => ss != undefined && ss != null && ss.amount > 300)
+            .filter(ss => ss != undefined && ss != null && ss.amount > 100)
         if (resourcePileIDs.length == 0) return false;
 
         const sortedByRange = _.sortBy(resourcePileIDs, s => s.amount / this.creep.pos.getRangeTo(s.pos)).reverse();
@@ -140,6 +146,34 @@ export abstract class CreepTask extends Task {
         }
         return true;
 
+    }
+
+    protected collectFromTerminal(roomName: string): boolean {
+
+        //var tasks1 = CreepTaskQueue.getTasks(roomName, undefined, "TerminalTransferFinish");
+        //var tasks2 = CreepTaskQueue.getTasks(undefined, roomName, "TerminalTransferFinish");
+
+        var tasks3 = CreepTaskQueue.getTasks(roomName, undefined, "TerminalTransferStart");
+        //var tasks4 = CreepTaskQueue.getTasks(undefined, roomName, "TerminalTransferStart");
+
+        if (tasks3.length != 0) {
+            //console.log("found tasks involving this room...")
+            return false;
+        }
+
+        const room = Game.rooms[roomName];
+        if (room == undefined) return false;
+
+        const terminal = room.terminal;
+        if (terminal == undefined) return false;
+
+        if (terminal.store.energy == undefined || terminal.store.energy == 0) return false;
+
+        if (this.creep.withdraw(terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            this.creep.travelTo(terminal);
+            this.creep.withdraw(terminal, RESOURCE_ENERGY)
+        }
+        return true;
     }
 
     protected collectFromContainer(roomName: string): boolean {

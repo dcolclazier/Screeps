@@ -17,9 +17,11 @@ import { Reserve } from "tasks/creep/Reserve";
 import { Restock } from "tasks/creep/Restock";
 import { TowerAttack } from "tasks/structure/TowerAttack";
 import { TowerRepair } from "tasks/structure/TowerRepair";
+import { Defend } from "tasks/creep/Defend";
+import { TerminalTransferStart, TerminalTransferFinish } from "TerminalTransfer";
 
 
-export const TaskStore: any = { Build, Mine, PickupEnergy, Dismantle, FillTower, FillStorage, FillContainers, Reserve, Upgrade, Restock, TowerRepair, TowerAttack, RemotePickup }
+export const TaskStore: any = { Defend, Build, Mine, PickupEnergy, Dismantle, FillTower, FillStorage, FillContainers, Reserve, Upgrade, Restock, TowerRepair, TowerAttack, RemotePickup, TerminalTransferStart, TerminalTransferFinish }
 export class TaskManager {
 
     private addTaskRequests(roomName: string) {
@@ -36,7 +38,8 @@ export class TaskManager {
         TowerRepair.addRequests(roomName);
         Reserve.addRequests(roomName);
         RemotePickup.addRequests(roomName);
-
+        Defend.addRequests(roomName);
+        TerminalTransferStart.addRequests(roomName);
         //var test = global.roomManager.getCreepsTest(roomName);
         //console.log(JSON.stringify(test));
 
@@ -108,8 +111,14 @@ export class TaskManager {
         task.run();
         if (req.status == "FINISHED") {
             switch (req.category) {
-                case "CREEP": CreepTaskQueue.removeTask(id); break;
-                case "STRUCTURE": StructureTaskQueue.removeTask(id); break;
+                case "CREEP":
+                    CreepTaskQueue.removeTask(id);
+                    var creep = Game.getObjectById(req.assignedToID) as Creep;
+                    if (creep != undefined) CreepTaskQueue.assignRequest(creep.name, creep.memory.homeRoom);
+                    break;
+                case "STRUCTURE":
+                    StructureTaskQueue.removeTask(id);
+                    break;
             }
         }
     }

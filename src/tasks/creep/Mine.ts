@@ -37,34 +37,29 @@ export class Mine extends CreepTask {
 
     protected prepare(): void {
         super.prepare();
+        if (this.creep.room.name != this.request.targetRoomName) {
+            this.request.status = "INIT";
+        }
         if (this.request.status != "PREPARE") return;
-        if (this.creep.room.name != this.request.targetRoomName) return;
+        
 
         const sources = global.roomManager.sources(this.request.targetRoomName);
         const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
-
         source.assignedTo.push(this.creep.name);
         console.log("mine init assigned to " + source.assignedTo)
-
         this.request.status = "IN_PROGRESS";
     }
     protected work(): void {
         super.work();
         if (this.request.status != "IN_PROGRESS") return;
 
-        if (this.creep.carryCapacity == 0) {
-            this.harvest();
-        }
+        if (this.creep.carryCapacity == 0) this.harvest();
         else {
             if (this.creep.carry.energy >= this.creep.carryCapacity - 10) this.deliver();
             this.harvest();
         }
-        //else(this.creep.drop(RESOURCE_ENERGY))
-
     }
-    protected finish(): void {
-        super.finish();
-    }
+    
 
     private static addOwnedRequest(roomName: string): void {
         const room = Game.rooms[roomName];
@@ -95,7 +90,7 @@ export class Mine extends CreepTask {
 
         var roomMem = <RemoteHarvestRoomMemory>Memory.rooms[roomName];
         var minersPerSource = 1;
-        
+
         _.forEach(global.roomManager.sources(roomName), source => {
             if (source.assignedTo.length != minersPerSource) {
                 var needed = minersPerSource - source.assignedTo.length;
@@ -123,7 +118,7 @@ export class Mine extends CreepTask {
         }
 
 
-        
+
 
     }
 
@@ -147,18 +142,19 @@ export class Mine extends CreepTask {
     private deliver() {
 
         const room = Game.rooms[this.request.targetRoomName];
-        //const source = Game.getObjectById(this.request.targetID) as Source;
-        const sources = global.roomManager.sources(this.request.targetRoomName);
-        const source = _.find(sources, s => s.id == this.request.targetID);
+
+        if (Memory.rooms[this.request.targetRoomName].roomType == "REMOTE_HARVEST") {
+
+            const sites = _.sortBy(this.creep.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 3), s => s.progressTotal);
+            if (sites.length > 0) {
+                this.creep.build(sites[0]);
+            }
+        }
+        const source = _.find(global.roomManager.sources(this.request.targetRoomName), s => s.id == this.request.targetID);
         if (source == undefined) {
             console.log("ERROR:Mine::deliver -> source was undefined...")
             return;
         }
-        //const source = <SourceMemory>room.memory.structures[this.request.targetID];
-        //var smartSource = roomMemory.sources[this.request.targetID];
-        //if (room.name == "W5S43") {
-        //  console.log("smartsource id:" + smartSource.linkID)
-        //}
         if (source.linkID != "") {
             var link = Game.getObjectById(source.linkID) as StructureLink;
             if (this.creep.transfer(link, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -185,8 +181,6 @@ export class Mine extends CreepTask {
         else {
             this.creep.drop(RESOURCE_ENERGY);
         }
-
-
 
     }
 

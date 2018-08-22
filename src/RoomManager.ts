@@ -36,6 +36,7 @@ export class RoomManager {
             this.initializeSources(roomName)
         }
         return this._sources2[roomName];
+        
     }
     public containers(roomName: string): ContainerMemory[] {
         const room = Memory.rooms[roomName];
@@ -85,6 +86,8 @@ export class RoomManager {
         var creeps = room.find(FIND_MY_CREEPS);
 
         if (creeps.length < 3 && room.energyAvailable < 800) return 1;
+
+        if (global.creepManager.creeps(roomName, "ROLE_MINER").length == 0) return 1;
 
         let cap = room.energyCapacityAvailable;
 

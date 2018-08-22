@@ -12,7 +12,7 @@ export class CreepManager {
 
         return this._creeps[roomName].filter(name => {
             var creep = Game.creeps[name];
-            if (creep == undefined) return false;
+            if (creep == undefined || creep == null) return false;
             if (role != undefined && creep.memory.role != role) return false;
             if (idle != undefined && creep.memory.idle != idle) return false;
             return true;
@@ -72,11 +72,16 @@ export class CreepManager {
 
     public deleteCreep(creepName: string): void {
 
-        _.forEach(global.roomManager.sources(this.getHomeRoom(creepName)), source => {
-            if (_.includes(source.assignedTo, creepName)) {
-                source.assignedTo = source.assignedTo.filter(s => s != creepName);
-            }
+        var rooms = Object.keys(Game.rooms);
+
+        _.forEach(rooms, r=>{
+            _.forEach(global.roomManager.sources(r), source => {
+                if (_.includes(source.assignedTo, creepName)) {
+                    source.assignedTo = source.assignedTo.filter(s => s != creepName);
+                }
+            })
         })
+        
         delete Memory.creeps[creepName];
         const roomName = this.getHomeRoom(creepName)
         this._creeps[roomName] = this._creeps[roomName].filter(name => name != creepName);
@@ -99,15 +104,17 @@ export class CreepManager {
         }
 
         var energyLevel = global.roomManager.getEnergyLevel(roomName);
+        this.spawnMissingDefenders(roomName, energyLevel);
         this.spawnMissingMiners(roomName, energyLevel);
         this.spawnMissingWorkers(roomName, energyLevel);
         this.spawnMissingUpgraders(roomName, energyLevel);
         this.spawnMissingCarriers(roomName, energyLevel);
+       
         this.spawnMissingReservers(roomName, energyLevel);
         this.spawnMissingRemoteUpgraders(roomName, energyLevel);
         this.spawnMissingDismantlers(roomName, energyLevel);
         this.spawnMissingRemoteCarriers(roomName, energyLevel);
-        //CreepManager.spawnMissingDefenders(roomName, energyLevel);
+        
     }
 
     private getUpgraderBodyParts(energyLevel: number): BodyPartConstant[] {
@@ -136,9 +143,10 @@ export class CreepManager {
         switch (energyLevel) {
             case 1: return [WORK, MOVE, MOVE, CARRY];
             case 2: return [ATTACK, ATTACK, MOVE, MOVE]
-            case 3: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
-            case 4: return [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY]
-            default: return [WORK, MOVE, MOVE, CARRY];
+            case 3: return [MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK]
+            case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL]
+            case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL]
+            default: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
         }
     }
     private getRemoteUpgraderBodyParts(energyLevel: number): BodyPartConstant[] {
@@ -174,7 +182,7 @@ export class CreepManager {
         }
     }
     private getMinerBodyParts(energyLevel: number): BodyPartConstant[] {
-
+        //console.log("got here")
         switch (energyLevel) {
             case 1: return [WORK, WORK, MOVE, MOVE];
             case 2: return [WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE]
@@ -203,7 +211,7 @@ export class CreepManager {
             case 2: return [MOVE, MOVE, MOVE, CARRY, CARRY, WORK]
             case 3: return [MOVE, MOVE, CARRY, CARRY, CARRY, WORK]
             case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
-            case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
+            case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
             default: return [MOVE, MOVE];
         }
     }
@@ -241,21 +249,27 @@ export class CreepManager {
         }
     }
     private spawnMissingDefenders(roomName: string, energyLevel: number) {
-        const currentDefenderCount = this.totalCreepCount("ROLE_DEFENDER");
-        const spawns = global.roomManager.findSpawns(roomName);
-        let defendersNeeded: number = 3 - currentDefenderCount;
-        let spawned: number = 0;
-        for (var i in spawns) {
 
-            if (spawned < defendersNeeded) {
-                var spawn = spawns[i] as StructureSpawn;
-                if (spawn.spawning) continue;
 
-                this.trySpawnCreep(spawn, "ROLE_DEFENDER", energyLevel);
-                if (spawn.spawning) spawned++;
-            }
-            else break;
-        }
+        var totalTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Defend").length;
+        //if (roomName == "W4S43") console.log(`Total mine tasks: ${totalTaskCount}`)
+        //var miners = global.creepManager.creeps(roomName, "ROLE_MINER");
+        this.spawnCreeps(roomName, "ROLE_DEFENDER", totalTaskCount, energyLevel);
+        //const currentDefenderCount = this.totalCreepCount("ROLE_DEFENDER");
+        //const spawns = global.roomManager.findSpawns(roomName);
+        //let defendersNeeded: number = 1 - currentDefenderCount;
+        //let spawned: number = 0;
+        //for (var i in spawns) {
+
+        //    if (spawned < defendersNeeded) {
+        //        var spawn = spawns[i] as StructureSpawn;
+        //        if (spawn.spawning) continue;
+
+        //        this.trySpawnCreep(spawn, "ROLE_DEFENDER", energyLevel);
+        //        if (spawn.spawning) spawned++;
+        //    }
+        //    else break;
+        //}
 
     }
     private spawnMissingReservers(roomName: string, energyLevel: number): void {
@@ -274,6 +288,8 @@ export class CreepManager {
         var currentIdle = this.creeps(roomName, "ROLE_RESERVER", true).length;
 
         var currentPending = CreepTaskQueue.count(roomName, undefined, "Reserve", undefined, "PENDING");
+
+
         //console.log(`current Pending count: ${currentPending}`);
         var currentlySpawning = _.filter(global.roomManager.findSpawns(roomName, true), s => {
             var spawn = s as StructureSpawn;
@@ -345,12 +361,21 @@ export class CreepManager {
     }
     private spawnMissingCarriers(roomName: string, energyLevel: number) {
         const miners = this.creeps(roomName, "ROLE_MINER");
+
+       
         const workers = this.creeps(roomName, "ROLE_WORKER");
+
 
         const room = Game.rooms[roomName];
         const roomMem = room.memory as OwnedRoomMemory;
         const settings = roomMem.settingsMap[energyLevel];
         const currentCarrierCount = this.creeps(roomName, "ROLE_CARRIER").length;
+        if (miners.length == 0) return;
+        if (miners.length < settings.minimumMinerCount && currentCarrierCount > 0) return;
+       
+        if (currentCarrierCount >= settings.maxCarrierCount) return;
+
+        
         if (miners.length < settings.minimumMinerCount - 1 && workers.length < settings.minimumWorkerCount && currentCarrierCount > 0) {
             return;
         }
@@ -390,6 +415,7 @@ export class CreepManager {
 
         //var pendingTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Mine", undefined, "PENDING").length;
         var totalTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Mine").length;
+        //if (roomName == "W4S43") console.log(`Total mine tasks: ${totalTaskCount}`)
         //var miners = global.creepManager.creeps(roomName, "ROLE_MINER");
         this.spawnCreeps(roomName, "ROLE_MINER", totalTaskCount, energyLevel);
         //const minersPerSource = Game.rooms[roomName].memory.settingsMap[energyLevel].minersPerSource;
@@ -429,15 +455,18 @@ export class CreepManager {
                 if (this.getRole(spawn.spawning.name) == role) spawningCount++;
             }
         }
-
+        
         let totalNeeded: number = max - (currentCount + spawningCount);
         if (totalNeeded < 1) return;
-
+       
         let creepsSpawned: number = 0;
 
         for (var i in availableSpawns) {
             var spawn = availableSpawns[i] as StructureSpawn;
             if (creepsSpawned < totalNeeded) {
+                if (role == "ROLE_MINER" && roomName == "W4S43") {
+                    //console.log("got here.")
+                }
                 if (this.trySpawnCreep(spawn, role, energyLevel)) creepsSpawned++;
             }
             else break;
@@ -446,19 +475,23 @@ export class CreepManager {
 
     private spawnCreep(spawn: StructureSpawn, bodyParts: BodyPartConstant[], role: CreepRole): number {
         //console.log("trying to spawn " + role);
+
+        if (spawn.room.name == "W4S43") console.log(JSON.stringify(bodyParts))
+
         let uuid: number = Memory.uuid;
         let creepName: string = spawn.room.name + "-" + role + "-" + (uuid + 1);
 
         let status: number | string = spawn.spawnCreep(bodyParts, creepName, { dryRun: true });
         status = _.isString(status) ? OK : status;
-
+        //console.log(global.creepManager.creeps("W4S43", "ROLE_MINER"))
         while (status == -3) {
             uuid++;
             creepName = spawn.room.name + "-" + role + "-" + (uuid + 1);
             status = spawn.spawnCreep(bodyParts, creepName, { dryRun: true });
+            console.log(global.creepManager.creeps("W4S43", "ROLE_MINER"))
             status = _.isString(status) ? OK : status;
         }
-
+        //console.log(global.creepManager.creeps("W4S43", "ROLE_MINER"))
         if (status === OK && spawn.spawning == null) {
             Memory.uuid = uuid + 1;
             const memory: CreepMemory =
@@ -474,7 +507,7 @@ export class CreepManager {
 
             };
             status = spawn.spawnCreep(bodyParts, creepName, { memory: memory });
-            this.setCreepMemory(spawn.pos.roomName, creepName);
+            //if (status == OK) this.setCreepMemory(spawn.room.name, creepName);
             return _.isString(status) ? OK : status;
         }
         else {
@@ -483,20 +516,21 @@ export class CreepManager {
         }
     }
 
-    private setCreepMemory(roomName: string, creepName: string) {
+    //private setCreepMemory(roomName: string, creepName: string) {
 
-        if (this._creeps[roomName] == undefined) {
-            this.loadCreeps(roomName);
-        }
-        if (!_.contains(this._creeps[roomName], creepName)) {
-            this._creeps[roomName].push(creepName);
-        }
-        const creep = Game.creeps[creepName];
-        if (creep != undefined) {
-            Memory.creeps[creepName] = creep.memory;
-        }
+    //    if (this._creeps[roomName] == undefined) {
+    //        this.loadCreeps(roomName);
+    //    }
+    //    if (!_.contains(this._creeps[roomName], creepName)) {
+    //        this._creeps[roomName].push(creepName);
+    //    }
+    //    const creep = Game.creeps[creepName];
+    //    if (creep != undefined) {
+    //        console.log("setting creep memory for " + creepName)
+    //        Memory.creeps[creepName] = creep.memory;
+    //    }
 
-    }
+    //}
 
     private trySpawnCreep(spawn: StructureSpawn, role: CreepRole, energyLevel: number) {
 

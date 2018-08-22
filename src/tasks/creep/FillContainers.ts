@@ -32,7 +32,7 @@ export class FillContainers extends CreepTask {
         //const restockInfo = this.request as FillStorageRequest;
         var room = Game.rooms[this.request.targetRoomName];
 
-        if (this.creep.carry.energy == this.creep.carryCapacity) {
+        if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
             this.request.status = "IN_PROGRESS";
             return;
         }
@@ -84,6 +84,9 @@ export class FillContainers extends CreepTask {
 
         const containers = global.roomManager.containers(roomName).filter(cm => {
             var cont = <StructureContainer>Game.getObjectById(cm.id);
+            if (cont == null) {
+                return false;
+            }
             return cont.store.energy < (cont.storeCapacity * .75)
                 && cm.shouldRefill;
         });

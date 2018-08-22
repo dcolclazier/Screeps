@@ -64,6 +64,8 @@ export class Reserve extends CreepTask {
             var room = Game.rooms[this.request.targetRoomName] as Room;
             roomMem.sourceCount = room.find(FIND_SOURCES).length;
         }
+
+
         //global.roomManager.sources(this.request.targetRoomName);
         //global.roomManager.containers(this.request.targetRoomName);
 

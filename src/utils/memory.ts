@@ -88,6 +88,7 @@ export function initRoomMemory(roomName: string): void {
             if (flag == undefined) throw new Error("Flag cannot be undefined at this stage...");
             remoteMem.baseRoomName = flag.name;
             remoteMem.assignedReserver = "";
+            remoteMem.assignedDefender = "";
             remoteMem.sourceCount = 0;
             remoteMem.activeResourcePileIDs = [];
             remoteMem.initialized = true;

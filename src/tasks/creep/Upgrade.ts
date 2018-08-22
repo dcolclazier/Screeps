@@ -62,6 +62,8 @@ export class Upgrade extends CreepTask {
             return;
         }
 
+        
+
         let controller = <StructureController>Game.getObjectById(this.request.targetID);
 
         if (controller.sign == undefined || controller.sign.username != "KeyserSoze") {
@@ -77,6 +79,13 @@ export class Upgrade extends CreepTask {
 
     private fillup(roomName: string): void {
         const room = Game.rooms[roomName];
+
+        if (Object.keys(this.creep.carry).length > 1) {
+            this.creep.drop(<ResourceConstant>_.findKey(this.creep.carry))
+            return;
+        }
+
+
         if (this.collectFromContainer(room.name)) return;
 
         if (this.collectFromDroppedEnergy(room.name)) return;

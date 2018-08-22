@@ -66,14 +66,16 @@ export class Build extends CreepTask {
             this.request.status = "FINISHED";
             return;
         }
+        if (this.creep.carry.energy == 0) {
+            this.request.status = "PREPARE";
+            return;
+        }
         const result = this.creep.build(site);
         if (result == ERR_NOT_IN_RANGE) {
             this.creep.travelTo(site);
             //Traveler.travelTo(this.creep, site);
         }
-        else if (this.creep.carry.energy == 0) {
-            this.request.status = "PREPARE";
-        }
+        
     }
 
     static addRequests(roomName: string): void {

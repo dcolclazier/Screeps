@@ -8,7 +8,7 @@ export class FillStorageRequest extends CreepTaskRequest {
     priority: number = 4;
     name = "FillStorage";
     validRoles: CreepRole[] = ["ROLE_CARRIER"]
-    maxConcurrent = 1;
+    maxConcurrent = 2;
     constructor(roomName: string, storageID: string) {
         super(roomName, roomName, storageID, `💰`);
     }
@@ -52,7 +52,9 @@ export class FillStorage extends CreepTask {
             if (this.collectFromTombstone(room.name)) return;
             if (this.collectFromMasterLink(room.name)) return;
             if (this.collectFromContainer(room.name)) return;
+            if (this.collectFromTerminal(room.name)) return;
             //this.collectFromSource(room.name);
+            //this.creep.travelTo(this.creep.room.storage);
             this.request.status = "FINISHED";
         }
         else {
@@ -111,11 +113,14 @@ export class RemotePickup extends CreepTask {
             this.request.status = "FINISHED";
             return;
         }
-
-        if (_.sum(this.creep.carry) != 0) {
+        if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
             this.request.status = "IN_PROGRESS";
-            return;
         }
+        if (this.request.status != "INIT") return;
+        //if (_.sum(this.creep.carry) != 0) {
+        //    this.request.status = "IN_PROGRESS";
+        //    return;
+        //}
 
 
         //var fillStorage = this.request as RemotePickupRequest;
@@ -131,79 +136,51 @@ export class RemotePickup extends CreepTask {
 
     protected prepare(): void {
         super.prepare();
-        if (this.request.status == "FINISHED") return;
+        if (this.creep == undefined || this.creep == null) {
+            this.request.status = "FINISHED";
+            return;
+        }
+        if (this.creep.room.name != this.request.targetRoomName) {
+            this.request.status = "INIT";
+        }
+        if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
+            this.request.status = "IN_PROGRESS";
+        }
+        if (this.request.status != "PREPARE") return;
+
         const restockInfo = this.request as FillStorageRequest;
         var room = Game.rooms[this.request.targetRoomName];
         var roomMem = Memory.rooms[this.request.targetRoomName] as RemoteHarvestRoomMemory;
-        if (this.creep.room.name == this.request.targetRoomName) {
-            if ((this.creep.pos.x >= 1 && this.creep.pos.x <= 48) && (this.creep.pos.y >= 1 && this.creep.pos.y <= 48))
-                this.request.status = "PREPARE";
-            else this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
-        }
-        else this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
-        if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
 
-            if (this.collectFromDroppedEnergy(room.name)) return;
-            if (this.collectFromTombstone(room.name)) return;
-            //if (this.collectFromMasterLink(room.name)) return;
-            if (this.collectFromContainer(room.name)) return;
+        if (this.collectFromDroppedEnergy(room.name)) return;
+        if (this.collectFromTombstone(room.name)) return;
+        if (this.collectFromContainer(room.name)) return;
 
-            if (this.creep.room.storage == undefined) return;
-            this.creep.travelTo(this.creep.room.storage);
-            //this.collectFromSource(room.name);
-            //this.request.status = "FINISHED";
-        }
-        else {
-            this.request.status = "IN_PROGRESS";
-        }
     }
     protected work(): void {
         super.work();
-
-        const dropOff = <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID);
-        if (this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry)) == ERR_NOT_IN_RANGE) {
-        //if (this.creep.transfer(dropOff, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            this.creep.travelTo(dropOff);
+        if (this.creep == undefined || this.creep == null) {
+            this.request.status = "FINISHED";
+            return;
         }
         if (Object.keys(this.creep.carry).length == 1 && this.creep.carry.energy == 0) {
-            console.log("yup")
             this.request.status = "PREPARE";
             return;
         }
-        //console.log(this.request.status)
-        //if (this.creep.room.name == this.request.originatingRoomName) {
-        //    if ((this.creep.pos.x >= 1 && this.creep.pos.x <= 48) && (this.creep.pos.y >= 1 && this.creep.pos.y <= 48)) {
-                
-        //        if (dropOff == undefined) {
-        //            console.log("ERROR _ REMOTE PICKUP _ only links, containers, storages supported");
-        //            this.request.status = "FINISHED";
-        //            return;
-        //        }
-        //        if (this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry)) == ERR_NOT_IN_RANGE) {
-        //            this.creep.moveTo(dropOff);
-        //        }
-        //        if (_.sum(this.creep.carry) == 0) {
-        //            this.request.status = "PREPARE";
-        //            return;
-        //        }
-        //    }
-        //    else this.creep.moveTo(dropOff);
-        //}
-        //else this.creep.moveTo(dropOff);
-        //if (this.request.status != "IN_PROGRESS") return;
-        //const storage = <StructureStorage>Game.getObjectById(this.request.targetID)
-        //if (storage == undefined) {
-        //    this.request.status = "FINISHED";
-        //    return;
-        //}
-        //const result = this.creep.transfer(storage, _.findKey(this.creep.carry) as ResourceConstant)
-        //if (result == ERR_NOT_IN_RANGE) {
-        //    this.creep.travelTo(storage);
-        //}
-        //if (_.findKey(this.creep.carry) == undefined) {
-        //    this.request.status = "FINISHED";
-        //}
+        if (this.request.status != "IN_PROGRESS") return;
 
+        //repair roads in target room name
+        if (this.creep.room.name == this.request.targetRoomName) {
+            var roads = this.creep.room.find(FIND_STRUCTURES).filter(s => s.structureType == "road" && s.hits < s.hitsMax * .90 && this.creep.pos.inRangeTo(s.pos, 4)) as StructureRoad[];
+            var byMin = _.sortBy(roads, r => r.hits);
+            if (byMin.length > 0) this.creep.repair(byMin[0]);
+        }
+        //drop off energy
+        const dropOff = <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID);
+        if (this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry)) == ERR_NOT_IN_RANGE) {
+            this.creep.travelTo(dropOff);
+            this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry));
+        }
     }
 
 
@@ -213,9 +190,7 @@ export class RemotePickup extends CreepTask {
         if (roomMem.roomType != "REMOTE_HARVEST") return;
         
         const sourceCount = global.roomManager.sources(roomName).length;
-
         const currentTaskCount = CreepTaskQueue.getTasks(roomMem.baseRoomName, roomName, "RemotePickup").length;
-
         const needed = sourceCount - currentTaskCount;
 
         const originRoom = Game.rooms[roomMem.baseRoomName];
@@ -228,21 +203,6 @@ export class RemotePickup extends CreepTask {
             const request = new RemotePickupRequest(roomMem.baseRoomName, roomName, storage.id);
             CreepTaskQueue.addPendingRequest(request)
         }
-        
-        //const room = Game.rooms[roomName];
-        //if (room == undefined) return;
-        //let storages = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "storage") as StructureStorage[];
-
-        //const storage = room.storage;
-        //if (storage == undefined) return;
-
-        //let request = new FillStorageRequest(roomName, storage.id);
-        //let existingTaskCount = CreepTaskQueue.count(roomName, undefined, request.name);
-        //let maxConcurrentCount = request.maxConcurrent;
-
-        //if (existingTaskCount < maxConcurrentCount) {
-        //    CreepTaskQueue.addPendingRequest(request)
-        //}
 
     }
 }
