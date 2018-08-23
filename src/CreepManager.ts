@@ -300,7 +300,7 @@ export class CreepManager {
         var reserversNeeded = currentPending - currentlySpawning - currentIdle;
         if (reserversNeeded < 1) return;
 
-        console.log(`need to spawn ${reserversNeeded} reservers`);
+        //console.log(`need to spawn ${reserversNeeded} reservers`);
         var availableSpawns = global.roomManager.findSpawns(roomName, false);
 
         let reserversSpawned: number = 0;
@@ -476,8 +476,6 @@ export class CreepManager {
     private spawnCreep(spawn: StructureSpawn, bodyParts: BodyPartConstant[], role: CreepRole): number {
         //console.log("trying to spawn " + role);
 
-        if (spawn.room.name == "W4S43") console.log(JSON.stringify(bodyParts))
-
         let uuid: number = Memory.uuid;
         let creepName: string = spawn.room.name + "-" + role + "-" + (uuid + 1);
 
@@ -488,7 +486,6 @@ export class CreepManager {
             uuid++;
             creepName = spawn.room.name + "-" + role + "-" + (uuid + 1);
             status = spawn.spawnCreep(bodyParts, creepName, { dryRun: true });
-            console.log(global.creepManager.creeps("W4S43", "ROLE_MINER"))
             status = _.isString(status) ? OK : status;
         }
         //console.log(global.creepManager.creeps("W4S43", "ROLE_MINER"))

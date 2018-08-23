@@ -157,7 +157,6 @@ export abstract class CreepTask extends Task {
         //var tasks4 = CreepTaskQueue.getTasks(undefined, roomName, "TerminalTransferStart");
 
         if (tasks3.length != 0) {
-            //console.log("found tasks involving this room...")
             return false;
         }
 

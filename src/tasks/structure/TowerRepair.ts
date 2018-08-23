@@ -9,7 +9,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
     priority: number = 2;
     name: string = "TowerRepair";
     maxConcurrent: number = 3;
-    static maxHitPoints: number = 3800000;
+    static maxHitPoints: number = 3140000;
     constructor(roomName: string, siteID: string) {
         super(roomName, roomName, siteID)
     }
@@ -74,7 +74,9 @@ export class TowerRepair extends StructureTask {
         const room = Game.rooms[roomName];
         if (room == undefined) return;
         const targets = room.find(FIND_STRUCTURES)
-            .filter(structure => structure.hits < structure.hitsMax * .75 && structure.hits < TowerRepairRequest.maxHitPoints)
+            .filter(structure => structure.hits < structure.hitsMax * .75
+                && structure.hits < TowerRepairRequest.maxHitPoints
+                && structure.pos.findInRange(FIND_FLAGS, 0).filter(f => f.color == COLOR_YELLOW && f.secondaryColor == COLOR_YELLOW).length == 0);
 
         const sorted = _.sortBy(targets, t => t.hits);
         var count = StructureTaskQueue.count(roomName, TowerRepair.taskName);

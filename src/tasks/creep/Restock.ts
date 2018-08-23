@@ -60,7 +60,7 @@ export class Restock extends CreepTask {
         if (this.creep.carry.energy < this.creep.carryCapacity / 2) {
             if (this.collectFromMasterLink(room.name)) return;
             if (this.collectFromStorage(room.name)) return;
-
+            if (this.collectFromTerminal(room.name)) return;
             if (this.collectFromContainer(room.name)) return;
             if (this.collectFromDroppedEnergy(room.name)) return;
             if (this.collectFromTombstone(room.name)) return;

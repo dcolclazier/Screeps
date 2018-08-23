@@ -47,12 +47,12 @@ export class FillStorage extends CreepTask {
         var roomMem = room.memory as OwnedRoomMemory;
 
         if (this.creep.carry.energy == 0) {
-
+            if (this.collectFromTerminal(room.name)) return;
             if (this.collectFromDroppedEnergy(room.name)) return;
             if (this.collectFromTombstone(room.name)) return;
             if (this.collectFromMasterLink(room.name)) return;
             if (this.collectFromContainer(room.name)) return;
-            if (this.collectFromTerminal(room.name)) return;
+           
             //this.collectFromSource(room.name);
             //this.creep.travelTo(this.creep.room.storage);
             this.request.status = "FINISHED";
@@ -176,7 +176,16 @@ export class RemotePickup extends CreepTask {
             if (byMin.length > 0) this.creep.repair(byMin[0]);
         }
         //drop off energy
-        const dropOff = <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID);
+        var links = global.roomManager.links(this.request.originatingRoomName).filter(l => l.pos.findInRange(FIND_EXIT, 3).length > 0)
+        //console.log(links.length);
+        if (links.length > 1) {
+            //console.log("found some!")
+            links = _.filter(links, l => l.linkMode === "SEND" && l.pos.getRangeTo(new RoomPosition(25, 25, this.request.targetRoomName)))
+            //console.log(JSON.stringify(links, null, 2));
+        }
+        const dropOff = links.length == 0 ? <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
+            : <StructureLink>Game.getObjectById(links[0].id);
+        //const dropOff = <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
         if (this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry)) == ERR_NOT_IN_RANGE) {
             this.creep.travelTo(dropOff);
             this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry));
@@ -195,12 +204,20 @@ export class RemotePickup extends CreepTask {
 
         const originRoom = Game.rooms[roomMem.baseRoomName];
         const storage = originRoom.storage;
-        if (storage == undefined) {
+        var links = global.roomManager.links(roomMem.baseRoomName).filter(l => l.pos.findInRange(FIND_EXIT, 3).length > 0)
+        //console.log(links.length);
+        if (links.length > 1) {
+            //console.log("found some!")
+            links = _.filter(links, l => l.linkMode === "SEND" && l.pos.getRangeTo(new RoomPosition(25, 25, roomName)))
+            //console.log(JSON.stringify(links, null, 2));
+        }
+        if (storage == undefined && links.length == 0) {
             return;
         }
-        
+        var dropOffID = links.length == 0 ? (<StructureStorage>storage).id : links[0].id;
+       
         for (var i = 0; i < needed; i++) {
-            const request = new RemotePickupRequest(roomMem.baseRoomName, roomName, storage.id);
+            const request = new RemotePickupRequest(roomMem.baseRoomName, roomName, dropOffID);
             CreepTaskQueue.addPendingRequest(request)
         }
 

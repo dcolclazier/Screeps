@@ -40,6 +40,7 @@ export class TaskManager {
         RemotePickup.addRequests(roomName);
         Defend.addRequests(roomName);
         TerminalTransferStart.addRequests(roomName);
+        Dismantle.addRequests(roomName);
         //var test = global.roomManager.getCreepsTest(roomName);
         //console.log(JSON.stringify(test));
 

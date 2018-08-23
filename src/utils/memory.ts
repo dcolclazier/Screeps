@@ -154,7 +154,7 @@ export function SetupRoomSettings(roomName: string): RoomSettingsMap {
 export function cleanupCreeps(): void {
     for (const creepName in Memory.creeps) {
         if (!Game.creeps[creepName]) {
-            console.log("Clearing dead creeps from memory.")
+            //console.log("Clearing dead creeps from memory.")
             global.creepManager.deleteCreep(creepName)
         }
     }

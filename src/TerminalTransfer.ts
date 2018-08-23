@@ -291,6 +291,7 @@ export class TerminalTransferStart extends CreepTask {
                 }
             });
             if (bestStorageRoom == "") return;
+            if (bestStorageCount < 100000) return;
 
 
 
