@@ -1,6 +1,7 @@
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
 
 export class CreepManager {
+    
 
     private _creeps: Record<string, string[]> = {};
 
@@ -145,8 +146,8 @@ export class CreepManager {
             case 2: return [ATTACK, ATTACK, MOVE, MOVE]
             case 3: return [MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK]
             case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL]
-            case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL]
-            default: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
+            case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, HEAL, HEAL]
+            default: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, HEAL, HEAL];
         }
     }
     private getRemoteUpgraderBodyParts(energyLevel: number): BodyPartConstant[] {
@@ -455,8 +456,17 @@ export class CreepManager {
                 if (this.getRole(spawn.spawning.name) == role) spawningCount++;
             }
         }
+
+        //getting creeps with low ttl
+        var creepSpawnTime = this.getSpawnTime(role, energyLevel);
+        var oldCreeps = global.creepManager.creeps(roomName, role).filter(c => {
+            const creep = Game.creeps[c];
+            if (creep == undefined || creep.ticksToLive == undefined) return false;
+            if (creep.ticksToLive <= creepSpawnTime) return true;
+            return false;
+        });
         
-        let totalNeeded: number = max - (currentCount + spawningCount);
+        let totalNeeded: number = max - (currentCount + spawningCount) + oldCreeps.length;
         if (totalNeeded < 1) return;
        
         let creepsSpawned: number = 0;
@@ -472,7 +482,15 @@ export class CreepManager {
             else break;
         }
     }
+    getSpawnTime(role: CreepRole, energyLevel: number): any {
 
+        if (role == "ROLE_DEFENDER") {
+            return this.getDefenderBodyParts(energyLevel).length * 3
+        }
+        return 12;
+
+        
+    }
     private spawnCreep(spawn: StructureSpawn, bodyParts: BodyPartConstant[], role: CreepRole): number {
         //console.log("trying to spawn " + role);
 

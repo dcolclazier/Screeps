@@ -59,15 +59,15 @@ export class Traveler {
         // uncomment to visualize destination
         // this.circle(destination.pos, "orange");
         // check if creep is stuck
-        var possibleCreeps = state.destination.lookFor(LOOK_CREEPS) as Creep[];
+        //var possibleCreeps = state.destination.lookFor(LOOK_CREEPS) as Creep[];
         if (this.isStuck(creep, state)) {
             state.stuckCount++;
 
-            if (possibleCreeps.length > 0) {
-                var creepToSwap = possibleCreeps[0];
-                creepToSwap.moveTo(creep.pos);
-                creep.moveTo(creepToSwap.pos);
-            } else console.log("nope.")
+            //if (possibleCreeps.length > 0) {
+            //    var creepToSwap = possibleCreeps[0];
+            //    creepToSwap.moveTo(creep.pos);
+            //    creep.moveTo(creepToSwap.pos);
+            //} else console.log("nope.")
             //Traveler.circle(creep.pos, "magenta", state.stuckCount * .2);
         } else {
             state.stuckCount = 0;
@@ -265,6 +265,12 @@ export class Traveler {
         destination = this.normalizePos(destination);
         let originRoomName = origin.roomName;
         let destRoomName = destination.roomName;
+
+        // Prevents creeps from stopping in a different room
+        let distanceToEdge = _.min([destination.x, 49 - destination.x, destination.y, 49 - destination.y]);
+        if (distanceToEdge < options.range!) {
+            options.range = distanceToEdge - 1;
+        }
 
         // check to see whether findRoute should be used
         let roomDistance = Game.map.getRoomLinearDistance(origin.roomName, destination.roomName);

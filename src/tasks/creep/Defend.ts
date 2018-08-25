@@ -31,6 +31,9 @@ export class Defend extends CreepTask {
     protected prepare(): void {
         super.prepare();
         if (this.request.status != "PREPARE") return;
+        if (this.creep.hits < this.creep.hitsMax) {
+            this.creep.heal(this.creep);
+        }
         if (this.creep.room.name == this.request.targetRoomName) {
             if ((this.creep.pos.x >= 1 && this.creep.pos.x <= 48) && (this.creep.pos.y >= 1 && this.creep.pos.y <= 48))
                 this.request.status = "IN_PROGRESS";
@@ -43,23 +46,29 @@ export class Defend extends CreepTask {
         super.work();
         if (this.request.status != "IN_PROGRESS") return;
 
-        
-        var room = Game.rooms[this.request.targetRoomName];
+        const room = Game.rooms[this.request.targetRoomName];
+        const enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);
 
-        var roomMem = room.memory as OwnedRoomMemory;
-        var enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);
+        if (this.creep.hits < this.creep.hitsMax) {
+            this.creep.heal(this.creep);
+        }
         if (enemies.length == 0) {
             this.creep.moveTo(25, 25);
             return;
         }
-        var lowest = _.first(enemies);
-        if (this.creep.attack(lowest) == ERR_NOT_IN_RANGE) {
-            this.creep.travelTo(lowest);
+        
+        const healers = _.filter(enemies, e => _.find(e.body, HEAL) != undefined);
+        const target = _.first(healers.length > 0 ? healers : enemies);
+
+        if (this.creep.attack(target) == ERR_NOT_IN_RANGE) {
+            this.creep.travelTo(target);
+        }
+        if (this.creep.rangedAttack(target) == ERR_NOT_IN_RANGE) {
+            this.creep.travelTo(target);
         }
         if (this.creep.hits < this.creep.hitsMax) {
             this.creep.heal(this.creep);
         }
-     
 
     }
     constructor(taskInfo: CreepTaskRequest) {

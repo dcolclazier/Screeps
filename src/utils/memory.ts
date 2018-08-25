@@ -42,11 +42,11 @@ export function initializeFlags() {
 }
 export function InitializeGame() {
     if (Memory.memVersion === undefined ||
-        Memory.memVersion !== MemoryVersion ||
-        (Memory.memVersion == 0 && !initialized)) {
-
+        Memory.memVersion !== MemoryVersion)
+        /*(Memory.memVersion == 0 && !initialized))*/ {
+        console.log("Resetting Memory!!!")
         memoryInit();
-        initialized = true;
+        //initialized = true;
     }
     if (!Memory.uuid || Memory.uuid > 10000) {
         Memory.uuid = global.creepManager.totalCreepCount();

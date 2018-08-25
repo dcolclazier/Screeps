@@ -165,11 +165,14 @@ interface Memory {
     memVersion: number;
     initialized: boolean;
     scoutTargets: string[];
-    creepTasks: { [requestID: string]: CreepTaskRequest }
-    structureTasks: { [requestID: string]: StructureTaskRequest }
-    Tasks: { [requestID: string]: ITaskRequest };
+    //refactor this to { [roomName:string] : CreepTaskRequestDictionary}
+    creepTasks2: Record<string, Record<string, CreepTaskRequest>>
+    structureTasks2: Record<string, Record<string, StructureTaskRequest>>
+    creepTasks: Record<string, CreepTaskRequest>;
+    structureTasks: Record<string, StructureTaskRequest>;
+    //Tasks: { [requestID: string]: ITaskRequest };
 }
-
+interface IDictionary<T> { [requestID: string]: T }
 type ReserverMode = "CLAIM" | "RESERVE"
 type IRole = CreepRole | StructureRole;
 
