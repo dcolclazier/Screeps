@@ -8,8 +8,8 @@ export class TowerRepairRequest extends StructureTaskRequest {
     validStructureTypes: StructureConstant[] = ["tower"];
     priority: number = 2;
     name: string = "TowerRepair";
-    maxConcurrent: number = 3;
-    static maxHitPoints: number = 3140000;
+    maxConcurrent: number = 6;
+    static maxHitPoints: number = 3120000;
     constructor(roomName: string, siteID: string) {
         super(roomName, roomName, siteID)
     }
@@ -82,7 +82,7 @@ export class TowerRepair extends StructureTask {
         var count = StructureTaskQueue.count(roomName, TowerRepair.taskName);
         var i = 0;
         for (var id in sorted) {
-            if (i + count == 3) break;
+            if (i + count == 6) break;
             var target = sorted[id];
             StructureTaskQueue.addPendingRequest(new TowerRepairRequest(roomName, target.id));
             i++;

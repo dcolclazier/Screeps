@@ -3,7 +3,7 @@
 //import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import * as utils from "utils/utils";
 import { getRoomType } from "utils/utils";
-export const MemoryVersion = 0;
+export const MemoryVersion = 1;
 export const OwnerName = "KeyserSoze"
 let initialized = false;
 
