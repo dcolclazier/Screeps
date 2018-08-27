@@ -177,7 +177,6 @@ export class RemotePickup extends CreepTask {
         }
         //drop off energy
         var links = global.roomManager.links(this.request.originatingRoomName).filter(l => l.pos.findInRange(FIND_EXIT, 3).length > 0)
-        console.log(links.length);
         if (links.length > 1) {
             //console.log("found some!")
           links = _.sortBy(_.filter(links, l => l.linkMode === "SEND"), l => l.pos.getRangeTo(this.creep.pos))
