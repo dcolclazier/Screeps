@@ -319,7 +319,7 @@ export class RoomManager {
       let linkMode: LinkMode = "SEND";
       if (room.storage != undefined) {
         var rangeToStorage = room.storage.pos.getRangeTo(link);
-        if (rangeToStorage == 1) linkMode = "MASTER_RECEIVE"
+        if (rangeToStorage <= 2) linkMode = "MASTER_RECEIVE"
       }
       else if (room.controller != undefined) {
         //bug - should be range to source
