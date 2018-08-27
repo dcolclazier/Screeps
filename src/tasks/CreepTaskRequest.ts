@@ -18,6 +18,7 @@ export abstract class CreepTaskRequest implements ITaskRequest {
   abstract priority: number;
   abstract validRoles: CreepRole[];
   abstract name: string
+  
 
   constructor(originatingRoomName: string, targetRoomName: string, targetID: string, wingDing: string) {
     this.targetRoomName = targetRoomName;
