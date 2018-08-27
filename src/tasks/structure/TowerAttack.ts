@@ -47,8 +47,7 @@ export class TowerAttack extends StructureTask {
             });
         }
         else {
-            var inRange = hostile.pos.inRangeTo(tower, 30);
-            if (inRange) tower.attack(hostile);
+          tower.attack(hostile);
         }
 
     }
