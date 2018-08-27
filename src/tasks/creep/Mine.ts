@@ -73,12 +73,12 @@ export class Mine extends CreepTask {
     //console.log(JSON.stringify(sources, null, 2));
     for (const i in sources) {
       const source = sources[i];
-      console.log(`adding requests for ${source.id}`);
+      //console.log(`adding requests for ${source.id}`);
       const currentTasks = CreepTaskQueue.getTasks(roomName, roomName, Mine.taskName, source.id).length;
-      console.log(`found ${currentTasks} current tasks for ${source.id}`)
+      //console.log(`found ${currentTasks} current tasks for ${source.id}`)
       
       const neededTasks = minersPerSource - currentTasks;
-      console.log(`max miners per source: ${minersPerSource}, needed: ${neededTasks}`);
+      //console.log(`max miners per source: ${minersPerSource}, needed: ${neededTasks}`);
       for (let n = 0; n < neededTasks; n++) {
         CreepTaskQueue.addPendingRequest(new MineRequest(roomName, roomName, source.id));
       }

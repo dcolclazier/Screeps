@@ -5,10 +5,11 @@ export class CreepManager {
 
   private _creeps: Record<string, string[]> = {};
 
-  public creeps(roomName: string, role?: CreepRole, idle?: boolean): string[] {
+  public creeps(roomName: string, role?: CreepRole, idle?: boolean, otherRoomName?: string): string[] {
     if (this._creeps[roomName] == undefined) {
       this.loadCreeps(roomName);
     }
+    
     if (role == undefined && idle == undefined) return this._creeps[roomName];
 
     return this._creeps[roomName].filter(name => {
@@ -40,12 +41,13 @@ export class CreepManager {
       //console.log(`room ${roomName} was undefined in CreepManager.loadCreeps`)
       return;
     }
-    const foundCreeps = room.find(FIND_MY_CREEPS);
+    const creeps = _.filter(Game.creeps, creep => this.getHomeRoom(creep.name) == roomName);
+    //const foundCreeps = room.find(FIND_MY_CREEPS);
     //if (this._creeps[roomName] == undefined) this._creeps[roomName] = [];
 
 
-    for (let id in foundCreeps) {
-      const creep = foundCreeps[id];
+    for (let id in creeps) {
+      const creep = creeps[id];
       if (creep.memory === undefined || creep.memory.id === undefined) {
         //console.log("it happened...")
         creep.memory = {
@@ -466,6 +468,7 @@ export class CreepManager {
       if (creep.ticksToLive <= creepSpawnTime) return true;
       return false;
     });
+    //console.log(`Old ${role} creeps: ${oldCreeps.length}`)
 
     let totalNeeded: number = max - (currentCount + spawningCount) + oldCreeps.length;
     if (totalNeeded < 1) return;
@@ -483,14 +486,9 @@ export class CreepManager {
       else break;
     }
   }
-  getSpawnTime(role: CreepRole, energyLevel: number): any {
+  getSpawnTime(role: CreepRole, energyLevel: number): number {
 
-    if (role == "ROLE_DEFENDER") {
-      return this.getDefenderBodyParts(energyLevel).length * 3
-    }
-    return 12;
-
-
+    return this.getCreepParts(role, energyLevel).length * 3;
   }
   private spawnCreep(spawn: StructureSpawn, bodyParts: BodyPartConstant[], role: CreepRole): number {
     //console.log("trying to spawn " + role);
@@ -532,23 +530,8 @@ export class CreepManager {
     }
   }
 
-  //private setCreepMemory(roomName: string, creepName: string) {
-
-  //    if (this._creeps[roomName] == undefined) {
-  //        this.loadCreeps(roomName);
-  //    }
-  //    if (!_.contains(this._creeps[roomName], creepName)) {
-  //        this._creeps[roomName].push(creepName);
-  //    }
-  //    const creep = Game.creeps[creepName];
-  //    if (creep != undefined) {
-  //        console.log("setting creep memory for " + creepName)
-  //        Memory.creeps[creepName] = creep.memory;
-  //    }
-
-  //}
-
-  private trySpawnCreep(spawn: StructureSpawn, role: CreepRole, energyLevel: number) {
+ 
+  private trySpawnCreep(spawn: StructureSpawn, role: CreepRole, energyLevel: number) : boolean {
 
     return this.spawnCreep(spawn, this.getCreepParts(role, energyLevel), role) == OK
   }
