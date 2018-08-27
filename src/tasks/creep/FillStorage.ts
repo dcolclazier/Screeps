@@ -177,10 +177,10 @@ export class RemotePickup extends CreepTask {
         }
         //drop off energy
         var links = global.roomManager.links(this.request.originatingRoomName).filter(l => l.pos.findInRange(FIND_EXIT, 3).length > 0)
-        //console.log(links.length);
+        console.log(links.length);
         if (links.length > 1) {
             //console.log("found some!")
-            links = _.filter(links, l => l.linkMode === "SEND" && l.pos.getRangeTo(new RoomPosition(25, 25, this.request.targetRoomName)))
+          links = _.sortBy(_.filter(links, l => l.linkMode === "SEND"), l => l.pos.getRangeTo(this.creep.pos))
             //console.log(JSON.stringify(links, null, 2));
         }
         const dropOff = links.length == 0 ? <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)

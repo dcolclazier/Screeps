@@ -48,10 +48,11 @@ export class Build extends CreepTask {
     if (this.creep.carry.energy < progressLeft) {
 
       var roomName = this.request.targetRoomName;
-      if (this.collectFromTombstone(roomName)) return;
-      if (this.collectFromDroppedEnergy(roomName)) return;
+      //if (this.collectFromTombstone(roomName)) return;
+      
       if (this.collectFromStorage(roomName)) return;
       if (this.collectFromContainer(roomName)) return;
+      if (this.collectFromDroppedEnergy(roomName)) return;
       if (this.collectFromSource(roomName)) return;
       //if (this.creep.carry.energy > 150) this.request.status == "IN_PROGRESS"
     }
