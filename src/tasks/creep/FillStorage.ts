@@ -68,7 +68,11 @@ export class FillStorage extends CreepTask {
         if (storage == undefined) {
             this.request.status = "FINISHED";
             return;
-        }
+      }
+      if (storage.storeCapacity == _.sum(storage.store)) {
+        this.request.status = "FINISHED";
+        return;
+      }
         const result = this.creep.transfer(storage, _.findKey(this.creep.carry) as ResourceConstant)
         if (result == ERR_NOT_IN_RANGE) {
             this.creep.travelTo(storage);
