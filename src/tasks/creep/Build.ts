@@ -49,7 +49,8 @@ export class Build extends CreepTask {
 
       var roomName = this.request.targetRoomName;
       //if (this.collectFromTombstone(roomName)) return;
-      
+
+      if (this.collectFromMasterLink(roomName)) return;
       if (this.collectFromStorage(roomName)) return;
       if (this.collectFromContainer(roomName)) return;
       if (this.collectFromDroppedEnergy(roomName)) return;

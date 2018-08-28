@@ -41,11 +41,12 @@ export class FillContainers extends CreepTask {
     }
     private fillup(): void {
         var room = Game.rooms[this.request.originatingRoomName];
+        if (this.collectFromMasterLink(room.name)) return;
         if (this.collectFromTombstone(room.name)) return;
-        else if (this.collectFromDroppedEnergy(room.name)) return;
-        else if (this.collectFromMasterLink(room.name)) return;
-        else if (this.collectFromStorage(room.name)) return;
-        else if (this.collectFromContainer(room.name)) return;
+        if (this.collectFromDroppedEnergy(room.name)) return;
+        
+        if (this.collectFromStorage(room.name)) return;
+        if (this.collectFromContainer(room.name)) return;
     }
     protected work(): void {
         super.work();
