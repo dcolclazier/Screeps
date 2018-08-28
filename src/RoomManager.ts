@@ -321,15 +321,18 @@ export class RoomManager {
       if (room.storage != undefined) {
         var rangeToStorage = room.storage.pos.getRangeTo(link);
         if (rangeToStorage <= 2) linkMode = "MASTER_RECEIVE"
+        else if (rangeToStorage <= 4) linkMode = "SLAVE_RECEIVE";
       }
-      else if (room.controller != undefined) {
-        //bug - should be range to source
-        var rangeToController = room.controller.pos.getRangeTo(link);
-        if (rangeToController <= 2) linkMode = "SEND";
-      }
-      else {
-        //linkMode = "SLAVE_RECEIVE";
-      }
+      //else if (room.controller != undefined) {
+      //  //bug - should be range to source
+      //  //const sources = this.sources(roomName).filter(s => s.pos.getRangeTo(link) <= 2);
+      //  //if (sources != undefined && sources.length > 0) linkMode = "SEND";
+      //  //var rangeToController = room.controller.pos.getRangeTo(link);
+      //  //if (rangeToController <= 2) linkMode = "SEND";
+      //}
+      //else {
+      //  //linkMode = "SLAVE_RECEIVE";
+      //}
 
       const mem = <LinkMemory>{
         pos: link.pos,

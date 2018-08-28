@@ -107,24 +107,30 @@ export abstract class CreepTask extends Task {
     const room = Game.rooms[roomName];
     if (room == undefined) return false;
 
-    const links = global.roomManager.links(roomName);
+    let links = global.roomManager.links(roomName);
 
     let masterLinkID = _.find(links, linkMem => linkMem.linkMode == "MASTER_RECEIVE");
     if (masterLinkID == undefined) return false;
+    let slaveLinks = _.filter(links, linkMem => linkMem.linkMode == "SLAVE_RECEIVE").map(s => Game.getObjectById(s.id) as StructureLink);
 
-    var link = <StructureLink>Game.getObjectById(masterLinkID.id);
+    let link = <StructureLink>Game.getObjectById(masterLinkID.id);
     if (link == undefined || link == null) {
-      //handle removing?
-
+      links = global.roomManager.links(roomName, true);
       return false;
     }
-    if (link.energy < link.energyCapacity / 2) return false;
+    if (link.energy == 0) {
+      if (slaveLinks.length == 0) return false;
 
-    var result = this.creep.withdraw(link, RESOURCE_ENERGY)
+      link = _.max(slaveLinks, l => l.energy);
+      if (link.energy == 0) return false;
+
+    }
+    const result = this.creep.withdraw(link, RESOURCE_ENERGY)
     if (result == ERR_NOT_IN_RANGE) {
       this.creep.travelTo(link);
     }
     return true;
+   
   }
 
   protected collectFromDroppedEnergy(roomName: string): boolean {

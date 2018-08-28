@@ -167,6 +167,7 @@ export function getRoomType(roomName: string): RoomType {
 
   if (room.controller != undefined) {
     if (room.controller.my) return "OWNED";
+    else if (room.controller.owner == undefined) return "CLAIMABLE";
     else return "HOSTILE"; //todo - add in friendly folks
   }
   return "EMPTY"

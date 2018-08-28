@@ -168,7 +168,7 @@ export class RemotePickup extends CreepTask {
       this.request.status = "FINISHED";
       return;
     }
-    if (Object.keys(this.creep.carry).length == 1 && this.creep.carry.energy == 0) {
+    if (_.sum(this.creep.carry) == 0) {
       this.request.status = "PREPARE";
       return;
     }
@@ -190,9 +190,13 @@ export class RemotePickup extends CreepTask {
     const dropOff = links.length == 0 ? <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
       : <StructureLink>Game.getObjectById(links[0].id);
     //const dropOff = <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
-    if (this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry)) == ERR_NOT_IN_RANGE) {
+    const result = this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry));
+    if (result == ERR_NOT_IN_RANGE) {
       this.creep.travelTo(dropOff);
       this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry));
+    }
+    else if (result == ERR_FULL && _.sum(this.creep.carry) < this.creep.carryCapacity) {
+      this.request.status = "PREPARE";
     }
   }
 

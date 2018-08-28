@@ -38,7 +38,7 @@ declare class RoomSettings {
   constructor(roomName: string);
 }
 
-type RoomType = "OWNED" | "REMOTE_HARVEST" | "HOSTILE" | "UNKNOWN" | "SOURCE_KEEPER" | "EMPTY"
+type RoomType = "OWNED" | "REMOTE_HARVEST" | "HOSTILE" | "UNKNOWN" | "SOURCE_KEEPER" | "EMPTY" | "CLAIMABLE"
 
 interface RoomMemory {
   roomType: RoomType;

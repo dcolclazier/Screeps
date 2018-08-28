@@ -461,16 +461,16 @@ export class CreepManager {
     }
 
     //getting creeps with low ttl
-    var creepSpawnTime = this.getSpawnTime(role, energyLevel);
-    var oldCreeps = global.creepManager.creeps(roomName, role).filter(c => {
-      const creep = Game.creeps[c];
-      if (creep == undefined || creep.ticksToLive == undefined) return false;
-      if (creep.ticksToLive <= creepSpawnTime) return true;
-      return false;
-    });
+    //var creepSpawnTime = this.getSpawnTime(role, energyLevel);
+    //var oldCreeps = global.creepManager.creeps(roomName, role).filter(c => {
+    //  const creep = Game.creeps[c];
+    //  if (creep == undefined || creep.ticksToLive == undefined) return false;
+    //  if (creep.ticksToLive <= creepSpawnTime) return true;
+    //  return false;
+    //});
     //console.log(`Old ${role} creeps: ${oldCreeps.length}`)
 
-    let totalNeeded: number = max - (currentCount + spawningCount) + oldCreeps.length;
+    let totalNeeded: number = max - (currentCount + spawningCount)/* + oldCreeps.length;*/
     if (totalNeeded < 1) return;
 
     let creepsSpawned: number = 0;
