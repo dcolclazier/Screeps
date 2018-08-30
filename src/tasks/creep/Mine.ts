@@ -48,9 +48,9 @@ export class Mine extends CreepTask {
     if (this.request.status != "PREPARE") return;
 
 
-    const sources = global.roomManager.sources(this.request.targetRoomName);
-    const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
-    source.assignedTo.push(this.creep.name);
+    //const sources = global.roomManager.sources(this.request.targetRoomName);
+    //const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
+    //source.assignedTo.push(this.creep.name);
     //console.log("mine init assigned to " + source.assignedTo)
     this.request.status = "IN_PROGRESS";
   }

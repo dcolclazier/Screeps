@@ -69,8 +69,8 @@ export class Upgrade extends CreepTask {
         if (controller.sign == undefined || controller.sign.username != "KeyserSoze") {
             var result = this.creep.signController(controller, "The greatest trick the devil ever pulled was convincing the world he did not exist.");
             if (result == ERR_NOT_IN_RANGE) this.creep.travelTo(controller);
-        }
-        if (this.creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
+      }
+      if (this.creep.upgradeController(controller) == ERR_NOT_IN_RANGE || this.creep.pos.getRangeTo(controller) > 1) {
             this.creep.travelTo(controller);
         }
 

@@ -469,7 +469,7 @@ export class Traveler {
      */
 
     public static getStructureMatrix(room: Room, freshMatrix?: boolean): CostMatrix {
-        if (!this.structureMatrixCache[room.name] || (freshMatrix && Game.time !== this.structureMatrixTick)) {
+        if (!this.structureMatrixCache[room.name] || (freshMatrix && Game.time !== this.structureMatrixTick + 2)) {
             this.structureMatrixTick = Game.time;
             let matrix = new PathFinder.CostMatrix();
             this.structureMatrixCache[room.name] = Traveler.addStructuresToMatrix(room, matrix, 1);

@@ -84,9 +84,9 @@ export class RoomManager {
     var room = Game.rooms[roomName];
     if (room == undefined) return 0;
 
-    var creeps = room.find(FIND_MY_CREEPS);
-
-    if (creeps.length < 3 && room.energyAvailable < 800) return 1;
+    //var creeps = room.find(FIND_MY_CREEPS);
+    if (global.creepManager.creeps(roomName).length < 3 && room.energyAvailable < 800)
+    //if (creeps.length < 3 && room.energyAvailable < 800) return 1;
 
     if (global.creepManager.creeps(roomName, "ROLE_MINER").length == 0) return 1;
 
@@ -133,10 +133,12 @@ export class RoomManager {
 
   }
 
+//add extensions and spawns to roomManager cache...
   public findRestockables(roomName: string): Array<AnyStructure> {
 
     let room = Game.rooms[roomName];
     if (room == undefined) return [];
+    let found: AnyStructure[] = [];
     return room.find(FIND_STRUCTURES, {
       filter: (structure) => {
         return (structure.structureType == STRUCTURE_EXTENSION
