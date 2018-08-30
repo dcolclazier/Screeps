@@ -2,6 +2,126 @@ import { CreepTask } from "tasks/CreepTask";
 import { CreepTaskRequest } from "tasks/CreepTaskRequest";
 import { CreepTaskQueue } from "../CreepTaskQueue";
 
+
+
+export class KeeperLairDefendRequest extends CreepTaskRequest {
+  priority: number = 3;
+  validRoles: CreepRole[] = ["ROLE_KEEPERLAIRDEFENDER"];
+  keeperLairs: string[] = [];
+  currentLairTarget!: string;
+  name: string = KeeperLairDefend.taskName;
+  replacementQueued: boolean = false;
+  constructor(originatingRoomName: string, keeperLairRoomName: string) {
+    super(originatingRoomName, keeperLairRoomName, keeperLairRoomName, 'todo');
+
+  }
+
+}
+export class KeeperLairDefend extends CreepTask {
+  public static taskName: string = "KeeperLairDefend"
+
+  protected init() {
+    super.init();
+    if (this.request.status != "INIT") return;
+    if (this.creep.room.name == this.request.targetRoomName) {
+      if ((this.creep.pos.x >= 1 && this.creep.pos.x <= 48) && (this.creep.pos.y >= 1 && this.creep.pos.y <= 48))
+        this.request.status = "PREPARE";
+      else this.creep.moveTo(new RoomPosition(25, 25, this.request.targetRoomName));
+    }
+  }
+  protected prepare() {
+
+    super.prepare();
+    if (this.creep.room.name != this.request.targetRoomName) this.request.status = "INIT";
+    if (this.request.status != "PREPARE") return;
+    const request = this.request as KeeperLairDefendRequest;
+
+    const room = Game.rooms[this.request.targetRoomName];
+    const keeperLairs = room.find(FIND_HOSTILE_STRUCTURES).filter(s => s.structureType == "keeperLair") as StructureKeeperLair[];
+
+    if (_.any(keeperLairs, l => l.ticksToSpawn == undefined)) {
+      const sortedByRange = _.sortBy(keeperLairs, l => l.pos.getRangeTo(this.creep))
+      request.currentLairTarget = _.first(sortedByRange).id;
+    }
+    else {
+      const sortedByTTL = keeperLairs.sort(l => l.ticksToSpawn == undefined ? 0 : l.ticksToSpawn);
+      request.currentLairTarget = _.first(sortedByTTL).id;
+    }
+    if (request.currentLairTarget == undefined) throw new Error("Undefined target in prepare, should never happen")
+    this.request.status = "WORK";
+  }
+  protected work() {
+    super.work();
+    if (this.request.status != "WORK") return;
+    const request = this.request as KeeperLairDefendRequest;
+
+    if (this.creep.ticksToLive != undefined && this.creep.ticksToLive < 100) {
+      if (!request.replacementQueued) {
+        request.replacementQueued = true;
+        CreepTaskQueue.addPendingRequest(new KeeperLairDefendRequest(request.originatingRoomName, request.targetRoomName));
+      }
+    }
+
+    const room = Game.rooms[this.request.targetRoomName];
+
+    if (this.creep.hits < this.creep.hitsMax) {
+      this.creep.heal(this.creep);
+    }
+    const lair = Game.getObjectById(request.currentLairTarget) as StructureKeeperLair;
+    var range = this.creep.pos.getRangeTo(lair.pos);
+    if (range > 5) {
+      this.creep.travelTo(lair, { range: 5 });
+    }
+    if (lair.ticksToSpawn != undefined) {
+      if (lair.ticksToSpawn < 10 && range > 1) this.creep.travelTo(lair)
+    }
+    else {
+      const enemies = room.find(FIND_HOSTILE_CREEPS).filter(c => c.pos.getRangeTo(this.creep) < 5)
+      if (enemies == undefined || enemies.length == 0) {
+        this.request.status = "PREPARE";
+      }
+      else {
+        if (this.creep.attack(enemies[0]) == ERR_NOT_IN_RANGE) {
+          this.creep.travelTo(enemies[0], { movingTarget: true });
+        }
+      }
+    }
+
+  }
+  protected windDown() {
+    super.windDown();
+    if (this.request.status != "WIND_DOWN") return;
+
+  }
+  protected finish() {
+    super.finish();
+    if (this.request.status != "FINISHED") return;
+
+  }
+
+  static addRequests(roomName: string): void {
+
+    var currentRequests = CreepTaskQueue.getTasks(KeeperLairDefend.taskName, roomName);
+    if (currentRequests.length > 0) return;
+    var homeRoomName: string = "";
+    var flag = _.find(Game.flags, f => {
+      var split = f.name.split("_");
+      if (split.length < 2) return false;
+      if (split[0] != roomName) return false;
+      if (split[1] != "KLD") return false;
+      homeRoomName == split[0];
+      return true;
+    });
+
+    if (flag == undefined) return;
+    if (homeRoomName == "") return;
+
+    CreepTaskQueue.addPendingRequest(new KeeperLairDefendRequest(homeRoomName, roomName));
+  }
+}
+
+
+
 export class DefendRequest extends CreepTaskRequest {
 
     validRoles: CreepRole[] = ["ROLE_DEFENDER"]
@@ -36,7 +156,7 @@ export class Defend extends CreepTask {
         }
         if (this.creep.room.name == this.request.targetRoomName) {
             if ((this.creep.pos.x >= 1 && this.creep.pos.x <= 48) && (this.creep.pos.y >= 1 && this.creep.pos.y <= 48))
-                this.request.status = "IN_PROGRESS";
+                this.request.status = "WORK";
             else this.creep.moveTo(new RoomPosition(25, 25, this.request.targetRoomName));
         }
         else this.creep.moveTo(new RoomPosition(25, 25, this.request.targetRoomName));
@@ -44,7 +164,7 @@ export class Defend extends CreepTask {
     }
     protected work(): void {
         super.work();
-        if (this.request.status != "IN_PROGRESS") return;
+        if (this.request.status != "WORK") return;
 
         const room = Game.rooms[this.request.targetRoomName];
         const enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);

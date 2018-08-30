@@ -51,12 +51,12 @@ export class Reserve extends CreepTask {
         this.creep.moveTo(controller);
 
         if (this.creep.pos.getRangeTo(controller) == 1) {
-            this.request.status = "IN_PROGRESS";
+            this.request.status = "WORK";
         }
     }
     protected work(): void {
         super.work();
-        if (this.request.status != "IN_PROGRESS") return;
+        if (this.request.status != "WORK") return;
 
         var roomMem = Memory.rooms[this.request.targetRoomName] as RemoteHarvestRoomMemory;
         

@@ -176,9 +176,9 @@ interface IDictionary<T> { [requestID: string]: T }
 type ReserverMode = "CLAIM" | "RESERVE"
 type IRole = CreepRole | StructureRole;
 
-type CreepRole = "ROLE_UNASSIGNED" | "ROLE_ALL" | "ROLE_MINER" | "ROLE_WORKER" | "ROLE_UPGRADER" | "ROLE_RESERVER" | "ROLE_CARRIER" | "ROLE_REMOTE_UPGRADER" | "ROLE_DEFENDER" | "ROLE_DISMANTLER" | "ROLE_REMOTE_CARRIER";
+type CreepRole = "ROLE_UNASSIGNED" | "ROLE_ALL" | "ROLE_MINER" | "ROLE_WORKER" | "ROLE_UPGRADER" | "ROLE_RESERVER" | "ROLE_CARRIER" | "ROLE_REMOTE_UPGRADER" | "ROLE_DEFENDER" | "ROLE_DISMANTLER" | "ROLE_REMOTE_CARRIER" | "ROLE_KEEPERLAIRDEFENDER";
 type StructureRole = "ROLE_UNASSIGNED" | "ROLE_TOWER" | "ROLE_LINK" | "ROLE_ALL";
-type TaskStatus = "INIT" | "PREPARE" | "PRE_RUN" | "IN_PROGRESS" | "WIND_DOWN" | "PENDING" | "FINISHED" | "ANY"
+type TaskStatus = "INIT" | "PREPARE" | "PRE_RUN" | "WORK" | "WIND_DOWN" | "PENDING" | "FINISHED" | "ANY"
 type LinkMode = "SEND" | "MASTER_RECEIVE" | "SLAVE_RECEIVE";
 type Coord = { x: number, y: number };
 type HasPos = { pos: RoomPosition };

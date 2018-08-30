@@ -36,7 +36,7 @@ export class Build extends CreepTask {
     const site = Game.getObjectById(info.targetID) as ConstructionSite;
     
     if (this.creep.carry.energy == this.creep.carryCapacity) {
-      this.request.status = "IN_PROGRESS";
+      this.request.status = "WORK";
       return;
     }
     if (site == null || site.progressTotal - site.progress == 0) {
@@ -57,7 +57,7 @@ export class Build extends CreepTask {
       if (this.collectFromSource(roomName)) return;
       //if (this.creep.carry.energy > 150) this.request.status == "IN_PROGRESS"
     }
-    else this.request.status = "IN_PROGRESS";
+    else this.request.status = "WORK";
 
   }
   protected work(): void {

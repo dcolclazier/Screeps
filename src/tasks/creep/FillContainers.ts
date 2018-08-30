@@ -33,7 +33,7 @@ export class FillContainers extends CreepTask {
         var room = Game.rooms[this.request.targetRoomName];
 
         if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
-            this.request.status = "IN_PROGRESS";
+            this.request.status = "WORK";
             return;
         }
         this.fillup();
@@ -50,7 +50,7 @@ export class FillContainers extends CreepTask {
     }
     protected work(): void {
         super.work();
-        if (this.request.status != "IN_PROGRESS") return;
+        if (this.request.status != "WORK") return;
 
         var room = Game.rooms[this.request.targetRoomName];
         if (this.creep.carry.energy == 0) {

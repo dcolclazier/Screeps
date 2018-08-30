@@ -52,11 +52,11 @@ export class Mine extends CreepTask {
     //const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
     //source.assignedTo.push(this.creep.name);
     //console.log("mine init assigned to " + source.assignedTo)
-    this.request.status = "IN_PROGRESS";
+    this.request.status = "WORK";
   }
   protected work(): void {
     super.work();
-    if (this.request.status != "IN_PROGRESS") return;
+    if (this.request.status != "WORK") return;
 
     if (this.creep.carryCapacity == 0) this.harvest();
     else {

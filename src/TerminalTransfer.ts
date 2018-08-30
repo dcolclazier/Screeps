@@ -102,7 +102,7 @@ export class TerminalTransferFinish extends CreepTask {
             this.creep.travelTo(<StructureTerminal>room.terminal);
         }
         else if (result == OK) {
-            this.request.status = "IN_PROGRESS";
+            this.request.status = "WORK";
             request.currentAmount += toGrab;
             if (request.currentAmount >= request.amount) {
                 this.request.status = "FINISHED";
@@ -124,7 +124,7 @@ export class TerminalTransferFinish extends CreepTask {
         else if (this.creep == undefined) {
             this.request.status = "PENDING";
         }
-        if (this.request.status != "IN_PROGRESS") return;
+        if (this.request.status != "WORK") return;
         const storage = room.storage as StructureStorage;
         
 
@@ -222,7 +222,7 @@ export class TerminalTransferStart extends CreepTask {
         if (result == OK) {
             request.currentAmount += amountToTransfer;
             if (request.currentAmount >= request.amount) {
-                this.request.status = "IN_PROGRESS";
+                this.request.status = "WORK";
             }
             
         }
@@ -232,7 +232,7 @@ export class TerminalTransferStart extends CreepTask {
         super.work();
         const request = <TerminalTransferStartRequest>this.request;
         
-        if (request.status != "IN_PROGRESS") return;
+        if (request.status != "WORK") return;
 
         var fromTerminal = Game.getObjectById(request.fromTerminalID) as StructureTerminal;
         if (fromTerminal == undefined) {

@@ -49,13 +49,13 @@ export class Upgrade extends CreepTask {
         if (room.controller === undefined) throw new Error("Room or Controller was undefined in upgrade...")
 
         if (this.creep.carry.energy < this.creep.carryCapacity) this.fillup(this.request.targetRoomName);
-        else this.request.status = "IN_PROGRESS";
+        else this.request.status = "WORK";
     }
 
 
     protected work(): void {
         super.work();
-        if (this.request.status != "IN_PROGRESS") return;
+        if (this.request.status != "WORK") return;
 
         if (this.creep.room.name != this.request.targetRoomName || this.creep.carry.energy == 0) {
             this.request.status = "PREPARE";

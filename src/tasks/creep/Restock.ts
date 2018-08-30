@@ -69,7 +69,7 @@ export class Restock extends CreepTask {
 
     }
     else {
-      this.request.status = "IN_PROGRESS";
+      this.request.status = "WORK";
     }
   }
 
@@ -85,7 +85,7 @@ export class Restock extends CreepTask {
 
   protected work(): void {
     super.work();
-    if (this.request.status != "IN_PROGRESS") return;
+    if (this.request.status != "WORK") return;
 
     if (this.currentRestockID == undefined) {
       this.currentRestockID = this.getNextRestockID();

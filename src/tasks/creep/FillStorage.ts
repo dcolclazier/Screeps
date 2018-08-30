@@ -59,12 +59,12 @@ export class FillStorage extends CreepTask {
       this.request.status = "FINISHED";
     }
     else {
-      this.request.status = "IN_PROGRESS";
+      this.request.status = "WORK";
     }
   }
   protected work(): void {
     super.work();
-    if (this.request.status != "IN_PROGRESS") return;
+    if (this.request.status != "WORK") return;
     const storage = <StructureStorage>Game.getObjectById(this.request.targetID)
     if (storage == undefined) {
       this.request.status = "FINISHED";
@@ -119,7 +119,7 @@ export class RemotePickup extends CreepTask {
       return;
     }
     if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
-      this.request.status = "IN_PROGRESS";
+      this.request.status = "WORK";
     }
     if (this.request.status != "INIT") return;
     //if (_.sum(this.creep.carry) != 0) {
@@ -149,7 +149,7 @@ export class RemotePickup extends CreepTask {
       this.request.status = "INIT";
     }
     if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
-      this.request.status = "IN_PROGRESS";
+      this.request.status = "WORK";
     }
     if (this.request.status != "PREPARE") return;
 
@@ -172,7 +172,7 @@ export class RemotePickup extends CreepTask {
       this.request.status = "PREPARE";
       return;
     }
-    if (this.request.status != "IN_PROGRESS") return;
+    if (this.request.status != "WORK") return;
 
     //repair roads in target room name
     if (this.creep.room.name == this.request.targetRoomName) {

@@ -15,7 +15,7 @@ export abstract class Task implements ITask2 {
         switch (this.request.status) {
             case "INIT": this.init(); count++; break;
             case "PREPARE": this.prepare(); count++; break;
-            case "IN_PROGRESS": this.work(); count++; break;
+            case "WORK": this.work(); count++; break;
             case "WIND_DOWN": this.windDown(); count++; break;
             case "FINISHED": this.finish(); count++; break;
 

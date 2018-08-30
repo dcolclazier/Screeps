@@ -34,11 +34,11 @@ export class TowerRepair extends StructureTask {
         if (this.request.status != "PREPARE") return;
 
 
-        this.request.status = "IN_PROGRESS"
+        this.request.status = "WORK"
     }
     protected work(): void {
         super.work();
-        if (this.request.status != "IN_PROGRESS") return;
+        if (this.request.status != "WORK") return;
 
         const site = Game.getObjectById(this.request.targetID) as AnyStructure;
 

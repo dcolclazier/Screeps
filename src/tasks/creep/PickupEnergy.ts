@@ -29,7 +29,7 @@ export class PickupEnergy extends CreepTask {
     super.prepare();
     if (this.request.status == "FINISHED") return;
 
-    this.request.status = "IN_PROGRESS";
+    this.request.status = "WORK";
   }
 
   protected work() {

@@ -42,7 +42,7 @@ export class FillTower extends CreepTask {
       //this.collectFromSource(room.name);
 
     }
-    else this.request.status = "IN_PROGRESS";
+    else this.request.status = "WORK";
   }
   protected work(): void {
     super.work();

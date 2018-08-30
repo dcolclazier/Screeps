@@ -26,7 +26,7 @@ export class TowerAttack extends StructureTask {
     }
     protected prepare(): void {
         super.prepare();
-        this.request.status = "IN_PROGRESS"
+        this.request.status = "WORK"
     }
     protected work(): void {
         super.work();
