@@ -35,6 +35,7 @@ export class FillTower extends CreepTask {
     if (this.creep.carry.energy == 0) {
 
       if (this.collectFromMasterLink(room.name)) return;
+      if (this.collectFromTerminal(room.name)) return;
       else if (this.collectFromStorage(room.name)) return;
       else if (this.collectFromContainer(room.name)) return;
       else if (this.collectFromTombstone(room.name)) return;
