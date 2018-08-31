@@ -176,9 +176,18 @@ export class RemotePickup extends CreepTask {
 
     //repair roads in target room name
     if (this.creep.room.name == this.request.targetRoomName) {
-      var roads = this.creep.room.find(FIND_STRUCTURES).filter(s => s.structureType == "road" && s.hits < s.hitsMax * .90 && this.creep.pos.inRangeTo(s.pos, 4)) as StructureRoad[];
-      var byMin = _.sortBy(roads, r => r.hits);
-      if (byMin.length > 0) this.creep.repair(byMin[0]);
+      var roads2 = _.sortBy(this.creep.pos.findInRange(FIND_STRUCTURES, 1,
+        { filter: { structureType: "road" } }),
+        s => s.hits);
+      if (roads2.length > 0) {
+        this.creep.repair(roads2[0]);
+      }
+
+      //onsole.log(JSON.stringify(roads2));
+      
+//      var roads = this.creep.room.find(FIND_STRUCTURES).filter(s => s.structureType == "road" && s.hits < s.hitsMax && this.creep.pos.inRangeTo(s.pos, 1)) as StructureRoad[];
+  //    var byMin = _.sortBy(roads, r => r.hits);
+    //  if (byMin.length > 0) this.creep.repair(byMin[0]);
     }
     //drop off energy
     var links = global.roomManager.links(this.request.originatingRoomName).filter(l => l.pos.findInRange(FIND_EXIT, 3).length > 0)
