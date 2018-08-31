@@ -69,7 +69,8 @@ export class TaskManager {
       //}
       const bestChoice = _.max(all, l => l.energyCapacity - l.energy);
       const roomFor = bestChoice.energyCapacity - bestChoice.energy;
-      link.transferEnergy(bestChoice, roomFor);
+      if (roomFor < link.energy) return;
+      link.transferEnergy(bestChoice, roomFor > link.energy? link.energy: roomFor);
     })
 
     //_.forEach(senders, sender => {

@@ -317,12 +317,19 @@ export class RoomManager {
 
     const links = room.find(FIND_MY_STRUCTURES).filter(s => s.structureType == "link");
     //const sources = this.sources(roomName);
+    let masterLinkSet = false;
     const linkMems: LinkMemory[] = [];
     _.forEach(links, link => {
       let linkMode: LinkMode = "SEND";
       if (room.storage != undefined) {
         var rangeToStorage = room.storage.pos.getRangeTo(link);
-        if (rangeToStorage <= 2) linkMode = "MASTER_RECEIVE"
+        if (rangeToStorage <= 2) {
+          if (masterLinkSet) linkMode = "SLAVE_RECEIVE";
+          else {
+            masterLinkSet = true;
+            linkMode = "MASTER_RECEIVE";
+          }
+        }
         else if (rangeToStorage <= 4) linkMode = "SLAVE_RECEIVE";
       }
       //else if (room.controller != undefined) {

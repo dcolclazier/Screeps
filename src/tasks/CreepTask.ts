@@ -6,6 +6,10 @@ import { CreepTaskQueue } from "./CreepTaskQueue";
 import { TerminalTransferFinish, TerminalTransferStart } from "TerminalTransfer";
 
 
+Creep.prototype.test = function () {
+  console.log("test 2 worked.")
+}
+
 export abstract class CreepTask extends Task {
   public request: CreepTaskRequest;
   protected creep: Creep;

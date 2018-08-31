@@ -8,7 +8,7 @@ export class FillTowerRequest extends CreepTaskRequest {
   priority: number = 1
   validRoles: CreepRole[] = ["ROLE_CARRIER"];
   name = "FillTower";
-  maxConcurrent = 1;
+  maxConcurrent = 2;
   constructor(roomName: string, towerID: string) {
     super(roomName, roomName, towerID, `⚗`)
     //super(roomName, `⚗`, towerID);

@@ -64,7 +64,7 @@ export class StructureTaskQueue {
             return;
         }
 
-        var nextTaskID = StructureTaskQueue.getNextTaskID(structureID, originatingRoomName);
+        var nextTaskID = StructureTaskQueue.getNextTaskID(structureID, originatingRoomName, structure.pos);
         ////console.log(`Next Task ID: ${nextTaskID}`)
         if (nextTaskID == undefined) return;
 
@@ -79,7 +79,7 @@ export class StructureTaskQueue {
         //console.log(`Next task ${nextTask.name} assigned to ${structure.structureType} - ${structure.id}`);
     }
 
-    private static getNextTaskID(structureID: string, originatingRoomName: string): string | undefined {
+  private static getNextTaskID(structureID: string, originatingRoomName: string, structurePosition: RoomPosition): string | undefined {
 
         //const structure = <OwnedStructure>Game.getObjectById(structureID);
         const room = Game.rooms[originatingRoomName];
@@ -90,8 +90,9 @@ export class StructureTaskQueue {
 
         const sortedByPriority = _.sortByAll(_.map(tasks, id => Memory.structureTasks[id]),
             [
-                'priority',
-                //t => structure.pos.getRangeTo(<HasPos>Game.getObjectById(t.targetID))
+              'priority',
+              (<AnyStructure>Game.getObjectById(structure.id)).pos.getRangeTo(structurePosition)
+               //structure.pos.getRangeTo(structurePosition)
             ]);
         if (sortedByPriority.length == 0) return undefined;
 

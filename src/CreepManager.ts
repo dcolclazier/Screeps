@@ -548,6 +548,25 @@ export class CreepManager {
 
   constructor() { }
 }
+Object.defineProperty(Creep.prototype, 'test', {
+  value: function () {
+    console.log("test worked.")
+  }
+})
+
+
+
+
+export abstract class RoleTest {
+  abstract roleName: string;
+  abstract baseBodyParts: BodyPartConstant[];
+  abstract minimumControllerLevel: number;
+  abstract respawnEarly: boolean;
+  abstract includePathInRespawn: boolean;
+  abstract minimumTotalEnergyAvailabile: number;
+  abstract minimumRelativeEnergyAvailable: number;
+  abstract minimumRCLToSpawn: number;
+}
 
 
 

@@ -175,19 +175,13 @@ export class RemotePickup extends CreepTask {
     if (this.request.status != "WORK") return;
 
     //repair roads in target room name
-    if (this.creep.room.name == this.request.targetRoomName) {
+    if (this.creep.room.name != this.request.originatingRoomName) {
       var roads2 = _.sortBy(this.creep.pos.findInRange(FIND_STRUCTURES, 1,
         { filter: { structureType: "road" } }),
         s => s.hits);
       if (roads2.length > 0) {
         this.creep.repair(roads2[0]);
       }
-
-      //onsole.log(JSON.stringify(roads2));
-      
-//      var roads = this.creep.room.find(FIND_STRUCTURES).filter(s => s.structureType == "road" && s.hits < s.hitsMax && this.creep.pos.inRangeTo(s.pos, 1)) as StructureRoad[];
-  //    var byMin = _.sortBy(roads, r => r.hits);
-    //  if (byMin.length > 0) this.creep.repair(byMin[0]);
     }
     //drop off energy
     var links = global.roomManager.links(this.request.originatingRoomName).filter(l => l.pos.findInRange(FIND_EXIT, 3).length > 0)
@@ -196,7 +190,9 @@ export class RemotePickup extends CreepTask {
       links = _.sortBy(_.filter(links, l => l.linkMode === "SEND"), l => l.pos.getRangeTo(this.creep.pos))
       //console.log(JSON.stringify(links, null, 2));
     }
-    const dropOff = links.length == 0 ? <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
+    
+    const dropOff = links.length == 0
+      ? <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
       : <StructureLink>Game.getObjectById(links[0].id);
     //const dropOff = <StructureLink | StructureContainer | StructureStorage>Game.getObjectById(this.request.targetID)
     const result = this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry));
@@ -204,7 +200,7 @@ export class RemotePickup extends CreepTask {
       this.creep.travelTo(dropOff);
       this.creep.transfer(dropOff, <ResourceConstant>_.findKey(this.creep.carry));
     }
-    else if (result == ERR_FULL && _.sum(this.creep.carry) < this.creep.carryCapacity) {
+    else if (result == ERR_FULL && _.sum(this.creep.carry) < this.creep.carryCapacity && dropOff.structureType == STRUCTURE_LINK && dropOff.cooldown > 8) {
       this.request.status = "PREPARE";
     }
   }

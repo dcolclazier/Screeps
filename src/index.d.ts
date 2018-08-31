@@ -141,6 +141,7 @@ declare abstract class StructureTaskRequest implements ITaskRequest {
 
 interface Creep {
   travelTo(destination: HasPos | RoomPosition, ops?: TravelToOptions): number;
+  test(): void;
 }
 interface CreepDictionary {
   [creepID: string]: CreepMemory;
