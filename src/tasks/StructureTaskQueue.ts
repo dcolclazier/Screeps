@@ -76,7 +76,6 @@ export class StructureTaskQueue {
         nextTask.assignedToID = structure.id;
         nextTask.status = "INIT";
 
-        //console.log(`Next task ${nextTask.name} assigned to ${structure.structureType} - ${structure.id}`);
     }
 
   private static getNextTaskID(structureID: string, originatingRoomName: string, structurePosition: RoomPosition): string | undefined {

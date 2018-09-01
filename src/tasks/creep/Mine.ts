@@ -34,26 +34,12 @@ export class Mine extends CreepTask {
     }
     if (this.creep.room.name == this.request.targetRoomName) {
       if ((this.creep.pos.x >= 1 && this.creep.pos.x <= 48) && (this.creep.pos.y >= 1 && this.creep.pos.y <= 48))
-        this.request.status = "PREPARE";
+        this.request.status = "WORK";
       else this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
     }
     else this.creep.travelTo(new RoomPosition(25, 25, this.request.targetRoomName));
   }
 
-  protected prepare(): void {
-    super.prepare();
-    if (this.creep.room.name != this.request.targetRoomName) {
-      this.request.status = "INIT";
-    }
-    if (this.request.status != "PREPARE") return;
-
-
-    //const sources = global.roomManager.sources(this.request.targetRoomName);
-    //const source = <SourceMemory>_.find(sources, s => s.id == this.request.targetID);
-    //source.assignedTo.push(this.creep.name);
-    //console.log("mine init assigned to " + source.assignedTo)
-    this.request.status = "WORK";
-  }
   protected work(): void {
     super.work();
     if (this.request.status != "WORK") return;
@@ -76,37 +62,18 @@ export class Mine extends CreepTask {
       minersPerSource = 2;
     }
     const sources = global.roomManager.sources(roomName);
-    //console.log(JSON.stringify(sources, null, 2));
     for (const i in sources) {
       const source = sources[i];
-      //console.log(`adding requests for ${source.id}`);
       const currentTasks = CreepTaskQueue.getTasks(roomName, roomName, Mine.taskName, source.id).length;
-      //console.log(`found ${currentTasks} current tasks for ${source.id}`)
       
       const neededTasks = minersPerSource - currentTasks;
-      //console.log(`max miners per source: ${minersPerSource}, needed: ${neededTasks}`);
       for (let n = 0; n < neededTasks; n++) {
         CreepTaskQueue.addPendingRequest(new MineRequest(roomName, roomName, source.id));
       }
     }
-    //_.forEach(global.roomManager.sources(roomName), source => {
-
-     
-
-    //  //if (source.assignedTo.length != minersPerSource) {
-    //  //    var needed = minersPerSource - source.assignedTo.length;
-    //  //    for (var i = 0; i < needed; i++) {
-
-
-    //  //        var count = CreepTaskQueue.count(roomName, roomName, this.taskName)
-    //  //        if (count < global.roomManager.sources(roomName).length * minersPerSource) {
-    //  //            CreepTaskQueue.addPendingRequest(request);
-    //  //        }
-    //  //    }
-    //  //};
-
-    //})
+    
   }
+  
   private static addRemoteRequest(roomName: string): void {
     const room = Game.rooms[roomName];
     if (room == undefined) return;
@@ -114,37 +81,16 @@ export class Mine extends CreepTask {
     var minersPerSource = 1;
    
     const sources = global.roomManager.sources(roomName);
-    //console.log(JSON.stringify(sources, null, 2));
     for (const i in sources) {
       const source = sources[i];
-      //console.log(`adding requests for ${source.id}`);
       const currentTasks = CreepTaskQueue.getTasks(roomMem.baseRoomName, roomName, Mine.taskName, source.id).length;
-      //console.log(`found ${currentTasks} current tasks for ${source.id}`)
 
       const neededTasks = minersPerSource - currentTasks;
-      //console.log(`max miners per source: ${minersPerSource}, needed: ${neededTasks}`);
       for (let n = 0; n < neededTasks; n++) {
         CreepTaskQueue.addPendingRequest(new MineRequest(roomMem.baseRoomName, roomName, source.id));
       }
     }
-    //var roomMem = <RemoteHarvestRoomMemory>Memory.rooms[roomName];
-    //var minersPerSource = 1;
-
-    //_.forEach(global.roomManager.sources(roomName, true), source => {
-    //  if (source.assignedTo.length != minersPerSource) {
-    //    var needed = minersPerSource - source.assignedTo.length;
-    //    for (var i = 0; i < needed; i++) {
-
-    //      var request = new MineRequest(roomMem.baseRoomName, roomName, source.id);
-    //      var count = CreepTaskQueue.count(roomMem.baseRoomName, roomName, this.taskName)
-    //      if (count < global.roomManager.sources(roomName).length * minersPerSource) {
-    //        CreepTaskQueue.addPendingRequest(request);
-    //      }
-    //    }
-    //  };
-
-    //})
-    //console.log("Would add remote mining request here, in progress")
+   
   }
   static addRequests(roomName: string): void {
 
@@ -153,17 +99,16 @@ export class Mine extends CreepTask {
 
     switch (roomMemory.roomType) {
       case "OWNED": this.addOwnedRequest(roomName); break;
-      case "REMOTE_HARVEST": this.addRemoteRequest(roomName); break;
+      case "REMOTE_HARVEST":
+      case "SOURCE_KEEPER": this.addRemoteRequest(roomName); break;
     }
-
-
-
 
   }
 
   private harvest() {
     const source = Game.getObjectById(this.request.targetID) as Source
-    //creep.say("moving")
+    if (this.flee2(6, this.request.targetRoomName)) return;
+    
     if (this.creep.harvest(source) == ERR_NOT_IN_RANGE) {
 
       this.creep.travelTo(source);
@@ -181,7 +126,7 @@ export class Mine extends CreepTask {
   private deliver() {
 
     const room = Game.rooms[this.request.targetRoomName];
-
+    if (this.flee2(6, this.request.targetRoomName)) return;
     if (Memory.rooms[this.request.targetRoomName].roomType == "REMOTE_HARVEST") {
 
       const sites = _.sortBy(this.creep.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 3), s => s.progressTotal);

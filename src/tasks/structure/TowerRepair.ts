@@ -9,7 +9,7 @@ export class TowerRepairRequest extends StructureTaskRequest {
     priority: number = 2;
     name: string = "TowerRepair";
     maxConcurrent: number = 6;
-    static maxHitPoints: number = 3140000;
+    static maxHitPoints: number = 30140000;
     constructor(roomName: string, siteID: string) {
         super(roomName, roomName, siteID)
     }
@@ -21,7 +21,6 @@ export class TowerRepair extends StructureTask {
     protected init(): void {
         super.init();
         if (this.request.status != "INIT") return;
-        //console.log("Repair INIT");
         var room = Game.rooms[this.request.originatingRoomName] as Room;
         const tower = <TowerMemory>_.find(global.roomManager.towers(this.request.originatingRoomName), t => t.id == this.request.assignedToID)
         //const tower = <TowerMemory>room.memory.structures[this.request.assignedToID];

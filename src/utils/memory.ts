@@ -3,7 +3,7 @@
 //import { StructureTaskRequest } from "tasks/StructureTaskRequest";
 import * as utils from "utils/utils";
 import { getRoomType } from "utils/utils";
-export const MemoryVersion = 0;
+export const MemoryVersion = 1;
 export const OwnerName = "KeyserSoze"
 let initialized = false;
 
@@ -89,10 +89,10 @@ export function initRoomMemory(roomName: string): void {
     case "REMOTE_HARVEST":
       const remoteMem = <RemoteHarvestRoomMemory>{};
       remoteMem.roomType = roomType;
-      const flag = utils.getFlag(roomName, "RH");
+      const rhFlag = utils.getFlag(roomName, "RH");
       //var flag = _.find(Memory.flags, f => f.pos.roomName == roomName && f.color == COLOR_BLUE && f.secondaryColor == COLOR_WHITE);
-      if (flag == undefined) throw new Error("Flag cannot be undefined at this stage...");
-      var parts = flag.name.split("_");
+      if (rhFlag == undefined) throw new Error("Flag cannot be undefined at this stage...");
+      var parts = rhFlag.name.split("_");
       if (parts.length < 2) throw new Error("baseRoom_type_count!!");
       remoteMem.baseRoomName = parts[0];
       remoteMem.assignedReserver = "";
@@ -101,6 +101,23 @@ export function initRoomMemory(roomName: string): void {
       remoteMem.activeResourcePileIDs = [];
       remoteMem.initialized = true;
       Memory.rooms[roomName] = remoteMem;
+      break;
+    case "SOURCE_KEEPER":
+      console.log("getting here!")
+      const skRoomMem = <KeeperLairRoomMemory>{};
+      skRoomMem.roomType = roomType;
+      const skFlag = utils.getFlag(roomName, "KLD");
+      //var flag = _.find(Memory.flags, f => f.pos.roomName == roomName && f.color == COLOR_BLUE && f.secondaryColor == COLOR_WHITE);
+      if (skFlag == undefined) throw new Error("Flag cannot be undefined at this stage...");
+      var parts = skFlag.name.split("_");
+      if (parts.length < 2) throw new Error("baseRoom_type_count!!");
+      skRoomMem.baseRoomName = parts[0];
+      skRoomMem.assignedReserver = "";
+      skRoomMem.assignedDefender = "";
+      skRoomMem.sourceCount = 0;
+      skRoomMem.activeResourcePileIDs = [];
+      skRoomMem.initialized = true;
+      Memory.rooms[roomName] = skRoomMem;
       break;
   }
 

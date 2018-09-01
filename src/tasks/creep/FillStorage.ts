@@ -157,6 +157,7 @@ export class RemotePickup extends CreepTask {
     var room = Game.rooms[this.request.targetRoomName];
     var roomMem = Memory.rooms[this.request.targetRoomName] as RemoteHarvestRoomMemory;
 
+    if (this.flee2(6, this.request.targetRoomName)) return;
     if (this.collectFromDroppedEnergy(room.name)) return;
     if (this.collectFromTombstone(room.name)) return;
     if (this.collectFromContainer(room.name)) return;
@@ -174,6 +175,10 @@ export class RemotePickup extends CreepTask {
     }
     if (this.request.status != "WORK") return;
 
+    if (this.creep.hits < this.creep.hitsMax) {
+      this.creep.heal(this.creep);
+    }
+    if (this.flee2(6, this.request.targetRoomName)) return;
     //repair roads in target room name
     if (this.creep.room.name != this.request.originatingRoomName) {
       var roads2 = _.sortBy(this.creep.pos.findInRange(FIND_STRUCTURES, 1,
@@ -209,7 +214,7 @@ export class RemotePickup extends CreepTask {
   static addRequests(roomName: string) {
 
     const roomMem = <RemoteHarvestRoomMemory>Memory.rooms[roomName];
-    if (roomMem.roomType != "REMOTE_HARVEST") return;
+    if (roomMem.roomType != "REMOTE_HARVEST" && roomMem.roomType != "SOURCE_KEEPER") return;
 
     const sourceCount = global.roomManager.sources(roomName).length;
     const currentTaskCount = CreepTaskQueue.getTasks(roomMem.baseRoomName, roomName, "RemotePickup").length;

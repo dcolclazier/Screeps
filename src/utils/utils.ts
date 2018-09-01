@@ -151,7 +151,7 @@ export function isRemoteHarvestRoom(roomName: string): boolean {
 }
 export function isSourceKeeperRoom(roomName: string): boolean {
 
-  return getFlag(roomName, "SK") != undefined;
+  return getFlag(roomName, "KLD") != undefined;
   //var flag = _.find(Memory.flags, f => f.pos.roomName == roomName && f.color == COLOR_BLUE && f.secondaryColor == COLOR_WHITE);
   //return flag != undefined;
 
@@ -177,17 +177,18 @@ export function getRoomType(roomName: string): RoomType {
 }
 export function getFlag(roomName: string, flagType: string): Flag | undefined {
 
-  const flags = Memory.flags;
+  const flags = Game.flags;
   for (var i in flags) {
     const flag = flags[i];
     if (flag == undefined) continue;
+    if (Memory.flags[i] == undefined) Memory.flags[i] = flag;
     if (flag.pos.roomName != roomName) continue;
     var parts = flag.name.split("_");
-    console.log(parts)
     if (parts.length < 2) continue;
     if (parts[1] != flagType) continue;
     return flag;
   }
+  if (roomName == "W4N5")console.log("getting here...")
   return undefined;
 
 }

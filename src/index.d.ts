@@ -53,6 +53,13 @@ interface RemoteHarvestRoomMemory extends RoomMemory {
   assignedReserver: string;
   assignedDefender: string;
 }
+interface KeeperLairRoomMemory extends RoomMemory {
+  baseRoomName: string;
+  sourceCount: number;
+  assignedReserver: string;
+  assignedDefender: string;
+  mineralType: MineralConstant;
+}
 
 interface OwnedRoomMemory extends RoomMemory {
 

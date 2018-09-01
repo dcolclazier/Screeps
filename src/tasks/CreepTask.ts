@@ -21,7 +21,21 @@ export abstract class CreepTask extends Task {
     this.request = request;
     this.creep = <Creep>Game.getObjectById(this.request.assignedToID);
   }
-
+  protected flee2(range: number, roomName: string): boolean {
+    var nearCreeps = _.filter(this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, range - 1), c => _.any(c.body, b => b.type == "ranged_attack" || b.type == "attack"));
+    var nearlairs = _.filter(this.creep.pos.findInRange(FIND_STRUCTURES, range - 1), s => s.structureType == "keeperLair" && s.ticksToSpawn != undefined && s.ticksToSpawn < 10) as StructureKeeperLair[];
+    if (nearCreeps.length > 0 || nearlairs.length > 0) {
+      var ret = PathFinder.search(this.creep.pos, _.map(nearCreeps, i => ({ pos: i.pos, range: range })).concat(_.map(nearlairs, j => ({ pos: j.pos, range: range }))), {
+        maxRooms: 1, flee: true
+      });
+      if (ret.path.length) {
+        this.creep.moveTo(ret.path[0]);
+        this.creep.say('flee');
+        return true;
+      }
+    }
+    return false;
+  }
   protected init(): void {
 
     if (this.creep == undefined || this.creep.memory == undefined || this.creep == null) {

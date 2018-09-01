@@ -49,7 +49,7 @@ export class Build extends CreepTask {
 
       var roomName = this.request.targetRoomName;
       //if (this.collectFromTombstone(roomName)) return;
-
+      if (this.flee2(6, roomName)) return;
       if (this.collectFromMasterLink(roomName)) return;
       if (this.collectFromStorage(roomName)) return;
       if (this.collectFromContainer(roomName)) return;
@@ -64,6 +64,7 @@ export class Build extends CreepTask {
     super.work();
 
     if (this.request.status == "FINISHED") return;
+    if (this.flee2(6, this.request.targetRoomName)) return;
     //const creep = Game.creeps[this.request.assignedTo];
     const site = Game.getObjectById<ConstructionSite>(this.request.targetID);
     const info = this.request as BuildRequest;
@@ -95,7 +96,7 @@ export class Build extends CreepTask {
     const sites = _.sortBy(room.find(FIND_CONSTRUCTION_SITES), s => s.progress).reverse();
 
     var targetRoomName = roomName;
-    var originatingRoomName = roomMem.roomType == "REMOTE_HARVEST" ? (<RemoteHarvestRoomMemory>roomMem).baseRoomName : roomName;
+    var originatingRoomName = roomMem.roomType == "REMOTE_HARVEST" || roomMem.roomType == "SOURCE_KEEPER"? (<RemoteHarvestRoomMemory>roomMem).baseRoomName : roomName;
 
     _.forEach(sites, site => {
       if (site.progressTotal > 0) {

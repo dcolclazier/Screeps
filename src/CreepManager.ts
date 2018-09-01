@@ -1,4 +1,5 @@
 import { CreepTaskQueue } from "tasks/CreepTaskQueue";
+import { KeeperLairDefend } from "tasks/creep/Defend";
 
 export class CreepManager {
 
@@ -10,7 +11,7 @@ export class CreepManager {
     if (this._creeps[roomName] == undefined) {
       this.loadCreeps(roomName);
     }
-    
+
     if (role == undefined && idle == undefined) return this._creeps[roomName];
 
     return this._creeps[roomName].filter(name => {
@@ -119,6 +120,7 @@ export class CreepManager {
     this.spawnMissingRemoteUpgraders(roomName, energyLevel);
     this.spawnMissingDismantlers(roomName, energyLevel);
     this.spawnMissingRemoteCarriers(roomName, energyLevel);
+    this.spawnMissingKeeperLairDefenders(roomName, energyLevel);
 
   }
 
@@ -151,7 +153,13 @@ export class CreepManager {
       case 3: return [MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK]
       case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL]
       case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, HEAL, HEAL]
-      default: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, HEAL, HEAL];
+      default: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL];
+    }
+  }
+  private getKeeperLairDefenderBodyParts(energyLevel: number): BodyPartConstant[] {
+
+    switch (energyLevel) {
+      default: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL, HEAL, HEAL, HEAL];
     }
   }
   private getRemoteUpgraderBodyParts(energyLevel: number): BodyPartConstant[] {
@@ -216,12 +224,26 @@ export class CreepManager {
       case 2: return [MOVE, MOVE, MOVE, CARRY, CARRY, WORK]
       case 3: return [MOVE, MOVE, CARRY, CARRY, CARRY, WORK]
       case 4: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
-      case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK]
+      case 5: return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, HEAL]
       default: return [MOVE, MOVE];
     }
   }
 
+  private spawnMissingKeeperLairDefenders(roomName: string, energyLevel: number):void {
 
+    if (energyLevel < 5) return;
+    const room = Game.rooms[roomName];
+    const settings = room.memory.settingsMap[energyLevel];
+    if (room.energyAvailable < 8000) return;
+    const miners = this.creeps(roomName, "ROLE_MINER");
+    if (miners.length < settings.minersPerSource * global.roomManager.sources(roomName).length) return;
+
+    const carriers = this.creeps(roomName, "ROLE_CARRIER");
+    if (carriers.length < settings.maxCarrierCount) return;
+
+    var totalTaskCount = CreepTaskQueue.getTasks(roomName, undefined, KeeperLairDefend.taskName).length;
+    this.spawnCreeps(roomName, "ROLE_KEEPERLAIRDEFENDER", totalTaskCount, energyLevel);
+  }
   private spawnMissingRemoteUpgraders(roomName: string, energyLevel: number) {
     const miners = this.creeps(roomName, "ROLE_MINER");
     const workers = this.creeps(roomName, "ROLE_WORKER");
@@ -386,7 +408,6 @@ export class CreepManager {
     }
     this.spawnCreeps(roomName, "ROLE_CARRIER", settings.maxCarrierCount, energyLevel);
   }
-
   private spawnMissingRemoteCarriers(roomName: string, energyLevel: number) {
     const miners = this.creeps(roomName, "ROLE_MINER");
     const upgraders = this.creeps(roomName, "ROLE_UPGRADER");
@@ -415,7 +436,6 @@ export class CreepManager {
 
     this.spawnCreeps(roomName, "ROLE_UPGRADER", settings.maxUpgraderCount, energyLevel);
   }
-
   private spawnMissingMiners(roomName: string, energyLevel: number) {
 
     //var pendingTaskCount = CreepTaskQueue.getTasks(roomName, undefined, "Mine", undefined, "PENDING").length;
@@ -428,7 +448,6 @@ export class CreepManager {
 
     //this.spawnCreeps(roomName, "ROLE_MINER", sourceCount * minersPerSource, energyLevel);
   }
-
   private getCreepParts(role: CreepRole, roomEnergyLevel: number): BodyPartConstant[] {
 
     switch (role) {
@@ -441,6 +460,7 @@ export class CreepManager {
       case "ROLE_REMOTE_UPGRADER": return this.getRemoteUpgraderBodyParts(roomEnergyLevel);
       case "ROLE_DISMANTLER": return this.getDismantlerBodyParts(roomEnergyLevel);
       case "ROLE_REMOTE_CARRIER": return this.getRemoteCarrierBodyParts(roomEnergyLevel);
+      case "ROLE_KEEPERLAIRDEFENDER": return this.getKeeperLairDefenderBodyParts(roomEnergyLevel);
       default: throw new Error(`${role} is not a valid creep role.`);
     }
   }
@@ -530,8 +550,8 @@ export class CreepManager {
     }
   }
 
- 
-  private trySpawnCreep(spawn: StructureSpawn, role: CreepRole, energyLevel: number) : boolean {
+
+  private trySpawnCreep(spawn: StructureSpawn, role: CreepRole, energyLevel: number): boolean {
 
     return this.spawnCreep(spawn, this.getCreepParts(role, energyLevel), role) == OK
   }
@@ -548,11 +568,7 @@ export class CreepManager {
 
   constructor() { }
 }
-Object.defineProperty(Creep.prototype, 'test', {
-  value: function () {
-    console.log("test worked.")
-  }
-})
+
 
 
 

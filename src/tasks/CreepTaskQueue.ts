@@ -117,7 +117,10 @@ export class CreepTaskQueue {
 
     const creep = Game.creeps[creepName];
     const tasks = CreepTaskQueue.getTasks(originatingRoomName, undefined, undefined, undefined, "PENDING", creep.memory.role);
-
+    if (creepName == "W2N5-ROLE_KEEPERLAIRDEFENDER-46") {
+      console.log(originatingRoomName);
+      console.log(tasks.length);
+    }
     if (tasks.length == 0) return undefined;
 
     const sortedByPriority = _.sortByAll(_.map(tasks, id => Memory.creepTasks[id]),
