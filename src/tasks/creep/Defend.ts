@@ -11,6 +11,7 @@ export class KeeperLairDefendRequest extends CreepTaskRequest {
   currentLairTarget!: string;
   name: string = KeeperLairDefend.taskName;
   replacementQueued: boolean = false;
+respawnRange: number;
   constructor(originatingRoomName: string, keeperLairRoomName: string) {
     super(originatingRoomName, keeperLairRoomName, keeperLairRoomName, 'todo');
 
@@ -55,6 +56,8 @@ export class KeeperLairDefend extends CreepTask {
     const request = this.request as KeeperLairDefendRequest;
 
     if (request.currentLairTarget == undefined) throw new Error("Undefined target in prepare, should never happen")
+    if (this.creep == null || this.creep.room == null) throw new Error("Can't be null");
+    request.respawnRange = this.creep.pos.getRangeTo(new RoomPosition(25, 25, this.creep.memory.homeRoom)) + 25
     this.request.status = "WORK";
   }
   protected work() {
@@ -65,7 +68,8 @@ export class KeeperLairDefend extends CreepTask {
     const lair = <StructureKeeperLair>Game.getObjectById(request.currentLairTarget);
     if (lair == undefined) throw new Error("lair cannot be undefined");
 
-    if (this.creep.ticksToLive != undefined && this.creep.ticksToLive < 250) {
+    if (this.creep.ticksToLive != undefined && this.creep.ticksToLive < 150 + request.respawnRange + 15) {
+      
       if (!request.replacementQueued) {
         request.replacementQueued = true;
         CreepTaskQueue.addPendingRequest(new KeeperLairDefendRequest(request.originatingRoomName, request.targetRoomName));
