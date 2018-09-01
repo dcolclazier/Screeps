@@ -11,7 +11,7 @@ export class KeeperLairDefendRequest extends CreepTaskRequest {
   currentLairTarget!: string;
   name: string = KeeperLairDefend.taskName;
   replacementQueued: boolean = false;
-respawnRange: number;
+  respawnRange: number = 50;
   constructor(originatingRoomName: string, keeperLairRoomName: string) {
     super(originatingRoomName, keeperLairRoomName, keeperLairRoomName, 'todo');
 
@@ -158,7 +158,7 @@ export class Defend extends CreepTask {
     if (this.request.status != "WORK") return;
 
     const room = Game.rooms[this.request.targetRoomName];
-    const enemies = room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits);
+    const enemies = _.filter(room.find(FIND_HOSTILE_CREEPS).sort(e => e.hits), c => c.owner.username != "Source Keeper");
 
     if (this.creep.hits < this.creep.hitsMax) {
       this.creep.heal(this.creep);
@@ -199,7 +199,7 @@ export class Defend extends CreepTask {
   static addRequests(roomName: string): void {
     var roomMem = Memory.rooms[roomName] as RemoteHarvestRoomMemory;
     if (roomMem == undefined || roomMem.baseRoomName == undefined) return;
-    if (roomMem.roomType != "REMOTE_HARVEST") return;
+    if (roomMem.roomType != "REMOTE_HARVEST" && roomMem.roomType != "SOURCE_KEEPER") return;
     const currentTasks = CreepTaskQueue.getTasks(roomMem.baseRoomName, roomName, this.taskName);
     if (currentTasks.length > 0) return;
 
